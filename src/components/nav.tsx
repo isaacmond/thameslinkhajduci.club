@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePath } from "./use-path";
 import clsx from "clsx";
 
 const LINKS = [
@@ -16,7 +16,7 @@ const LINKS = [
 ];
 
 export function Nav() {
-  const path = usePathname();
+  const path = usePath();
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-night/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">

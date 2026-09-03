@@ -1,0 +1,49 @@
+# Launch checklist
+
+Everything below is already done except the three items marked **YOU**.
+
+## Live
+
+- Production: https://thameslinkhajduci-club.vercel.app (Vercel project `thameslinkhajduci-club`, scope `isaacs-projects-d16aba6d`)
+- Code: https://github.com/isaacmond/thameslinkhajduci.club (public)
+- Domains attached to the project: `thameslinkhajduci.club` (primary), `www.thameslinkhajduci.club` → 308 redirect to apex, `thameslinkhajduci.com` → 308 redirect to apex. All three are waiting on DNS.
+
+## 1. YOU: point the domains at Vercel (Squarespace DNS)
+
+In Squarespace → Domains → each domain → DNS settings, add these records. Delete any existing `A` or `CNAME` on the same host first (Squarespace pre-fills its own parking records).
+
+| Domain | Host | Type | Value |
+|---|---|---|---|
+| thameslinkhajduci.club | `@` | A | `216.198.79.1` |
+| thameslinkhajduci.club | `www` | CNAME | `6da2290599e19eb2.vercel-dns-017.com` |
+| thameslinkhajduci.com | `@` | A | `216.198.79.1` |
+
+Notes:
+- `216.198.79.1` is the address Vercel currently recommends for this project; `76.76.21.21` also works if Squarespace rejects the first.
+- Leave nameservers as Squarespace's. No need to move DNS.
+- Propagation is usually minutes, occasionally an hour. Vercel issues the TLS certificate automatically once it sees the records. Check status any time with `npx vercel domains inspect thameslinkhajduci.club --scope isaacs-projects-d16aba6d`, or in the Vercel dashboard under Project → Settings → Domains.
+
+## 2. YOU: let Vercel see the GitHub repo (one click, optional but recommended)
+
+Right now deploys are pushed from the command line. To get automatic deploys on every push:
+
+1. Open https://vercel.com/isaacs-projects-d16aba6d/thameslinkhajduci-club/settings/git
+2. Click **Connect Git Repository** → GitHub → install the Vercel GitHub App for `isaacmond` if prompted → pick `thameslinkhajduci.club`.
+
+After that every push to `main` deploys to production and every branch gets a preview URL. Until then, deploy with:
+
+```bash
+npx vercel deploy --prod --scope isaacs-projects-d16aba6d
+```
+
+## 3. YOU: tidy the spreadsheet (optional)
+
+See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names itself, so nothing is broken; this is about making the sheet match. There are also a few genuine data questions in there only you can answer (the S1 GW5 score, three unrecorded S4 scores, a champagne moment awarded to a player with no appearances).
+
+## Operating the site
+
+- **Update anything:** edit the Google Sheet. The site re-reads it within 60 seconds. For instant, hit "Force refresh from sheet" on `/data` (or `POST /api/revalidate`).
+- **New season:** duplicate the `Season template` tab, name it `S9`, and fill it in. It appears everywhere automatically, including the Money tab's `S9 charges` column.
+- **Photos, shirt numbers, positions:** add a `Squad` tab with columns `Player, Nickname, Position, Shirt, Photo, Bio` to override the bundled data. Photo is any public image URL.
+- **Exports:** `/data` has the point-and-click explorer; `/api/export?table=…&format=csv|json|md` for scripts and Google Sheets `IMPORTDATA`.
+- **If the sheet is unreachable** the site keeps serving the last successful read and shows a small "sheet unreachable" badge on the home page.
