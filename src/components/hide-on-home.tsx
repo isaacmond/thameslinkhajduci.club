@@ -1,0 +1,9 @@
+"use client";
+import { usePathname } from "next/navigation";
+
+/** The home page renders the full sponsors block itself, so the footer skips its compact copy there. */
+export function HideOnHome({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  if (path === "/") return null;
+  return <>{children}</>;
+}

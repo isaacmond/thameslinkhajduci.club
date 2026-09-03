@@ -1,0 +1,168 @@
+{
+  "Ahmed": {
+    "shirt": null,
+    "positions": [
+      "FWD"
+    ],
+    "photo": null
+  },
+  "Alex Ruben": {
+    "shirt": 99,
+    "positions": [
+      "FWD"
+    ],
+    "photo": "/players/alex-ruben.jpg"
+  },
+  "Andy Cowan": {
+    "shirt": 6,
+    "positions": [
+      "DEF"
+    ],
+    "photo": "/players/andy-cowan.jpg"
+  },
+  "Ben Merrett": {
+    "shirt": 21,
+    "positions": [
+      "MID"
+    ],
+    "photo": null
+  },
+  "Callum McCarthy": {
+    "shirt": 18,
+    "positions": [
+      "MID"
+    ],
+    "photo": "/players/callum-mccarthy.jpg"
+  },
+  "Cecil Watson": {
+    "shirt": 14,
+    "positions": [
+      "FWD"
+    ],
+    "photo": "/players/cecil-watson.jpg"
+  },
+  "Christy O'Beirne": {
+    "shirt": null,
+    "positions": [],
+    "photo": null
+  },
+  "Conall Templeman": {
+    "shirt": null,
+    "positions": [
+      "MID"
+    ],
+    "photo": null
+  },
+  "Duncan McGuinness": {
+    "shirt": null,
+    "positions": [],
+    "photo": null
+  },
+  "Eddie Ringer": {
+    "shirt": null,
+    "positions": [
+      "MID"
+    ],
+    "photo": null
+  },
+  "Finn Cawley": {
+    "shirt": 24,
+    "positions": [
+      "FWD"
+    ],
+    "photo": null
+  },
+  "George Barbantan": {
+    "shirt": 9,
+    "positions": [
+      "DEF"
+    ],
+    "photo": "/players/george-barbantan.jpg"
+  },
+  "Henry Linklater": {
+    "shirt": 1,
+    "positions": [
+      "GK"
+    ],
+    "photo": null
+  },
+  "Isaac Mond": {
+    "shirt": 8,
+    "positions": [
+      "DEF"
+    ],
+    "photo": "/players/isaac-mond.jpg"
+  },
+  "Jake Ringer": {
+    "shirt": null,
+    "positions": [
+      "DEF"
+    ],
+    "photo": null
+  },
+  "Jake Harrison": {
+    "shirt": 0,
+    "positions": [
+      "MID"
+    ],
+    "photo": "/players/jake-harrison.jpg"
+  },
+  "Keshav Singh": {
+    "shirt": null,
+    "positions": [
+      "DEF"
+    ],
+    "photo": null
+  },
+  "Mark Pellowe": {
+    "shirt": null,
+    "positions": [
+      "GK",
+      "MID"
+    ],
+    "photo": null
+  },
+  "Max Cobain": {
+    "shirt": 11,
+    "positions": [
+      "FWD"
+    ],
+    "photo": "/players/max-cobain.jpg"
+  },
+  "Neeraj Radia": {
+    "shirt": 17,
+    "positions": [
+      "MID"
+    ],
+    "photo": "/players/neeraj-radia.jpg"
+  },
+  "Phil Knott": {
+    "shirt": 10,
+    "positions": [
+      "MID"
+    ],
+    "photo": "/players/phil-knott.jpg"
+  },
+  "Robin": {
+    "shirt": null,
+    "positions": [
+      "FWD"
+    ],
+    "photo": null
+  },
+  "Sam Holt": {
+    "shirt": 2,
+    "positions": [
+      "GK",
+      "MID"
+    ],
+    "photo": "/players/sam-holt.jpg"
+  },
+  "Seb Burgess": {
+    "shirt": 7,
+    "positions": [
+      "FWD"
+    ],
+    "photo": "/players/seb-burgess.jpg"
+  }
+}

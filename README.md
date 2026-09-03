@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Thameslink Hajduci · thameslinkhajduci.club
 
-## Getting Started
+The website of Thameslink Hajduci, a six-a-side football club from East London that has been running approximately twelve minutes late since 2024.
 
-First, run the development server:
+**Everything on the site is read live from the club's Google Sheet.** There is no database, no admin panel and no upload form. Change the sheet, and the site follows within a minute.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## How it works
+
+- **Source of truth:** the [club spreadsheet](https://docs.google.com/spreadsheets/d/1nCwz2uInlh3gePYORxvW3_0SlpFS8KgRxCCoccvw9zA/edit). One tab per season (`S1`, `S2`, …) plus `Money` and `Payments`. The site downloads the workbook as `.xlsx` and parses it in `src/lib/sheet.ts`.
+- **Caching:** the fetch is cached for 60 seconds (Next.js data cache, tag `sheet`). `POST /api/revalidate` forces a re-read; the Data page has a button for it.
+- **Rules:** friendlies and forfeits (the `Type` row) are shown but excluded from W/D/L, goals and player totals. Goals-per-game only counts games where scorers were logged; assists-per-game only counts games where assists were logged. Opponent names are normalised so head-to-head records line up.
+- **Profile extras:** photos, shirt numbers and positions come from `src/lib/squad-extras.json` (carried over from the old team app). A tab called `Squad` in the sheet (`Player, Nickname, Position, Shirt, Photo, Bio`) overrides it field by field.
+
+## Pages
+
+`/` home · `/squad` and `/squad/[player]` · `/matches` and `/matches/[id]` · `/seasons` and `/seasons/[id]` · `/stats` · `/records` · `/money` · `/data`
+
+## API
+
+```
+GET  /api/data                       full normalised dataset (JSON), ?pretty=1 for humans
+GET  /api/export?table=<t>&format=csv|json|md[&season=S7]
+     tables: players, matches, seasons, appearances, goals, assists, opponents, money, payments
+POST /api/revalidate                 re-read the sheet now
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+CORS is open. Handy in Google Sheets: `=IMPORTDATA("https://thameslinkhajduci.club/api/export?table=players&format=csv")`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Develop
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # production build (fetches the sheet at build time)
+npm run lint
+```
 
-## Learn More
+Environment variables (all optional): `SHEET_ID` to point at a different spreadsheet, `NEXT_PUBLIC_SITE_URL` for absolute URLs in metadata and the API docs.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js 16 (App Router, ISR), React 19, Tailwind CSS 4, Recharts, SheetJS for the workbook parsing, Bebas Neue + Inter. Hosted on Vercel.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Spreadsheet audit
 
-## Deploy on Vercel
+`sheet-fixes/` holds an audit of the sheet's data quality, a corrected copy of the workbook, and the list of cell edits it contains.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Sponsors
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+With thanks to TfL, Thameslink, Lime and Deliciously Ella, none of whom know we exist.
