@@ -6,8 +6,11 @@ import type {
   Result, Season, SeasonSummary, SquadExtra,
 } from "./types";
 
-import { SHEET_ID, SHEET_URL } from "./config";
-export { SHEET_ID, SHEET_URL };
+import { SHEET_ID as PUBLIC_SHEET_ID, SHEET_URL } from "./config";
+import { londonToday } from "./time";
+/** Server-only override wins, then the public id. */
+export const SHEET_ID = process.env.SHEET_ID ?? PUBLIC_SHEET_ID;
+export { SHEET_URL };
 const EXPORT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
 
 /** Names that refer to the same person in the sheet vs the old app. */
@@ -164,7 +167,7 @@ function parseSeasonTab(id: string, grid: Grid): Season | null {
       opponent: opponent ?? "TBC",
       ourGoals: og, theirGoals: tg, result, played,
       motm: str(motms[col]) ? canonicalName(str(motms[col])!) : null,
-      champagne: str(champs[col]),
+      champagne: str(champs[col]) ? canonicalName(str(champs[col])!) : null,
       comment: str(comments[col]),
       type,
       countsForRecords: !type,
@@ -206,7 +209,7 @@ function parseSeasonTab(id: string, grid: Grid): Season | null {
   summary.goalsAgainst = counted.reduce((s, m) => s + (m.theirGoals ?? 0), 0);
 
   const parts = title.split("·").map((s) => s.trim());
-  const today = new Date().toISOString().slice(0, 10);
+  const today = londonToday();
   const future = matches.filter((m) => !m.played && m.date && m.date >= today);
   return {
     id, number, title,
@@ -290,6 +293,7 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
       if (!x) { x = { seasonId: s.id, apps: 0, gpgGames: 0, apgGames: 0, goals: 0, assists: 0, motm: 0, champagne: 0, cost: 0 }; perSeason.set(name, x); }
       return x;
     };
+    const roster = new Set(s.players);
     for (const name of s.players) { get(name); }
     for (const m of s.matches) {
       for (const l of m.lineup) {
@@ -305,10 +309,11 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
         }
         x.goals += l.goals; p.goals += l.goals; x.assists += l.assists; p.assists += l.assists;
       }
-      if (m.countsForRecords && m.motm) { const p = get(m.motm); p.motm++; ps(m.motm).motm++; }
-      if (m.countsForRecords && m.champagne) { const nm = canonicalName(m.champagne); const p = get(nm); p.champagne++; ps(nm).champagne++; }
+      // Awards only count for people on the season's roster; a typo or a guest in the MOTM cell must not mint a new squad member.
+      if (m.countsForRecords && m.motm && roster.has(m.motm)) { const p = get(m.motm); p.motm++; ps(m.motm).motm++; }
+      if (m.countsForRecords && m.champagne && roster.has(m.champagne)) { const p = get(m.champagne); p.champagne++; ps(m.champagne).champagne++; }
     }
-    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm || x.champagne || x.cost) get(name).seasons.push(x); }
+    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm || x.champagne) get(name).seasons.push(x); }
   }
   for (const p of map.values()) {
     p.goalsPerGame = p.gpgGames ? +(p.goals / p.gpgGames).toFixed(2) : 0;
@@ -316,7 +321,7 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
     const decided = p.wins + p.draws + p.losses;
     p.winRate = decided ? +((p.wins / decided) * 100).toFixed(1) : 0;
   }
-  return [...map.values()].filter((p) => p.apps > 0 || p.goals > 0 || p.seasons.length > 0).sort((a, b) => b.apps - a.apps || b.goals - a.goals || a.name.localeCompare(b.name));
+  return [...map.values()].filter((p) => p.apps > 0 || p.goals > 0 || p.assists > 0 || p.motm > 0 || p.champagne > 0).sort((a, b) => b.apps - a.apps || b.goals - a.goals || a.name.localeCompare(b.name));
 }
 
 const STATIC_EXTRAS: Record<string, { shirt: number | null; positions: string[]; photo: string | null }> = staticExtras;

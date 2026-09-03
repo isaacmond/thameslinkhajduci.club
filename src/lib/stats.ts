@@ -1,4 +1,5 @@
 import type { ClubData, Match, Player, Result } from "./types";
+import { londonToday } from "./time";
 
 export const fmtDate = (iso: string | null, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
   iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opts) : "TBC";
@@ -83,9 +84,10 @@ export function records(data: ClubData): Records {
 }
 
 export type LeaderKey = "apps" | "goals" | "assists" | "motm" | "champagne" | "goalsPerGame" | "assistsPerGame" | "winRate" | "ga";
+/** Ranked players by a stat. For per-game rates the minimum applies to the games actually in the denominator (games with scorers/assists logged), not raw apps. */
 export function leaderboard(players: Player[], key: LeaderKey, minApps = 0): { player: Player; value: number }[] {
   return players
-    .filter((p) => p.apps >= minApps)
+    .filter((p) => (key === "goalsPerGame" ? p.gpgGames : key === "assistsPerGame" ? p.apgGames : p.apps) >= minApps)
     .map((p) => ({ player: p, value: key === "ga" ? p.goals + p.assists : (p[key] as number) }))
     .filter((x) => x.value > 0)
     .sort((a, b) => b.value - a.value || b.player.apps - a.player.apps || a.player.name.localeCompare(b.player.name));
@@ -136,11 +138,12 @@ export function seasonSeries(data: ClubData) {
 }
 
 export function nextFixture(data: ClubData): Match | null {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = londonToday();
   return chronological(data.matches).find((m) => !m.played && m.date !== null && m.date >= today) ?? null;
 }
+/** Most recent game that counts (same population as form() and currentStreak(), so the board never contradicts the form strip). */
 export function lastResult(data: ClubData): Match | null {
-  const ms = chronological(data.matches.filter((m) => m.played));
+  const ms = chronological(playedMatches(data.matches));
   return ms[ms.length - 1] ?? null;
 }
 export function scorersFor(m: Match) { return m.lineup.filter((l) => l.goals > 0).sort((a, b) => b.goals - a.goals); }

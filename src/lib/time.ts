@@ -7,3 +7,6 @@ export function londonEpoch(date: string, time: string): number {
   const offsetH = m && m[1] ? parseInt(m[1], 10) : 0;
   return guess - offsetH * 3600_000;
 }
+
+/** Today's date (yyyy-mm-dd) in London, where the fixtures live. Vercel runs in UTC, so the plain ISO date lags by an hour in summer. */
+export const londonToday = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());

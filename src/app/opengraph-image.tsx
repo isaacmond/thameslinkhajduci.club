@@ -13,7 +13,6 @@ export default async function Image() {
     (
       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", background: "linear-gradient(135deg, #0a1f13 0%, #06140c 100%)", color: "#f6f1e6", padding: 72, fontFamily: "sans-serif" }}>
         <div style={{ position: "absolute", right: -120, top: -120, width: 480, height: 480, borderRadius: 999, background: "rgba(50,195,100,0.18)", filter: "blur(40px)" }} />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} width={300} height={300} alt="" style={{ marginRight: 56 }} />
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 22, letterSpacing: 6, textTransform: "uppercase", color: "#a7b8ab" }}>Est. 2024 · East London</div>

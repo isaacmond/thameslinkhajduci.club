@@ -17,11 +17,12 @@ export default async function MoneyPage() {
   const charged = rows.reduce((s, r) => s + r.totalCharged, 0), paid = rows.reduce((s, r) => s + r.paid, 0);
   const byName = new Map(data.players.map((p) => [p.name, p]));
   const games = chronological(paidSeasons.flatMap((s) => s.matches)).filter((m) => m.matchCost > 0);
-  const played = games.filter((m) => m.played);
+  const played = games.filter((m) => m.played), future = games.filter((m) => !m.played);
   const spent = played.reduce((s, m) => s + m.matchCost, 0);
   const committed = games.reduce((s, m) => s + m.matchCost, 0);
   const goals = played.reduce((s, m) => s + (m.ourGoals ?? 0), 0), wins = played.filter((m) => m.result === "W").length;
   const payers = Object.entries(data.money.paidBy);
+  const debtors = rows.filter((r) => r.balance > 0.01).length;
 
   return (
     <PageTransition>
@@ -29,31 +30,33 @@ export default async function MoneyPage() {
       <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">
-        <Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${rows.filter((r) => r.balance > 0.01).length} player${rows.filter((r) => r.balance > 0.01).length === 1 ? "" : "s"} yet to pay` : "Everyone's square"} />
+        <div className="col-span-2 lg:col-span-1"><Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay` : "Everyone's square"} size="lg" /></div>
         <Stat label="Charged so far" value={fmtMoney(charged)} sub={`${fmtMoney(paid)} received`} />
-        <Stat label="Pitch spend" value={fmtMoney(spent)} sub={`${played.length} game${played.length === 1 ? "" : "s"} played · ${fmtMoney(committed)} for the season`} />
-        <Stat label="Cost per goal" value={goals ? fmtMoney(spent / goals) : "–"} sub={goals ? `${goals} goal${goals === 1 ? "" : "s"} bought` : "No goals to amortise"} />
-        <Stat label="Cost per win" value={wins ? fmtMoney(spent / wins) : spent ? "∞" : "–"} tone={wins ? "default" : "loss"} sub={wins ? `${wins} win${wins === 1 ? "" : "s"}` : "Priceless, in the worst way"} />
+        <Stat label="Pitch spend" value={fmtMoney(spent)} sub={`${played.length} game${played.length === 1 ? "" : "s"} · ${fmtMoney(committed)} committed`} />
+        <div className="hidden sm:block"><Stat label="Cost per goal" value={goals ? fmtMoney(spent / goals) : "–"} sub={goals ? `${goals} goal${goals === 1 ? "" : "s"} bought` : "No goals to amortise"} /></div>
+        <div className="hidden sm:block"><Stat label="Cost per win" value={wins ? fmtMoney(spent / wins) : spent ? "∞" : "–"} tone={wins ? "default" : "loss"} sub={wins ? `${wins} win${wins === 1 ? "" : "s"}` : "Priceless, in the worst way"} /></div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-5">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
         <div className="card overflow-hidden lg:col-span-3">
           <div className="p-5 pb-2"><SectionTitle sub="Live from the Money tab. Balances update when the treasurer does.">Who owes what</SectionTitle></div>
           {rows.length ? (
-            <table className="stats">
-              <thead><tr><th>Player</th>{paidSeasons.map((s) => <th key={s.id} className="num">{s.id}</th>)}<th className="num">Charged</th><th className="num">Paid</th><th className="num">Balance</th></tr></thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.player}>
-                    <td><PlayerLink name={r.player} player={byName.get(r.player)} avatar /></td>
-                    {paidSeasons.map((s) => <td key={s.id} className="num text-ash">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
-                    <td className="num">{fmtMoney(r.totalCharged)}</td>
-                    <td className="num text-mint-soft">{fmtMoney(r.paid)}</td>
-                    <td className={clsx("num display text-xl", r.balance > 0.01 ? "text-[#ff9a9d]" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? `${fmtMoney(-r.balance)} credit` : fmtMoney(r.balance)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="scroll-x overflow-x-auto">
+              <table className="stats w-full">
+                <thead><tr><th>Player</th>{paidSeasons.map((s) => <th key={s.id} className="num hidden sm:table-cell">{s.id}</th>)}<th className="num hidden sm:table-cell">Charged</th><th className="num">Paid</th><th className="num">Balance</th></tr></thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.player}>
+                      <td><PlayerLink name={r.player} player={byName.get(r.player)} avatar /></td>
+                      {paidSeasons.map((s) => <td key={s.id} className="num hidden text-ash sm:table-cell">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
+                      <td className="num hidden sm:table-cell">{fmtMoney(r.totalCharged)}</td>
+                      <td className="num text-mint-soft">{fmtMoney(r.paid)}</td>
+                      <td className={clsx("num display text-2xl", r.balance > 0.01 ? "text-[#ff9a9d]" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? `${fmtMoney(-r.balance)} credit` : fmtMoney(r.balance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : <p className="px-5 pb-5 text-sm text-ash">Nobody has been charged for anything yet. Enjoy it while it lasts.</p>}
         </div>
         <div className="space-y-6 lg:col-span-2">
@@ -70,12 +73,20 @@ export default async function MoneyPage() {
       {games.length > 0 && (
         <section className="card overflow-hidden">
           <div className="p-5 pb-2"><SectionTitle sub="Pitch cost split by attendance. Fewer players, bigger bill: an incentive scheme of sorts.">Game by game</SectionTitle></div>
-          <div className="overflow-x-auto">
+          <div className="scroll-x overflow-x-auto">
             <table className="stats min-w-[560px]">
-              <thead><tr><th>Date</th><th>Opponent</th><th>Result</th><th className="num">Players</th><th className="num">Pitch</th><th className="num">Each</th></tr></thead>
-              <tbody>{games.map((m) => <tr key={m.id} className={clsx(!m.played && "opacity-60")}><td className="text-ash">{fmtDate(m.date)}</td><td><Link href={`/matches/${m.id}`} className="link font-medium text-cream">{m.opponent}</Link></td><td><span className="flex items-center gap-2"><ResultPill result={m.result} size="sm" />{m.played && <span className="text-xs text-ash">{scoreline(m)}</span>}</span></td><td className="num">{m.played ? m.playersInGame : "–"}</td><td className="num">{fmtMoney(m.matchCost)}</td><td className="num">{m.played && m.costPerPlayer ? fmtMoney(m.costPerPlayer) : "–"}</td></tr>)}</tbody>
+              <thead><tr><th>Opponent</th><th>Result</th><th className="num">Players</th><th className="num">Pitch</th><th className="num">Each</th><th>Date</th></tr></thead>
+              <tbody>
+                {[...played, ...future.slice(0, 1)].map((m) => <tr key={m.id} className={clsx(!m.played && "opacity-70")}><td><Link href={`/matches/${m.id}`} className="link font-medium text-cream">{m.opponent}</Link>{!m.played && <span className="chip ml-2 text-ash">Next</span>}</td><td><span className="flex items-center gap-2"><ResultPill result={m.result} size="sm" />{m.played && <span className="text-xs text-ash">{scoreline(m)}</span>}</span></td><td className="num">{m.played ? m.playersInGame : "–"}</td><td className="num">{fmtMoney(m.matchCost)}</td><td className="num">{m.played && m.costPerPlayer ? fmtMoney(m.costPerPlayer) : "–"}</td><td className="text-ash">{fmtDate(m.date)}</td></tr>)}
+              </tbody>
             </table>
           </div>
+          {future.length > 1 && (
+            <details className="border-t border-white/10">
+              <summary className="focus-ring cursor-pointer px-4 py-3 text-sm text-ash hover:text-cream">{future.length - 1} more fixture{future.length - 1 === 1 ? "" : "s"} to come · {fmtMoney(future.slice(1).reduce((s, m) => s + m.matchCost, 0))} still to find · attendance TBC</summary>
+              <ul className="grid grid-cols-1 gap-x-6 gap-y-1 px-4 pb-4 text-sm text-ash sm:grid-cols-2 lg:grid-cols-3">{future.slice(1).map((m) => <li key={m.id} className="flex justify-between gap-3"><Link href={`/matches/${m.id}`} className="truncate hover:text-cream">{m.opponent}</Link><span className="shrink-0">{fmtDate(m.date, { day: "numeric", month: "short" })} · {fmtMoney(m.matchCost)}</span></li>)}</ul>
+            </details>
+          )}
         </section>
       )}
     </div>

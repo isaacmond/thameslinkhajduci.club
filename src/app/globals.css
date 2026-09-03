@@ -95,3 +95,22 @@ table.stats th.num, table.stats td.num { text-align: right; font-variant-numeric
 @keyframes vt-lift { from { transform: translateY(10px); } to { transform: none; } }
 @keyframes vt-drop { from { transform: translateY(-6px); } to { transform: none; } }
 @keyframes vt-blur { 30% { filter: blur(3px); } }
+
+/* ---- review pass: mobile robustness, hierarchy, board identity ---- */
+body { overflow-x: clip; }
+.eyebrow { font-size: 0.75rem; }
+@media (min-width: 640px) { .eyebrow { font-size: 0.7rem; } }
+table.stats .link, table.stats a.text-cream { color: var(--color-cream); }
+table.stats .link:hover { color: var(--color-mint-soft); }
+table.stats th:first-child, table.stats td:first-child { position: sticky; left: 0; z-index: 1; background: rgba(8, 26, 16, 0.94); }
+table.stats th:first-child { z-index: 2; }
+.scroll-x { position: relative; }
+@media (max-width: 639px) { .scroll-x::after { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 2rem; pointer-events: none; background: linear-gradient(to left, rgba(6, 20, 12, 0.85), transparent); } }
+@media (pointer: coarse) { button.chip, a.chip { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.25rem; } }
+.board-glow { text-shadow: 0 0 6px currentColor; }
+.scanlines::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px); }
+.marquee { display: flex; width: max-content; animation: marquee 70s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+.card-fame { border-color: rgba(50, 195, 100, 0.3); background: linear-gradient(180deg, rgba(50, 195, 100, 0.07), rgba(255, 255, 255, 0.02)); }
+.card-shame { border-color: rgba(229, 72, 77, 0.3); background: linear-gradient(180deg, rgba(229, 72, 77, 0.07), rgba(255, 255, 255, 0.02)); }
+select.control { appearance: none; -webkit-appearance: none; background-image: none; padding-right: 2rem; }

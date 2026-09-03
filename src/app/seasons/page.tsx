@@ -18,7 +18,7 @@ export default async function SeasonsPage() {
     <PageTransition>
     <>
       <PageHeader eyebrow="History" title="Seasons" sub={`${data.seasons.length} seasons, ${new Set(data.seasons.map((s) => s.venue)).size} venues, one unwavering commitment to conceding first.`} />
-      <section className="mb-8 grid gap-6 lg:grid-cols-2">
+      <section className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card p-5"><SectionTitle sub="Games that counted, per season">Results by season</SectionTitle><WDLBySeason data={series} /></div>
         <div className="card p-5"><SectionTitle sub="Average per game, scored and conceded">Goals by season</SectionTitle><GoalsBySeason data={series} /></div>
       </section>

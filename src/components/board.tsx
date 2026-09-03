@@ -4,11 +4,10 @@ import Link from "next/link";
 import clsx from "clsx";
 import { londonEpoch } from "@/lib/time";
 
-export type BoardRow = { time: string; label: string; destination: string; status: string; tone?: "ok" | "late" | "bad" | "muted"; href?: string };
-
+export type BoardRow = { time: string; label: string; destination: string; status: string; shortStatus?: string; tone?: "ok" | "late" | "bad" | "muted"; href?: string };
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** One shared 1s ticker for every clock/countdown on the page. Server snapshot is null so SSR renders a placeholder and the client fills it in without a setState-in-effect. */
+/** One shared 1s ticker for every clock/countdown on the page. Server snapshot is null so SSR renders a placeholder and the client fills it in. */
 let tick = 0;
 let timer: ReturnType<typeof setInterval> | undefined;
 const listeners = new Set<() => void>();
@@ -41,33 +40,37 @@ const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-[#ff9a9d
 export function DepartureBoard({ rows, next, station = "Whitechapel" }: { rows: BoardRow[]; next: { date: string; time: string; opponent: string; href: string } | null; station?: string }) {
   const target = next ? londonEpoch(next.date, next.time) : null;
   return (
-    <section aria-label="Departure board" className="overflow-hidden rounded-2xl border border-white/10 bg-[#07130b] shadow-card">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ash">
-        <span className="flex items-center gap-2"><span className="inline-block h-2 w-2 rounded-full bg-mint animate-pulse-soft" aria-hidden />Departures · {station}</span>
+    <section aria-label="Departure board" className="scanlines relative overflow-hidden rounded-2xl border border-white/10 bg-[#07130b] shadow-card">
+      <div className="relative z-[2] flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ash">
+        <span className="flex min-w-0 items-center gap-2"><span className="h-2 w-2 shrink-0 rounded-full bg-mint animate-pulse-soft" aria-hidden /><span className="truncate">Departures · {station}</span></span>
         <LiveClock />
       </div>
-      <ul className="divide-y divide-white/[0.06] font-mono text-sm sm:text-[15px]">
+      {next && target !== null && (
+        <Link href={next.href} className="focus-ring relative z-[2] flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-white/10 bg-gold/[0.07] px-4 py-3 transition-colors hover:bg-gold/[0.12]">
+          <span className="min-w-0 font-mono text-[11px] uppercase tracking-widest text-ash">Next departure<span className="mx-2 text-ash/50">·</span><span className="normal-case tracking-normal text-cream">{next.opponent}</span></span>
+          <Countdown target={target} className="board-glow display text-3xl text-gold sm:text-4xl" />
+        </Link>
+      )}
+      <ul className="relative z-[2] divide-y divide-white/[0.06] font-mono text-sm sm:text-[15px]">
         {rows.map((r, i) => {
+          const tone = toneClass[r.tone ?? "muted"];
           const inner = (
-            <>
-              <span className="tabular w-14 shrink-0 whitespace-nowrap pt-0.5 text-gold sm:w-16">{r.time}</span>
-              <span className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-3">
-                <span className="block text-[10px] uppercase tracking-widest text-ash sm:w-32 sm:shrink-0 sm:text-[11px]">{r.label}</span>
-                <span className="line-clamp-2 text-cream/90 sm:truncate">{r.destination}</span>
+            <span className="grid grid-cols-[3.5rem_1fr] gap-x-3 sm:flex sm:items-center sm:gap-3">
+              <span className="flex flex-col items-start gap-1 sm:contents">
+                <span className="board-glow tabular whitespace-nowrap text-gold sm:w-16 sm:shrink-0">{r.time}</span>
+                <span className={clsx("board-glow rounded-sm bg-white/5 px-1 py-0.5 text-[9px] uppercase tracking-wider sm:hidden", tone)}>{r.shortStatus ?? r.status}</span>
               </span>
-              <span className={clsx("shrink-0 pt-0.5 text-right text-[11px] uppercase tracking-wider sm:text-sm", toneClass[r.tone ?? "muted"])}>{r.status}</span>
-            </>
+              <span className="min-w-0 sm:flex sm:flex-1 sm:items-center sm:gap-3">
+                <span className="block text-[11px] uppercase tracking-widest text-ash sm:w-32 sm:shrink-0">{r.label}</span>
+                <span className="line-clamp-2 text-[13px] text-cream/90 sm:truncate sm:text-[15px]">{r.destination}</span>
+              </span>
+              <span className={clsx("board-glow hidden shrink-0 text-right uppercase tracking-wider sm:block", tone)}>{r.status}</span>
+            </span>
           );
-          const cls = "flex items-start gap-3 px-4 py-2.5 transition-colors sm:items-center";
+          const cls = "focus-ring block px-4 py-3 transition-colors";
           return <li key={i}>{r.href ? <Link href={r.href} className={clsx(cls, "hover:bg-white/[0.04]")}>{inner}</Link> : <div className={cls}>{inner}</div>}</li>;
         })}
       </ul>
-      {next && target !== null && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-gold/[0.06] px-4 py-3 text-sm">
-          <span className="text-ash">Next kick-off vs <Link href={next.href} className="link font-medium text-cream">{next.opponent}</Link></span>
-          <Countdown target={target} className="display text-2xl text-gold" />
-        </div>
-      )}
     </section>
   );
 }

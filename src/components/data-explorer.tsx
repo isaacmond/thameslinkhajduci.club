@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, Copy, Download, ExternalLink } from "lucide-react";
 import clsx from "clsx";
+import { Select } from "./controls";
 
 type Preview = { table: string; columns: string[]; rows: Record<string, string | number | boolean | null>[] };
 
@@ -30,14 +31,10 @@ export function DataExplorer({ tables, seasons, siteUrl }: { tables: { name: str
   const info = tables.find((t) => t.name === table)?.info;
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card min-w-0 overflow-hidden">
       <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">
-        <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Table</span>
-          <select value={table} onChange={(e) => pick(() => setTable(e.target.value))} className="focus-ring rounded-md border border-white/10 bg-white/5 px-2 py-2 text-sm text-cream">{tables.map((t) => <option key={t.name} value={t.name} className="bg-pine">{t.name}</option>)}</select>
-        </label>
-        <label className={clsx("flex flex-col gap-1 text-xs text-ash", !seasonable && "opacity-40")}><span className="eyebrow">Season</span>
-          <select value={season} onChange={(e) => pick(() => setSeason(e.target.value))} disabled={!seasonable} className="focus-ring rounded-md border border-white/10 bg-white/5 px-2 py-2 text-sm text-cream"><option value="" className="bg-pine">All-time</option>{seasons.map((s) => <option key={s} value={s} className="bg-pine">{s}</option>)}</select>
-        </label>
+        <Select label="Table" value={table} onChange={(v) => pick(() => setTable(v))} options={tables.map((t) => ({ value: t.name, label: t.name }))} className="min-w-[10rem]" />
+        <Select label="Season" value={season} onChange={(v) => pick(() => setSeason(v))} disabled={!seasonable} options={[{ value: "", label: "All-time" }, ...seasons.map((s) => ({ value: s, label: s }))]} className="min-w-[8rem]" />
         <p className="flex-1 text-xs text-ash sm:pb-2">{info}</p>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-white/10 bg-white/[0.02] p-3 text-sm">
@@ -49,7 +46,7 @@ export function DataExplorer({ tables, seasons, siteUrl }: { tables: { name: str
         <Btn onClick={() => copy("url", absolute("csv"))} done={copied === "url"}>Copy URL</Btn>
         {copied === "failed" && <span className="self-center text-xs text-[#ff9a9d]">Clipboard blocked</span>}
       </div>
-      <div className="max-h-[520px] overflow-auto">
+      <div className="scroll-x max-h-[520px] overflow-auto">
         {loading && !preview && <p className="px-4 py-8 text-center text-sm text-ash">Reading the spreadsheet…</p>}
         {preview && (
           <table className="stats text-sm">

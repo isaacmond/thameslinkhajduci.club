@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 /** Categorical palette validated against the dark green surface (dataviz six checks, dark mode). */
-export const C = { green: "#22a852", blue: "#5f7fff", amber: "#c4871a", pink: "#c95a9b", win: "#22a852", draw: "#c4871a", loss: "#d9484e", grid: "rgba(255,255,255,0.08)", ink: "#a7b8ab", surface: "#0d2b19", cream: "#f6f1e6" };
+/** Series colours validated against the dark surface (dataviz checks): club green + a calm blue pass every check as a pair. Volume (apps) is drawn as an outlined bar (texture, not a competing hue); conceded is blue and dashed; W/D/L stacks keep the site-wide semantic colours with 2px gaps and a legend. */
+export const C = { green: "#22a852", blue: "#4a8fe0", sage: "#9fb8a6", gold: "#f4c81b", amber: "#c4871a", win: "#22a852", draw: "#c4871a", loss: "#d9484e", grid: "rgba(255,255,255,0.08)", ink: "#a7b8ab", surface: "#0d2b19", cream: "#f6f1e6" };
 /** Seasons are ordinal, so they take a one-hue ramp (oldest dark → newest light). Segments always get a 2px surface gap, a legend and a hover tooltip. */
 export const SEASON_RAMP = ["#2e7d46", "#3a9256", "#47a765", "#58bb76", "#6ccd88", "#83dc9a", "#9ce9ad", "#b6f2c2", "#cdf8d6", "#e2fce8"];
 export const seasonColor = (i: number) => SEASON_RAMP[Math.min(i, SEASON_RAMP.length - 1)];
@@ -31,7 +32,7 @@ function DefaultTip({ active, payload, label }: TipProps) {
   return <TipBox title={String(label ?? "")} rows={rows.length ? rows : [{ label: "—", value: "0" }]} />;
 }
 const axis = { tick: { fill: C.ink, fontSize: 11 }, axisLine: false, tickLine: false } as const;
-const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 12, color: C.ink } };
+const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 11, color: C.ink, letterSpacing: "0.08em", textTransform: "uppercase" as const } };
 const cursor = { fill: "rgba(255,255,255,0.05)" };
 const shortSeason = (v: string) => String(v).replace("Season ", "S");
 
@@ -62,7 +63,7 @@ export function GoalsBySeason({ data }: { data: { name: string; avgFor: number; 
         <Tooltip content={<DefaultTip />} cursor={{ stroke: "rgba(255,255,255,0.2)" }} />
         <Legend {...legend} />
         <Line type="monotone" dataKey="avgFor" name="Scored per game" stroke={C.green} strokeWidth={2} dot={{ r: 4, fill: C.green, stroke: C.surface, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-        <Line type="monotone" dataKey="avgAgainst" name="Conceded per game" stroke={C.blue} strokeWidth={2} dot={{ r: 4, fill: C.blue, stroke: C.surface, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+        <Line type="monotone" dataKey="avgAgainst" name="Conceded per game" stroke={C.blue} strokeWidth={2} strokeDasharray="6 4" dot={{ r: 4, fill: C.blue, stroke: C.surface, strokeWidth: 2 }} activeDot={{ r: 6 }} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -77,9 +78,9 @@ export function PlayerSeasonBars({ data }: { data: { name: string; apps: number;
         <YAxis {...axis} allowDecimals={false} />
         <Tooltip content={<DefaultTip />} cursor={cursor} />
         <Legend {...legend} />
-        <Bar dataKey="apps" name="Apps" fill={C.blue} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="apps" name="Apps" fill="rgba(255,255,255,0.06)" stroke={C.sage} strokeWidth={1.5} radius={[4, 4, 0, 0]} />
         <Bar dataKey="goals" name="Goals" fill={C.green} radius={[4, 4, 0, 0]} />
-        <Bar dataKey="assists" name="Assists" fill={C.amber} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="assists" name="Assists" fill={C.blue} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
