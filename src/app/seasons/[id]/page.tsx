@@ -7,6 +7,7 @@ import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, leaderboard, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
 import { LeaderList, MatchRow, PageHeader, PlayerLink, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffTimeline } from "@/components/charts";
+import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
   const data = await getData();
@@ -38,8 +39,9 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
   const diff = s.summary.goalsFor - s.summary.goalsAgainst;
 
   return (
+    <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<>{s.isCurrent ? <Tag tone="mint" className="mr-2">In progress · {remaining} to play</Tag> : <Tag className="mr-2">Complete</Tag>}{s.matches.length} fixtures{s.matches.length !== s.summary.played && `, ${s.summary.played} counted`}{s.summary.paidBy && <>. Pitch paid for by {s.summary.paidBy}, who would like that noted.</>}</>}
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures{s.matches.length !== s.summary.played && `, ${s.summary.played} counted`}{s.summary.paidBy && <>. Pitch paid for by {s.summary.paidBy}, who would like that noted.</>}</>}
         right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip text-ash hover:text-cream"><ChevronLeft size={14} aria-hidden />{prev.id}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip text-ash hover:text-cream">{next.id}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8" aria-label="Season summary">
@@ -90,5 +92,6 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         </div>
       </section>
     </div>
+    </PageTransition>
   );
 }

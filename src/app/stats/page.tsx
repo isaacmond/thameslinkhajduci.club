@@ -7,6 +7,7 @@ import { chemistry, headToHead, leaderboard, seasonPlayers, signed } from "@/lib
 import { LeaderList, PageHeader, PlayerLink, SectionTitle } from "@/components/ui";
 import { PlayerTable, type PlayerRow } from "@/components/player-table";
 import { StackedBySeason } from "@/components/charts";
+import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Stats", description: "Leaderboards, sortable player tables, partnerships and head-to-head records for Thameslink Hajduci." };
 
@@ -34,12 +35,13 @@ export default async function StatsPage() {
   ];
 
   return (
+    <PageTransition>
     <div className="space-y-10">
       <PageHeader eyebrow="Numbers" title="Stats" sub="Leaderboards, the full sortable table, who plays well with whom, and how we've fared against everyone. Friendlies and forfeits excluded throughout." right={<Link href="/data" className="focus-ring chip text-ash hover:text-cream">Export any of this →</Link>} />
 
       <section aria-labelledby="leaders">
         <SectionTitle id="leaders" sub="Top five in each category, all-time">Leaderboards</SectionTitle>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {boards.map((b) => <div key={b.title} className="card p-4"><h3 className="display text-xl text-cream">{b.title}</h3>{b.sub && <p className="mb-2 text-xs text-ash">{b.sub}</p>}<div className="mt-2"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
         </div>
       </section>
@@ -73,5 +75,6 @@ export default async function StatsPage() {
         </div>
       </section>
     </div>
+    </PageTransition>
   );
 }

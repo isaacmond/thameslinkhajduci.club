@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
@@ -44,11 +44,11 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
       </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
         {list.map((p, i) => (
-          <li key={p.slug} className="animate-rise" style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}>
+          <li key={p.slug} className="animate-rise" style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}>
             <Link href={`/squad/${p.slug}`} className="focus-ring card group block h-full overflow-hidden transition-transform hover:-translate-y-0.5">
-              <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-forest to-pine">
+              <ViewTransition name={`player-${p.slug}`} share="morph" default="none"><div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-forest to-pine">
                 {p.photo ? (
-                  <Image src={p.photo} alt={p.name} fill sizes="(min-width: 1024px) 300px, (min-width: 640px) 33vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" unoptimized={p.photo.startsWith("http")} />
+                  <Image src={p.photo} alt={p.name} fill sizes="(min-width: 1024px) 300px, (min-width: 640px) 33vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" unoptimized={p.photo.startsWith("http")} priority={i < 4} />
                 ) : (
                   <div className="pitch absolute inset-0 flex items-center justify-center"><span className="display text-6xl text-cream/25 sm:text-7xl" aria-hidden>{initials(p.name)}</span></div>
                 )}
@@ -62,7 +62,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                     {p.positions.map((pos) => <span key={pos} className="rounded bg-white/10 px-1.5 py-0.5 font-semibold tracking-wider text-cream/80">{pos}</span>)}
                   </p>
                 </div>
-              </div>
+              </div></ViewTransition>
               <dl className="grid grid-cols-4 divide-x divide-white/10 text-center">
                 {[["Apps", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["G/G", p.goalsPerGame.toFixed(2)]].map(([k, v]) => (
                   <div key={k} className="px-1 py-2.5"><dt className="text-[10px] uppercase tracking-wider text-ash">{k}</dt><dd className="display tabular text-xl text-cream">{v}</dd></div>

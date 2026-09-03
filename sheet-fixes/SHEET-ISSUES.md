@@ -97,7 +97,10 @@ These games **do** count towards goals-per-game (someone's goals were recorded),
 ### 2.5 Assists are patchy
 Assists are logged in only **16 of the 79 games** in which Hajduci scored. Per your rule, assists-per-game only counts those 16 games (plus 0–0s and games where we didn't score). Expect the assists-per-game numbers to look high and jumpy until assists are recorded more consistently. The site labels the denominator everywhere it shows the rate.
 
-### 2.6 Opponent recorded as "Forfeit"
+### 2.6 "Abdul" exists only as a champagne moment
+S1 GW5 (vs Clapham Casuals) awards the champagne moment to **Abdul**, but Abdul has no appearance mark in any game, so he shows up in the squad with 0 apps. Either add his appearance mark(s) in the S1 APPEARANCES grid, or change the champagne cell if it was meant to be someone else.
+
+### 2.7 Opponent recorded as "Forfeit"
 S3 GW1 and S7 GW10 have "Forfeit" in the Opponent cell. Harmless (they are excluded from records anyway) but if you know who forfeited, putting the club name in and leaving "Forfeit" in the Type row keeps the fixture list honest.
 
 ## 3. Optional: a Squad tab

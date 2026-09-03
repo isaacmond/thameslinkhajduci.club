@@ -27,7 +27,7 @@ export function Nav() {
             <div className="eyebrow mt-0.5 hidden sm:block">Темзлинк Хайдуки · est. 2024</div>
           </div>
         </Link>
-        <nav aria-label="Primary" className="scrollbar-none -mb-px ml-auto flex gap-1 overflow-x-auto">
+        <nav aria-label="Primary" className="scrollbar-none nav-fade -mb-px ml-auto flex gap-1 overflow-x-auto">
           {LINKS.map((l) => {
             const active = l.href === "/" ? path === "/" : path.startsWith(l.href);
             return (

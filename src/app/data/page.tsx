@@ -7,6 +7,7 @@ import { TABLES, TABLE_INFO } from "@/lib/tables";
 import { Callout, PageHeader, SectionTitle } from "@/components/ui";
 import { DataExplorer } from "@/components/data-explorer";
 import { RefreshButton } from "@/components/refresh-button";
+import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Data & API", description: "Export Thameslink Hajduci stats as CSV, JSON or Markdown, or pull them straight into Google Sheets." };
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? "https://thameslinkhajduci.club";
@@ -15,6 +16,7 @@ export default async function DataPage() {
   const data = await getData();
   const readAt = new Date(data.fetchedAt).toLocaleString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return (
+    <PageTransition>
     <div className="space-y-10">
       <PageHeader eyebrow="Extract everything" title="Data & API" sub="Every number on this site is read live from the club's Google Sheet and re-shaped into tidy tables. Nothing is stored here, nothing can be uploaded here. Take what you need." right={<RefreshButton />} />
 
@@ -46,5 +48,6 @@ export default async function DataPage() {
         </div>
       </section>
     </div>
+    </PageTransition>
   );
 }

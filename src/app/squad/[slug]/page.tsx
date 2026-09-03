@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTransition } from "react";
 import clsx from "clsx";
 import { Crown, Medal, PartyPopper, Sparkles, Star } from "lucide-react";
 import { getData } from "@/lib/data";
@@ -9,6 +10,7 @@ import type { Match } from "@/lib/types";
 import { chemistry, chronological, fmtDate, fmtMoney, impact, leaderboard, type LeaderKey, scoreline } from "@/lib/stats";
 import { Avatar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
+import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
   const data = await getData();
@@ -46,12 +48,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
   const decided = p.wins + p.draws + p.losses;
 
   return (
+    <PageTransition>
     <div className="space-y-8">
       <nav className="text-xs text-ash" aria-label="Breadcrumb"><Link href="/squad" className="link">Squad</Link> / {p.name}</nav>
       <header className="card-solid pitch relative overflow-hidden p-6 animate-rise sm:p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-mint/15 blur-3xl" aria-hidden />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
-          <Avatar name={p.name} photo={p.extra.photo} size={140} shirt={p.extra.shirt} />
+          <ViewTransition name={`player-${p.slug}`} share="morph" default="none"><Avatar name={p.name} photo={p.extra.photo} size={140} shirt={p.extra.shirt} priority /></ViewTransition>
           <div className="min-w-0 flex-1">
             <p className="eyebrow">{p.extra.positions?.length ? p.extra.positions.join(" / ") : "Utility"}{thisSeason?.apps && current ? ` · Season ${current.number} squad` : ""}</p>
             <h1 className="display text-5xl leading-none text-cream sm:text-7xl">{p.name}</h1>
@@ -136,5 +139,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         </div>
       </section>
     </div>
+    </PageTransition>
   );
 }

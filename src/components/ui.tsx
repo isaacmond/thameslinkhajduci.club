@@ -54,11 +54,11 @@ export function FormStrip({ matches, size = "md" }: { matches: Match[]; size?: "
   );
 }
 
-export function Avatar({ name, photo, size = 40, shirt }: { name: string; photo?: string; size?: number; shirt?: number | null }) {
+export function Avatar({ name, photo, size = 40, shirt, priority = false }: { name: string; photo?: string; size?: number; shirt?: number | null; priority?: boolean }) {
   return (
     <span className="relative inline-block shrink-0" style={{ width: size, height: size }}>
       {photo ? (
-        <Image src={photo} alt={name} width={size} height={size} className="h-full w-full rounded-full object-cover ring-1 ring-white/15" unoptimized={photo.startsWith("http")} />
+        <Image src={photo} alt={name} width={size} height={size} className="h-full w-full rounded-full object-cover ring-1 ring-white/15" unoptimized={photo.startsWith("http")} priority={priority} />
       ) : (
         <span className="display flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-forest to-pine text-cream ring-1 ring-white/15" style={{ fontSize: size * 0.42 }} aria-hidden>{initials(name)}</span>
       )}
@@ -117,8 +117,8 @@ export function LeaderList({ items, color = "bg-mint", format = (v: number) => S
           <span className="relative flex items-center gap-3 px-3 py-1.5">
             <span className="display w-5 shrink-0 text-lg text-ash">{i + 1}</span>
             <Avatar name={x.player.name} photo={x.player.extra.photo} size={28} />
-            <PlayerLink name={x.player.name} player={x.player} className="min-w-0 truncate" />
-            <span className="display tabular ml-auto shrink-0 text-2xl text-cream">{format(x.value)}</span>
+            <PlayerLink name={x.player.name} player={x.player} className="min-w-0 truncate text-sm" />
+            <span className="display tabular ml-auto shrink-0 text-xl text-cream sm:text-2xl">{format(x.value)}</span>
           </span>
         </li>
       ))}

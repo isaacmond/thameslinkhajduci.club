@@ -8,6 +8,7 @@ import { assistersFor, chronological, fmtDate, fmtMoney, headToHead, opponentKey
 import { Avatar, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/board";
 import { londonEpoch } from "@/lib/time";
+import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
   const data = await getData();
@@ -40,6 +41,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const kickoff = m.date && m.kickOff ? londonEpoch(m.date, m.kickOff) : null;
 
   return (
+    <PageTransition>
     <div className="space-y-8">
       <nav className="flex flex-wrap items-center gap-2 text-xs text-ash" aria-label="Breadcrumb"><Link href="/matches" className="link">Matches</Link> / <Link href={`/seasons/${season.id.toLowerCase()}`} className="link">Season {season.number}</Link> / Gameweek {m.gw}</nav>
 
@@ -123,5 +125,6 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       </nav>
       <div className="hidden"><Avatar name="" /></div>
     </div>
+    </PageTransition>
   );
 }

@@ -50,13 +50,15 @@ export function DepartureBoard({ rows, next, station = "Whitechapel" }: { rows: 
         {rows.map((r, i) => {
           const inner = (
             <>
-              <span className="tabular w-14 shrink-0 text-gold">{r.time}</span>
-              <span className="hidden w-32 shrink-0 text-[11px] uppercase tracking-widest text-ash sm:block">{r.label}</span>
-              <span className="min-w-0 flex-1 truncate text-cream/90"><span className="mr-2 text-[11px] uppercase tracking-widest text-ash sm:hidden">{r.label} ·</span>{r.destination}</span>
-              <span className={clsx("shrink-0 text-right text-xs uppercase tracking-wider sm:text-sm", toneClass[r.tone ?? "muted"])}>{r.status}</span>
+              <span className="tabular w-14 shrink-0 whitespace-nowrap pt-0.5 text-gold sm:w-16">{r.time}</span>
+              <span className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-3">
+                <span className="block text-[10px] uppercase tracking-widest text-ash sm:w-32 sm:shrink-0 sm:text-[11px]">{r.label}</span>
+                <span className="line-clamp-2 text-cream/90 sm:truncate">{r.destination}</span>
+              </span>
+              <span className={clsx("shrink-0 pt-0.5 text-right text-[11px] uppercase tracking-wider sm:text-sm", toneClass[r.tone ?? "muted"])}>{r.status}</span>
             </>
           );
-          const cls = "flex items-center gap-3 px-4 py-2.5 transition-colors";
+          const cls = "flex items-start gap-3 px-4 py-2.5 transition-colors sm:items-center";
           return <li key={i}>{r.href ? <Link href={r.href} className={clsx(cls, "hover:bg-white/[0.04]")}>{inner}</Link> : <div className={cls}>{inner}</div>}</li>;
         })}
       </ul>

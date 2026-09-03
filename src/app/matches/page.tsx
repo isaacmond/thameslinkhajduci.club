@@ -3,6 +3,7 @@ import { getData } from "@/lib/data";
 import { chronological } from "@/lib/stats";
 import { MatchRow, PageHeader, SectionTitle } from "@/components/ui";
 import { MatchesBrowser } from "@/components/matches-browser";
+import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Matches", description: "Every Thameslink Hajduci result and fixture, filterable by season and outcome." };
 
@@ -12,6 +13,7 @@ export default async function MatchesPage() {
   const upcoming = chronological(data.matches).filter((m) => !m.played && m.date && m.date >= today).slice(0, 5);
   const played = data.matches.filter((m) => m.played).length;
   return (
+    <PageTransition>
     <>
       <PageHeader eyebrow="Results & fixtures" title="Matches" sub={`${played} games played, ${data.allTime.won} of them won. Friendlies and forfeits are listed but don't count towards anything except character.`} />
       {upcoming.length > 0 && (
@@ -22,5 +24,6 @@ export default async function MatchesPage() {
       )}
       <MatchesBrowser matches={data.matches} seasons={data.seasons.map((s) => ({ id: s.id, number: s.number, title: s.title }))} />
     </>
+    </PageTransition>
   );
 }

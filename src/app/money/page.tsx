@@ -5,6 +5,7 @@ import { Coins, Receipt } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, scoreline } from "@/lib/stats";
 import { Callout, PageHeader, PlayerLink, ResultPill, SectionTitle, Stat } from "@/components/ui";
+import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Money", description: "Who owes what for pitch hire. Season 8 onwards." };
 
@@ -23,8 +24,9 @@ export default async function MoneyPage() {
   const payers = Object.entries(data.money.paidBy);
 
   return (
+    <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> Season{payers.length > 1 ? "s" : ""} {payers.map(([s, who]) => `${s} paid up front by ${who}`).join(", ")}.</>}</>} />
+      <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">
         <Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${rows.filter((r) => r.balance > 0.01).length} player${rows.filter((r) => r.balance > 0.01).length === 1 ? "" : "s"} yet to pay` : "Everyone's square"} />
@@ -77,5 +79,6 @@ export default async function MoneyPage() {
         </section>
       )}
     </div>
+    </PageTransition>
   );
 }

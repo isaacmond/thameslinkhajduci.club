@@ -38,7 +38,7 @@ const shortSeason = (v: string) => String(v).replace("Season ", "S");
 export function WDLBySeason({ data }: { data: { name: string; won: number; drawn: number; lost: number }[] }) {
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }} barCategoryGap="30%">
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }} barCategoryGap="30%" maxBarSize={64}>
         <CartesianGrid vertical={false} stroke={C.grid} />
         <XAxis dataKey="name" {...axis} tickFormatter={shortSeason} />
         <YAxis {...axis} allowDecimals={false} />
@@ -111,7 +111,7 @@ function GDTip({ active, payload }: TipProps) {
 export function GoalDiffTimeline({ data }: { data: { label: string; gd: number; opponent: string; score: string }[] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }} barCategoryGap="20%">
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }} barCategoryGap="20%" maxBarSize={56}>
         <CartesianGrid vertical={false} stroke={C.grid} />
         <XAxis dataKey="label" {...axis} interval="preserveStartEnd" />
         <YAxis {...axis} allowDecimals={false} />
@@ -132,7 +132,7 @@ export function StackedBySeason({ data, seasons }: { data: Record<string, number
       <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }} barCategoryGap="25%">
         <CartesianGrid horizontal={false} stroke={C.grid} />
         <XAxis type="number" {...axis} allowDecimals={false} />
-        <YAxis type="category" dataKey="name" width={150} {...axis} />
+        <YAxis type="category" dataKey="name" width={168} {...axis} tick={{ fill: C.ink, fontSize: 10 }} />
         <Tooltip content={<DefaultTip />} cursor={cursor} />
         <Legend {...legend} />
         {seasons.map((s, i) => <Bar key={s} dataKey={s} name={s} stackId="a" fill={seasonColor(i)} stroke={C.surface} strokeWidth={2} />)}

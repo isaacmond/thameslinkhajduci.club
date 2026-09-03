@@ -7,13 +7,15 @@ import { chronological, currentStreak, fmtDate, form, lastResult, leaderboard, n
 import { Crest, FormStrip, LeaderList, MatchRow, SectionTitle, Tag } from "@/components/ui";
 import { DepartureBoard, type BoardRow } from "@/components/board";
 import { Sponsors } from "@/components/footer";
+import { CountUp } from "@/components/count-up";
+import { PageTransition } from "@/components/page-transition";
 
 function RecordStrip({ s }: { s: SeasonSummary }) {
   const cells: [string, number, string][] = [["Played", s.played, "text-cream"], ["Won", s.won, "text-mint-soft"], ["Drawn", s.drawn, "text-[#ffe27a]"], ["Lost", s.lost, "text-[#ff9a9d]"]];
   return (
     <div>
       <dl className="grid grid-cols-4 divide-x divide-white/10 text-center">
-        {cells.map(([k, v, c]) => <div key={k} className="py-4"><dd className={clsx("display tabular text-4xl leading-none sm:text-5xl", c)}>{v}</dd><dt className="eyebrow mt-1">{k}</dt></div>)}
+        {cells.map(([k, v, c]) => <div key={k} className="py-4"><dd className={clsx("display tabular text-4xl leading-none sm:text-5xl", c)}><CountUp value={v} /></dd><dt className="eyebrow mt-1">{k}</dt></div>)}
       </dl>
       <p className="border-y border-white/10 bg-white/[0.03] px-4 py-2 text-center text-xs text-ash">GF <span className="text-cream">{s.goalsFor}</span> · GA <span className="text-cream">{s.goalsAgainst}</span> · GD <span className="text-cream">{signed(s.goalsFor - s.goalsAgainst)}</span> · <span className="text-cream">{ppg(s).toFixed(2)}</span> pts/game</p>
     </div>
@@ -35,13 +37,14 @@ export default async function Home() {
 
   const rows: BoardRow[] = [];
   if (next) rows.push({ time: next.kickOff ?? "TBC", label: "Next fixture", destination: `${next.opponent} · ${fmtDate(next.date, { weekday: "short", day: "numeric", month: "short" })}`, status: "Expected", tone: "late", href: `/matches/${next.id}` });
-  if (last) rows.push({ time: fmtDate(last.date, { day: "2-digit", month: "short" }), label: "Last result", destination: `${last.result === "W" ? "Beat" : last.result === "L" ? "Lost to" : "Drew with"} ${last.opponent} ${scoreline(last)}`, status: last.result === "W" ? "On time" : last.result === "D" ? "Delayed" : "Cancelled", tone: last.result === "W" ? "ok" : last.result === "D" ? "late" : "bad", href: `/matches/${last.id}` });
+  if (last) rows.push({ time: fmtDate(last.date, { day: "2-digit", month: "2-digit" }), label: "Last result", destination: `${last.result === "W" ? "Beat" : last.result === "L" ? "Lost to" : "Drew with"} ${last.opponent} ${scoreline(last)}`, status: last.result === "W" ? "On time" : last.result === "D" ? "Delayed" : "Cancelled", tone: last.result === "W" ? "ok" : last.result === "D" ? "late" : "bad", href: `/matches/${last.id}` });
   if (streak) rows.push({ time: `${streak.length}×`, label: "Current run", destination: streak.type === "W" ? `${streak.length} win${streak.length > 1 ? "s" : ""} on the bounce` : streak.type === "L" ? `${streak.length} defeat${streak.length > 1 ? "s" : ""} in a row` : `${streak.length} draw${streak.length > 1 ? "s" : ""} running`, status: streak.type === "W" ? "Good service" : streak.type === "L" ? "Severe delays" : "Minor delays", tone: streak.type === "W" ? "ok" : streak.type === "L" ? "bad" : "late", href: "/records" });
   if (topScorers[0]) rows.push({ time: String(topScorers[0].value), label: "Top scorer", destination: `${topScorers[0].player.name} · all-time goals`, status: "Golden boot", tone: "ok", href: `/squad/${topScorers[0].player.slug}` });
   if (topApps[0]) rows.push({ time: String(topApps[0].value), label: "Most apps", destination: `${topApps[0].player.name} · never misses a Tuesday`, status: "Season ticket", tone: "ok", href: `/squad/${topApps[0].player.slug}` });
   rows.push({ time: String(data.allTime.goalsAgainst), label: "Conceded", destination: "Goals against, all-time, and counting", status: "Replacement bus", tone: "bad", href: "/records" });
 
   return (
+    <PageTransition>
     <div className="space-y-10">
       <section className="pitch card-solid relative overflow-hidden px-6 py-10 animate-rise sm:px-10 sm:py-14">
         <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-mint/20 blur-3xl" aria-hidden />
@@ -103,7 +106,7 @@ export default async function Home() {
 
       <section>
         <SectionTitle right={<Link href="/records" className="link text-xs">All records</Link>} sub="Numbers that will outlive us all">The record books</SectionTitle>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="stagger grid gap-4 sm:grid-cols-3">
           {rec.biggestWin && <Link href={`/matches/${rec.biggestWin.id}`} className="focus-ring card group p-5 transition-colors hover:border-mint/40"><Trophy className="text-mint-soft" size={20} aria-hidden /><p className="eyebrow mt-3">Biggest win</p><p className="display mt-1 text-4xl text-cream">{scoreline(rec.biggestWin)}</p><p className="text-sm text-ash">vs {rec.biggestWin.opponent} · {fmtDate(rec.biggestWin.date)}</p></Link>}
           {rec.heaviestDefeat && <Link href={`/matches/${rec.heaviestDefeat.id}`} className="focus-ring card group p-5 transition-colors hover:border-loss/40"><Skull className="text-[#ff9a9d]" size={20} aria-hidden /><p className="eyebrow mt-3">Heaviest defeat</p><p className="display mt-1 text-4xl text-cream">{scoreline(rec.heaviestDefeat)}</p><p className="text-sm text-ash">vs {rec.heaviestDefeat.opponent} · {fmtDate(rec.heaviestDefeat.date)}</p></Link>}
           {rec.longestUnbeaten && <Link href="/records" className="focus-ring card group p-5 transition-colors hover:border-gold/40"><Flame className="text-gold" size={20} aria-hidden /><p className="eyebrow mt-3">Longest unbeaten run</p><p className="display mt-1 text-4xl text-cream">{rec.longestUnbeaten.length} games</p><p className="text-sm text-ash">{fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} – {fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}</p></Link>}
@@ -112,5 +115,6 @@ export default async function Home() {
 
       <Sponsors />
     </div>
+    </PageTransition>
   );
 }
