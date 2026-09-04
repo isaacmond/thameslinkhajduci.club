@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/backup.mjs 2>/dev/null || true",
+            "timeout": 40,
+            "statusMessage": "Backing up the club records to Documents…"
+          }
+        ]
+      }
+    ]
+  }
+}

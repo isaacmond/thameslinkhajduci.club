@@ -5,9 +5,9 @@ import { slugify } from "./slug";
 import type { ClubData, Season } from "./types";
 
 /**
- * One-off import of the parsed workbook into the database (scripts/import-sheet.ts) and the fixture loader for tests.
- * Takes what parseWorkbook produced plus the alias maps and writes raw records; the loader re-derives every stat.
- * Replaces whatever is in the tables.
+ * Loads a parsed workbook into a database, replacing everything in the tables. It did the one-off migration from the
+ * Google Sheet on 4 Sep 2026 and now exists for the tests only (tests/db.ts seeds an in-process Postgres with it). There
+ * is deliberately no npm script for it any more: run against the live database it would wipe everything recorded since.
  */
 export type ImportExtras = { aliases: Record<string, string>; opponents: Record<string, string> };
 
