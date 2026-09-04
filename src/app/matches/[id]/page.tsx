@@ -69,7 +69,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <p className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ash">
             <span className="eyebrow">{season.id === "FR" ? "Friendly" : `${season.id} · GW${m.gw}`}</span>
             <span>{fmtDate(m.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}</span>
-            <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden />{season.venue}</span>
+            <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden />{season.venueUrl ? <a href={season.venueUrl} target="_blank" rel="noopener noreferrer" className="link">{season.venue}</a> : season.venue}</span>
             {m.played && <ResultPill result={m.result} size="sm" />}
             {m.type && <Tag tone="gold">{m.type} · not counted</Tag>}
           </p>

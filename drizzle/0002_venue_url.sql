@@ -1,0 +1,1 @@
+ALTER TABLE "seasons" ADD COLUMN "venue_url" text;

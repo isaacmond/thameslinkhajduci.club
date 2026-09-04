@@ -75,12 +75,13 @@ describe("members, seasons, fixtures, the queue", () => {
     expect((await listMembers(db)).some((m) => m.email === "maxcobain@live.com")).toBe(false);
   });
   it("creates a season and fixtures, with the season's pitch cost as the default", async () => {
-    await upsertSeason({ id: "S9", number: 9, title: "Season 9 · Old Street · Jan–Apr 2027", venue: "Old Street", period: "Jan–Apr 2027", pitchCost: 81.5, paidBy: "Isaac Mond" }, db);
+    await upsertSeason({ id: "S9", number: 9, title: "Season 9 · Old Street · Jan–Apr 2027", venue: "Old Street", venueUrl: "https://www.playfootball.net/venues/old-street", period: "Jan–Apr 2027", pitchCost: 81.5, paidBy: "Isaac Mond" }, db);
     const id = await upsertFixture({ seasonId: "S9", gw: 1, date: "2027-01-05", kickOff: "20:15", opponent: "Old Ivy", type: null, matchCost: null }, "isaac", db);
     expect(id).toBe("s9-gw1");
     const data = await loadClubData(db);
     expect(data.matches.find((m) => m.id === "s9-gw1")).toMatchObject({ opponent: "Old Ivy", matchCost: 81.5, played: false });
     expect(data.seasons.find((s) => s.id === "S9")!.summary.seasonCost).toBeCloseTo(81.5, 6); // price per game × games
+    expect(data.seasons.find((s) => s.id === "S9")!.venueUrl).toBe("https://www.playfootball.net/venues/old-street");
     await deleteFixture("s9-gw1", db);
     expect((await loadClubData(db)).matches.some((m) => m.id === "s9-gw1")).toBe(false);
   });

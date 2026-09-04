@@ -72,7 +72,7 @@ export function club(matches: Match[], players: Player[] = [], extra: Partial<Cl
       goalsAgainst: counted.reduce((t, m) => t + (m.theirGoals ?? 0), 0),
     };
     const roster = [...new Set(ms.flatMap((m) => m.lineup.map((l) => l.player)))];
-    const season: Season = { id, number: ms[0].seasonNumber, title: id === "FR" ? "Friendlies" : `Season ${ms[0].seasonNumber}`, venue: "PlayFootball Old Street", period: "", matches: ms, summary, players: roster, isCurrent: false, isComplete: false };
+    const season: Season = { id, number: ms[0].seasonNumber, title: id === "FR" ? "Friendlies" : `Season ${ms[0].seasonNumber}`, venue: "PlayFootball Old Street", venueUrl: null, period: "", matches: ms, summary, players: roster, isCurrent: false, isComplete: false };
     if (id === "FR") friendlies = season; else seasons.push(season);
   }
   seasons.sort((a, b) => a.number - b.number);

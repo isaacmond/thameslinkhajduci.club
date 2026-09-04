@@ -21,6 +21,8 @@ export const seasons = pgTable("seasons", {
   pitchCost: numeric({ precision: 8, scale: 2 }),
   /** who books and pays the pitch up front; credited the cost of every played game */
   paidBy: text(),
+  /** the venue's page (PlayFootball etc.), linked from the fixture page and the reminder email */
+  venueUrl: text(),
   seasonCost: numeric({ precision: 9, scale: 2 }).notNull().default("0"),
 });
 

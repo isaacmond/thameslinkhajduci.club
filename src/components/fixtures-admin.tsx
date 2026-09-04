@@ -4,7 +4,7 @@ import { CalendarPlus, Save, Trash2 } from "lucide-react";
 import { deleteFixtureAction, saveFixtureAction, saveSeasonAction, type ActionState } from "@/app/actions/admin";
 import { inputClass, Select } from "./controls";
 
-export type AdminSeason = { id: string; number: number; title: string; venue: string; period: string; pitchCost: number | null; paidBy: string | null; seasonCost: number; fixtures: number; isCurrent: boolean };
+export type AdminSeason = { id: string; number: number; title: string; venue: string; venueUrl: string | null; period: string; pitchCost: number | null; paidBy: string | null; seasonCost: number; fixtures: number; isCurrent: boolean };
 export type AdminFixture = { id: string; seasonId: string; gw: number; date: string | null; kickOff: string | null; opponent: string; type: string | null; matchCost: number; played: boolean };
 
 const TYPES = [{ value: "", label: "League game" }, { value: "Friendly", label: "Friendly" }, { value: "Forfeit", label: "Forfeit" }, { value: "Cancelled", label: "Cancelled" }];
@@ -44,6 +44,7 @@ function SeasonForm({ s, roster }: { s?: AdminSeason; roster: string[] }) {
       <label className={field}><span className="eyebrow">Id</span><input name="id" defaultValue={s?.id ?? ""} placeholder="S9" readOnly={Boolean(s)} className={`${inputClass} tabular`} /></label>
       <label className={`${field} sm:col-span-3`}><span className="eyebrow">Title</span><input name="title" defaultValue={s?.title ?? ""} placeholder="Season 9 · PlayFootball Old Street · Jan–Apr 2027" className={inputClass} /></label>
       <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue</span><input name="venue" defaultValue={s?.venue ?? ""} className={inputClass} /></label>
+      <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue link</span><input name="venueUrl" type="url" defaultValue={s?.venueUrl ?? ""} placeholder="https://www.playfootball.net/venues/whitechapel" className={inputClass} /><span className="text-[11px] text-ash">Linked from the fixture page and the reminder email.</span></label>
       <label className={field}><span className="eyebrow">Period</span><input name="period" defaultValue={s?.period ?? ""} placeholder="Jan–Apr 2027" className={inputClass} /></label>
       <label className={field}><span className="eyebrow">Pitch £ per game</span><input name="pitchCost" defaultValue={s?.pitchCost?.toFixed(2) ?? ""} inputMode="decimal" placeholder="79.95" className={`${inputClass} tabular`} /><span className="text-[11px] text-ash">Used for new fixtures; each fixture can still be changed.</span></label>
       <label className={field}><span className="eyebrow">Pitch paid by</span><select name="paidBy" defaultValue={s?.paidBy ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-cream"><option value="" className="bg-pine">Nobody yet</option>{roster.map((r) => <option key={r} value={r} className="bg-pine">{r}</option>)}</select></label>

@@ -53,6 +53,7 @@ export interface Season {
   number: number;
   title: string; // full title from sheet
   venue: string; // "PlayFootball Old Street (5G, 6-a-side)"
+  venueUrl: string | null; // where to find it online
   period: string; // "May–Aug 2026"
   matches: Match[];
   summary: SeasonSummary;

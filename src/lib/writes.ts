@@ -11,7 +11,7 @@ export type PaymentChange = { player: string; to: string | null; amount: number;
 export type PlayerChange = { name: string; nickname: string; positions: string[]; shirt: number | null; photo: string; seasonId: string | null };
 export type ProfileChange = { nickname?: string; positions?: string[]; shirt?: number | null; photo?: string | null; bio?: string };
 export type FixtureChange = { id?: string; seasonId: string; gw: number; date: string | null; kickOff: string | null; opponent: string; type: string | null; matchCost: number | null; comment?: string | null };
-export type SeasonChange = { id: string; number: number; title: string; venue: string; period: string; pitchCost: number | null; paidBy: string | null };
+export type SeasonChange = { id: string; number: number; title: string; venue: string; venueUrl: string | null; period: string; pitchCost: number | null; paidBy: string | null };
 
 const money = (n: number | null | undefined) => (n === null || n === undefined ? null : n.toFixed(2));
 
@@ -78,7 +78,7 @@ export async function removeMember(email: string, db: Db = getDb()) {
 
 /* -------------------------------------------------------- seasons & fixtures */
 export async function upsertSeason(c: SeasonChange, db: Db = getDb()) {
-  const row = { number: c.number, title: c.title, venue: c.venue, period: c.period, pitchCost: money(c.pitchCost), paidBy: c.paidBy }; // season cost is price per game × fixtures, computed on read
+  const row = { number: c.number, title: c.title, venue: c.venue, venueUrl: c.venueUrl, period: c.period, pitchCost: money(c.pitchCost), paidBy: c.paidBy }; // season cost is price per game × fixtures, computed on read
   await db.insert(schema.seasons).values({ id: c.id, ...row }).onConflictDoUpdate({ target: schema.seasons.id, set: row });
 }
 export async function upsertFixture(c: FixtureChange, by: string, db: Db = getDb()) {

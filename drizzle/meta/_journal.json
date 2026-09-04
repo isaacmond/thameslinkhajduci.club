@@ -15,6 +15,13 @@
       "when": 1788536597443,
       "tag": "0001_squads",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788537977297,
+      "tag": "0002_venue_url",
+      "breakpoints": true
     }
   ]
 }

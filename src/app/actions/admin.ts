@@ -5,7 +5,7 @@ import { purge } from "@/lib/apply";
 import { getData } from "@/lib/data";
 import { clean, rosterName, validEmailAddress } from "@/lib/admin-validation";
 import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, saveSquad, setAdmin, upsertFixture, upsertSeason } from "@/lib/writes";
-import { sendSquadReminders } from "@/lib/reminders";
+import { sendReminderPreview, sendSquadReminders } from "@/lib/reminders";
 import { log } from "@/lib/log";
 
 /** Everything here is admin-only. Each action re-checks the session; the UI merely hides what it must not offer. */
@@ -67,9 +67,12 @@ export async function saveSeasonAction(_prev: ActionState, form: FormData): Prom
   if (!/^S\d{1,2}$/.test(id)) return fail("Season ids look like S9.");
   const pitchCost = clean(form.get("pitchCost"), 10);
   if (pitchCost && !(Number(pitchCost) >= 0)) return fail("Pitch cost should be a number of pounds.");
+  const venueUrlRaw = clean(form.get("venueUrl"), 300);
+  let venueUrl: string | null = null;
+  if (venueUrlRaw) { try { const u = new URL(venueUrlRaw); if (u.protocol !== "https:") throw new Error(); venueUrl = u.toString(); } catch { return fail("The venue link should be an https address."); } }
   await upsertSeason({
     id, number: Number(id.slice(1)), title: clean(form.get("title"), 120), venue: clean(form.get("venue"), 120), period: clean(form.get("period"), 60),
-    pitchCost: pitchCost ? Number(pitchCost) : null, paidBy: clean(form.get("paidBy"), 60) || null,
+    pitchCost: pitchCost ? Number(pitchCost) : null, paidBy: clean(form.get("paidBy"), 60) || null, venueUrl,
   });
   purge(); revalidatePath("/admin");
   return { ok: true, message: `${id} saved.` };
@@ -136,4 +139,11 @@ export async function sendRemindersAction(matchId: string): Promise<ActionState>
   if (r.skipped) return fail(r.skipped);
   const parts = [r.sent.length ? `Sent to ${r.sent.length}: ${r.sent.join(", ")}.` : "Nobody could be emailed.", r.noEmail.length ? `No email on the members list for ${r.noEmail.join(", ")}: chase them in the group chat.` : "", r.failed.length ? `Failed for ${r.failed.join(", ")}.` : ""].filter(Boolean);
   return { ok: r.sent.length > 0, message: parts.join(" ") };
+}
+
+export async function previewReminderAction(matchId: string): Promise<ActionState> {
+  const s = await admin();
+  const r = await sendReminderPreview(matchId, s.email, s.member.player);
+  log("reminders.preview", { matchId, by: s.member.player, ok: r.ok });
+  return r;
 }

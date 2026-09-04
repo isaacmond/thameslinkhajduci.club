@@ -223,6 +223,7 @@ function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } =
   return {
     id, number, title,
     venue: parts[1] ?? "",
+    venueUrl: null,
     period: parts[2] ?? "",
     matches, summary, players: roster,
     isCurrent: false,
