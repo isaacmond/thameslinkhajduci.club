@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Data & API", description: "Export Th
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const SEVERITY_UI: Record<Severity, { tone: "loss" | "gold" | "default"; icon: React.ReactNode; blurb: string }> = {
-  high: { tone: "loss", icon: <TriangleAlert size={16} className="text-[#ff9a9d]" aria-hidden />, blurb: "A number on the site is wrong until these are fixed." },
+  high: { tone: "loss", icon: <TriangleAlert size={16} className="text-loss-soft" aria-hidden />, blurb: "A number on the site is wrong until these are fixed." },
   medium: { tone: "gold", icon: <CircleAlert size={16} className="text-gold" aria-hidden />, blurb: "Missing or ignored: the site copes, but quietly." },
   low: { tone: "default", icon: <Info size={16} className="text-ash" aria-hidden />, blurb: "Tidy-ups. Nothing is counted wrongly." },
 };
@@ -29,9 +29,9 @@ export default async function DataPage() {
       <PageHeader eyebrow="Extract everything" title="Data & API" sub="Every number on this site comes from the club's records database, re-shaped into tidy tables. Take what you need, or download the whole lot as a spreadsheet." right={<RefreshButton />} />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="card min-w-0 p-5"><p className="eyebrow">Source of truth</p><p className="display mt-1 text-2xl text-cream">The records database</p><a href="/api/export?format=xlsx" className="link mt-1 inline-flex items-center gap-1 text-sm"><Download size={14} aria-hidden />Download it all as a spreadsheet</a></div>
-        <div className="card min-w-0 p-5"><p className="eyebrow">Last read</p><p className="display mt-1 text-2xl text-cream">{readAt}</p><p className="mt-1 text-xs text-ash">Re-read at most every 60s, or on demand with the button</p></div>
-        <div className="card min-w-0 p-5"><p className="eyebrow">In the dataset</p><p className="display mt-1 text-2xl text-cream">{data.matches.length} fixtures · {data.players.length} players</p><p className="mt-1 text-xs text-ash">{data.matches.filter((m) => m.played).length} played, {data.allTime.goalsFor + data.allTime.goalsAgainst} goals witnessed</p></div>
+        <div className="card min-w-0 p-5"><p className="eyebrow">Source of truth</p><p className="display mt-1 text-2xl leading-none text-cream">The records database</p><a href="/api/export?format=xlsx" className="link mt-1 inline-flex items-center gap-1 text-sm"><Download size={14} aria-hidden />Download it all as a spreadsheet</a></div>
+        <div className="card min-w-0 p-5"><p className="eyebrow">Last read</p><p className="display mt-1 text-2xl leading-none text-cream">{readAt}</p><p className="mt-1 text-xs text-ash">Re-read at most every 60s, or on demand with the button</p></div>
+        <div className="card min-w-0 p-5"><p className="eyebrow">In the dataset</p><p className="display mt-1 text-2xl leading-none text-cream">{data.matches.length} fixtures · {data.players.length} players</p><p className="mt-1 text-xs text-ash">{data.matches.filter((m) => m.played).length} played, {data.allTime.goalsFor + data.allTime.goalsAgainst} goals witnessed</p></div>
       </section>
 
       <section className="min-w-0" aria-labelledby="records-health">

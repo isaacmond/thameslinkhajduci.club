@@ -76,7 +76,7 @@ function Flap({ text, className, duration = 700 }: { text: string; className?: s
   return <span className={clsx("tabular", className)}><span aria-hidden>{frame}</span><span className="sr-only">{text}</span></span>;
 }
 
-const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-[#ff9a9d]", muted: "text-ash" } as const;
+const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-loss-soft", muted: "text-ash" } as const;
 
 /** A departures board. Because if there is one thing this club knows about, it is delays. */
 export function DepartureBoard({ rows, next, station = "Whitechapel" }: { rows: BoardRow[]; next: { date: string; time: string; opponent: string; href: string } | null; station?: string }) {
@@ -88,7 +88,7 @@ export function DepartureBoard({ rows, next, station = "Whitechapel" }: { rows: 
         <LiveClock />
       </div>
       {next && target !== null && (
-        <Link href={next.href} className="focus-ring relative z-[2] flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-white/10 bg-gold/[0.07] px-4 py-3 transition-colors hover:bg-gold/[0.12]">
+        <Link href={next.href} className="focus-ring relative z-[2] flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-white/10 bg-gold/[0.07] px-4 py-3 transition-colors hover:bg-gold/[0.12]">
           <span className="min-w-0 font-mono text-[11px] uppercase tracking-widest text-ash">Next departure<span className="mx-2 text-ash/50">·</span><span className="normal-case tracking-normal text-cream">{next.opponent}</span></span>
           <Countdown target={target} className="board-glow display text-3xl text-gold sm:text-4xl" />
         </Link>

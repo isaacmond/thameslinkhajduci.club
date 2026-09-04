@@ -11,7 +11,7 @@ import { DepartureBoard, type BoardRow } from "@/components/board";
 import { Sponsors } from "@/components/footer";
 import { PageTransition } from "@/components/page-transition";
 
-const DOT = { ok: "bg-mint", late: "bg-gold", bad: "bg-[#ff9a9d]", muted: "bg-ash" } as const;
+const DOT = { ok: "bg-mint", late: "bg-gold", bad: "bg-loss-soft", muted: "bg-ash" } as const;
 const KIND: Record<MilestoneKind, [string, string]> = { apps: ["app", "apps"], goals: ["goal", "goals"], assists: ["assist", "assists"], motm: ["MOTM award", "MOTM awards"] };
 const KIND_LABEL: Record<MilestoneKind, string> = { apps: "Appearances", goals: "Goals", assists: "Assists", motm: "Man of the match" };
 
@@ -70,7 +70,7 @@ export default async function Home() {
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
         <article className="card overflow-hidden">
-          <header className="flex items-center justify-between bg-pine px-5 py-3"><h2 className="display text-2xl text-cream">All-time</h2><Tag>{data.seasons.length} seasons · since {fmtDate(data.matches.find((m) => m.date)?.date ?? null, { month: "short", year: "numeric" })}</Tag></header>
+          <header className="flex items-baseline justify-between bg-pine px-5 py-3"><h2 className="display text-2xl leading-none text-cream">All-time</h2><Tag>{data.seasons.length} seasons · since {fmtDate(data.matches.find((m) => m.date)?.date ?? null, { month: "short", year: "numeric" })}</Tag></header>
           <RecordStrip s={data.allTime} animate />
           <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <div><SectionTitle right={<Link href="/stats" className="link py-1 text-xs">View all</Link>}><span className="text-xl">Season ticket holders</span></SectionTitle><LeaderList items={topApps} color="bg-cream" /></div>
@@ -79,7 +79,7 @@ export default async function Home() {
         </article>
         {current && (
           <article className="card overflow-hidden">
-            <header className="flex items-center justify-between bg-mint px-5 py-3 text-night"><h2 className="display text-2xl">Season {current.number}</h2><Link href={`/seasons/${current.id.toLowerCase()}`} className="focus-ring inline-flex items-center gap-1 rounded py-1 text-xs font-semibold uppercase tracking-wider hover:underline">{current.period} <ArrowRight size={14} aria-hidden /></Link></header>
+            <header className="flex items-baseline justify-between bg-mint px-5 py-3 text-night"><h2 className="display text-2xl leading-none">Season {current.number}</h2><Link href={`/seasons/${current.id.toLowerCase()}`} className="focus-ring inline-flex items-center gap-1 rounded py-1 text-xs font-semibold uppercase tracking-wider hover:underline">{current.period} <ArrowRight size={14} aria-hidden /></Link></header>
             <RecordStrip s={current.summary} animate />
             <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div><SectionTitle right={<Link href={`/seasons/${current.id.toLowerCase()}`} className="link py-1 text-xs">Season</Link>}><span className="text-xl">Turned up</span></SectionTitle><LeaderList items={sApps} color="bg-cream" emptyText="Season hasn't kicked off yet" /></div>
@@ -112,9 +112,9 @@ export default async function Home() {
               {talking.map((t) => (
                 <li key={t.key}>
                   <Link href={t.href ?? "/stats"} className="focus-ring group -mx-2 flex items-start gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-white/[0.04]">
-                    <span className={clsx("mt-[0.45rem] h-2 w-2 shrink-0 rounded-full", DOT[t.tone])} aria-hidden />
+                    <span className={clsx("mt-1.5 h-2 w-2 shrink-0 rounded-full", DOT[t.tone])} aria-hidden />
                     <span className="min-w-0 flex-1 text-cream group-hover:text-mint-soft">{t.text}</span>
-                    <ArrowRight size={14} className="mt-1 shrink-0 text-ash opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+                    <ArrowRight size={14} className="mt-[3px] shrink-0 text-ash opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
                   </Link>
                 </li>
               ))}
@@ -133,7 +133,7 @@ export default async function Home() {
                     <span className="block text-xs text-ash">{ms.away} {KIND[ms.kind][ms.away === 1 ? 0 : 1]} from {ms.target}</span>
                   </span>
                   <span className="shrink-0 text-right leading-none">
-                    <span className={clsx("display tabular block text-2xl", ms.away === 1 ? "text-gold" : "text-cream")}>{ms.target}</span>
+                    <span className={clsx("display tabular block text-2xl leading-none", ms.away === 1 ? "text-gold" : "text-cream")}>{ms.target}</span>
                     <span className="eyebrow !text-[9px] !tracking-[0.12em]">{KIND_LABEL[ms.kind]}</span>
                   </span>
                 </li>
@@ -146,9 +146,9 @@ export default async function Home() {
       <section>
         <SectionTitle right={<Link href="/records" className="link py-1 text-xs">All records</Link>} sub="Numbers that will outlive us all">The record books</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {rec.biggestWin && <Link href={`/matches/${rec.biggestWin.id}`} className="focus-ring card card-fame group p-5 transition-transform hover:-translate-y-0.5"><Trophy className="text-mint-soft" size={20} aria-hidden /><p className="eyebrow mt-3">Biggest win</p><p className="display mt-1 text-4xl text-cream">{scoreline(rec.biggestWin)}</p><p className="text-sm text-ash">vs {rec.biggestWin.opponent} · {fmtDate(rec.biggestWin.date)}</p></Link>}
-          {rec.heaviestDefeat && <Link href={`/matches/${rec.heaviestDefeat.id}`} className="focus-ring card card-shame group p-5 transition-transform hover:-translate-y-0.5"><Skull className="text-[#ff9a9d]" size={20} aria-hidden /><p className="eyebrow mt-3">Heaviest defeat</p><p className="display mt-1 text-4xl text-cream">{scoreline(rec.heaviestDefeat)}</p><p className="text-sm text-ash">vs {rec.heaviestDefeat.opponent} · {fmtDate(rec.heaviestDefeat.date)}</p></Link>}
-          {rec.longestUnbeaten && <Link href="/records" className="focus-ring card card-fame group p-5 transition-transform hover:-translate-y-0.5"><Flame className="text-gold" size={20} aria-hidden /><p className="eyebrow mt-3">Longest unbeaten run</p><p className="display mt-1 text-4xl text-cream">{rec.longestUnbeaten.length} games</p><p className="text-sm text-ash">{fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} – {fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}</p></Link>}
+          {rec.biggestWin && <Link href={`/matches/${rec.biggestWin.id}`} className="focus-ring card card-fame group p-5 transition-transform hover:-translate-y-0.5"><Trophy className="text-mint-soft" size={20} aria-hidden /><p className="eyebrow mt-3">Biggest win</p><p className="display mt-1 text-4xl leading-none text-cream">{scoreline(rec.biggestWin)}</p><p className="text-sm text-ash">vs {rec.biggestWin.opponent} · {fmtDate(rec.biggestWin.date)}</p></Link>}
+          {rec.heaviestDefeat && <Link href={`/matches/${rec.heaviestDefeat.id}`} className="focus-ring card card-shame group p-5 transition-transform hover:-translate-y-0.5"><Skull className="text-loss-soft" size={20} aria-hidden /><p className="eyebrow mt-3">Heaviest defeat</p><p className="display mt-1 text-4xl leading-none text-cream">{scoreline(rec.heaviestDefeat)}</p><p className="text-sm text-ash">vs {rec.heaviestDefeat.opponent} · {fmtDate(rec.heaviestDefeat.date)}</p></Link>}
+          {rec.longestUnbeaten && <Link href="/records" className="focus-ring card card-fame group p-5 transition-transform hover:-translate-y-0.5"><Flame className="text-gold" size={20} aria-hidden /><p className="eyebrow mt-3">Longest unbeaten run</p><p className="display mt-1 text-4xl leading-none text-cream">{rec.longestUnbeaten.length} games</p><p className="text-sm text-ash">{fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} – {fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}</p></Link>}
         </div>
       </section>
 

@@ -42,7 +42,7 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-[11px] text-ash"><MailWarning size={11} className="mr-1 inline text-gold" aria-hidden />means no email address on the members list, so they will not get the reminder. Add them under Members.</p>
+        <p className="mt-2 text-[11px] text-ash"><MailWarning size={11} className="mr-1 inline align-text-bottom text-gold" aria-hidden />means no email address on the members list, so they will not get the reminder. Add them under Members.</p>
       </fieldset>
       <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Note for the squad (optional)</span><textarea name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={400} rows={2} placeholder="Anything beyond the usual: a different pitch, a later meet, who has the ball." className={`${inputClass} min-h-[3.5rem] resize-y`} /></label>
       <div className="flex flex-wrap items-center gap-3">
@@ -51,7 +51,7 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
         <button type="button" disabled={busy} onClick={() => start(async () => setSent(await previewReminderAction(matchId)))} title="Email a copy to yourself only, nothing saved" className="focus-ring inline-flex h-[2.375rem] items-center gap-2 rounded-lg px-3 text-sm text-ash hover:text-cream disabled:opacity-50"><Eye size={16} aria-hidden />Email me a preview</button>
         {missing.length > 0 && <span className="text-xs text-gold">{missing.length} picked without an email</span>}
       </div>
-      {(sent ?? state) && <p role="status" className={`text-sm ${(sent ?? state)!.ok ? "text-mint-soft" : "text-[#ff9a9d]"}`}>{(sent ?? state)!.message}</p>}
+      {(sent ?? state) && <p role="status" className={`text-sm ${(sent ?? state)!.ok ? "text-mint-soft" : "text-loss-soft"}`}>{(sent ?? state)!.message}</p>}
     </form>
   );
 }

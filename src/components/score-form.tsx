@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { Check, Minus, Plus, Send } from "lucide-react";
-import { Select } from "./controls";
+import { inputClass, Select } from "./controls";
 import { BoardPreview } from "./board-preview";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
@@ -15,7 +15,7 @@ function Counter({ value, onChange, max = 30, label }: { value: number; onChange
   return (
     <span className="flex h-[38px] w-full max-w-[9rem] items-center justify-between rounded-lg border border-white/15 bg-white/5">
       <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className="focus-ring flex h-full items-center rounded-l-lg px-3 text-ash hover:text-cream"><Minus size={16} aria-hidden /></button>
-      <span className="display tabular w-8 text-center text-2xl text-cream" aria-live="polite">{value}</span>
+      <span className="display tabular w-8 text-center text-2xl leading-none translate-y-[0.05em] text-cream" aria-live="polite">{value}</span>
       <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(max, value + 1))} className="focus-ring flex h-full items-center rounded-r-lg px-3 text-ash hover:text-cream"><Plus size={16} aria-hidden /></button>
     </span>
   );
@@ -77,7 +77,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
     <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
       <div className="card grid grid-cols-1 gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <Select label="Fixture" value={matchId} onChange={pick} options={fixtures.map((f) => ({ value: f.id, label: f.label }))} className="min-w-0" />
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 sm:gap-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 text-xs sm:gap-4">
           <div className="min-w-0"><p className="eyebrow mb-1 truncate">Hajduci</p><Counter value={ours} onChange={setOurs} label="Hajduci goals" /></div>
           <span className="display flex h-[38px] items-center text-3xl text-ash">–</span>
           <div className="min-w-0"><p className="eyebrow mb-1 truncate" title={fx?.opponent}>{fx?.opponent ?? "Them"}</p><Counter value={theirs} onChange={setTheirs} label="opponent goals" /></div>
@@ -98,7 +98,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
 
       <div className="card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
         <Select label="Man of the match (optional)" value={motm} onChange={setMotm} options={[{ value: "", label: "Nobody in particular" }, ...(playedList.length ? playedList : roster).map((n) => ({ value: n, label: n }))]} />
-        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="So the admin knows who to blame" className="focus-ring rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/60" /></label>}
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="So the admin knows who to blame" className={inputClass} /></label>}
         <label className="flex flex-col gap-1 text-xs text-ash sm:col-span-2"><span className="eyebrow">Comment (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Anything worth remembering. Keep it clean-ish." className="focus-ring rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/60" /></label>
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
@@ -106,7 +106,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? (signedIn?.direct ? "Recording…" : "Preparing…") : signedIn?.direct ? "Record the result" : webhook ? "Submit for approval" : "Prepare the request"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
-        {result && !result.ok && <p className="text-xs text-[#ff9a9d]" role="alert">{result.error}</p>}
+        {result && !result.ok && <p className="text-xs text-loss-soft" role="alert">{result.error}</p>}
         <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/data" className="link">How the records work →</Link></p>
       </div>
     </form>

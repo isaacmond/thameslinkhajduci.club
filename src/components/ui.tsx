@@ -22,7 +22,7 @@ export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: React.Rea
 
 export function SectionTitle({ children, sub, right, id }: { children: React.ReactNode; sub?: React.ReactNode; right?: React.ReactNode; id?: string }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+    <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
       <div>
         <h2 id={id} className="display text-3xl leading-none text-cream">{children}</h2>
         {sub && <p className="mt-1 text-sm text-ash">{sub}</p>}
@@ -35,8 +35,8 @@ export function SectionTitle({ children, sub, right, id }: { children: React.Rea
 export function Stat({ label, value, sub, tone = "default", size = "md" }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "default" | "win" | "draw" | "loss" | "gold"; size?: "sm" | "md" | "lg" }) {
   return (
     <div className={clsx("card h-full", size === "sm" ? "px-3 py-2.5" : "px-4 py-3")}>
-      <p className={clsx("eyebrow", size === "sm" && "!text-[10px] !tracking-[0.14em] whitespace-nowrap")}>{label}</p>
-      <p className={clsx("display tabular leading-none", size === "lg" ? "mt-1 text-5xl" : size === "sm" ? "mt-1 text-3xl" : "mt-1 text-4xl", tone === "win" && "text-mint-soft", tone === "loss" && "text-[#ff9a9d]", tone === "draw" && "text-[#ffe27a]", tone === "gold" && "text-gold", tone === "default" && "text-cream")}>{value}</p>
+      <p className={clsx("eyebrow", size === "sm" && "!text-[10px] !tracking-[0.14em] truncate")}>{label}</p>
+      <p className={clsx("display tabular leading-none", size === "lg" ? "mt-1 text-5xl" : size === "sm" ? "mt-1 text-3xl" : "mt-1 text-4xl", tone === "win" && "text-mint-soft", tone === "loss" && "text-loss-soft", tone === "draw" && "text-draw-soft", tone === "gold" && "text-gold", tone === "default" && "text-cream")}>{value}</p>
       {sub && <p className={clsx("mt-1 text-ash", size === "sm" ? "text-[11px]" : "text-xs")}>{sub}</p>}
     </div>
   );
@@ -44,7 +44,7 @@ export function Stat({ label, value, sub, tone = "default", size = "md" }: { lab
 
 /** Four-up P/W/D/L with a GF/GA/GD/pts line. Compact enough for phones; used on home, season and player pages. */
 export function RecordStrip({ s, className, animate = false }: { s: SeasonSummary; className?: string; animate?: boolean }) {
-  const cells: [string, number, string][] = [["Played", s.played, "text-cream"], ["Won", s.won, "text-mint-soft"], ["Drawn", s.drawn, "text-[#ffe27a]"], ["Lost", s.lost, "text-[#ff9a9d]"]];
+  const cells: [string, number, string][] = [["Played", s.played, "text-cream"], ["Won", s.won, "text-mint-soft"], ["Drawn", s.drawn, "text-draw-soft"], ["Lost", s.lost, "text-loss-soft"]];
   return (
     <div className={className}>
       <dl className="grid grid-cols-4 divide-x divide-white/10 text-center">
@@ -89,7 +89,7 @@ export function Avatar({ name, photo, size = 40, shirt, priority = false }: { na
       {photo ? (
         <Image src={photo} alt="" width={size} height={size} className="h-full w-full rounded-full object-cover ring-1 ring-white/15" unoptimized={photo.startsWith("http")} priority={priority} />
       ) : (
-        <span className="display flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-forest to-pine text-cream ring-1 ring-white/15" style={{ fontSize: size * 0.42 }} aria-hidden>{initials(name)}</span>
+        <span className="display flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-forest to-pine text-cream ring-1 ring-white/15 [&>span]:translate-y-[0.05em]" style={{ fontSize: size * 0.42 }} aria-hidden>{initials(name)}</span>
       )}
       {shirt !== undefined && shirt !== null && <span className="absolute -bottom-1 -right-1 rounded-full bg-gold px-1 text-[10px] font-bold text-night ring-2 ring-night">{shirt}</span>}
     </span>
@@ -118,7 +118,7 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match | MatchLit
     <Link href={`/matches/${m.id}`} className="focus-ring group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-white/5 px-3 py-3 transition-colors hover:border-white/15 hover:bg-white/[0.04]">
       {m.played ? <ResultPill result={m.result} size="lg" /> : <span className="chip h-9 w-9 justify-center !p-0 text-[10px] text-ash" aria-label={gwLabel(m)}>{m.seasonId === "FR" ? "F" : "GW"}{m.gw}</span>}
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <Roundel name={m.opponent} size={18} className="shrink-0" />
           <span className="truncate font-semibold text-cream">{m.opponent}</span>
           {m.type && <span className="chip text-ash">{m.type}</span>}
@@ -152,10 +152,10 @@ export function LeaderList({ items, color = "bg-mint", format = (v: number) => S
         <li key={x.player.slug} className="relative overflow-hidden rounded-lg">
           <span className={clsx("absolute inset-y-0 left-0 rounded-lg opacity-[0.18]", color)} style={{ width: `${Math.max(3, (x.value / max) * 100)}%` }} aria-hidden />
           <span className="relative flex items-center gap-3 px-3 py-1.5">
-            <span className="display w-5 shrink-0 text-lg text-ash">{i + 1}</span>
+            <span className="display w-5 shrink-0 text-lg leading-none translate-y-[0.05em] text-ash">{i + 1}</span>
             <Avatar name={x.player.name} photo={x.player.extra.photo} size={28} />
             <PlayerLink name={x.player.name} player={x.player} className="min-w-0 truncate text-sm" />
-            <span className="display tabular ml-auto shrink-0 text-xl text-cream sm:text-2xl">{format(x.value)}</span>
+            <span className="display tabular ml-auto shrink-0 text-xl leading-none translate-y-[0.05em] text-cream sm:text-2xl">{format(x.value)}</span>
           </span>
         </li>
       ))}
@@ -164,7 +164,7 @@ export function LeaderList({ items, color = "bg-mint", format = (v: number) => S
 }
 
 export function Tag({ children, tone = "default", className }: { children: React.ReactNode; tone?: "default" | "gold" | "mint" | "loss"; className?: string }) {
-  return <span className={clsx("chip", tone === "gold" && "border-gold/40 bg-gold/10 text-gold", tone === "mint" && "border-mint/40 bg-mint/10 text-mint-soft", tone === "loss" && "border-loss/40 bg-loss/10 text-[#ff9a9d]", tone === "default" && "text-ash", className)}>{children}</span>;
+  return <span className={clsx("chip", tone === "gold" && "border-gold/40 bg-gold/10 text-gold", tone === "mint" && "border-mint/40 bg-mint/10 text-mint-soft", tone === "loss" && "border-loss/40 bg-loss/10 text-loss-soft", tone === "default" && "text-ash", className)}>{children}</span>;
 }
 
 export function Callout({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {

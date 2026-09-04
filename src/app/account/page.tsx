@@ -50,12 +50,12 @@ export default async function AccountPage() {
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="Your account" title={member.player} sub={<>Your details as the site shows them. Submissions you make while signed in go straight into the records{live ? "" : " once the database is connected"}.</>} right={<div className="flex flex-wrap items-center gap-2">{member.admin && live && <Link href="/admin" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-gold/40 px-4 py-2.5 text-sm font-semibold text-gold hover:bg-gold/10"><ShieldCheck size={16} aria-hidden />Admin</Link>}<Link href={`/squad/${slug}`} className="focus-ring inline-flex items-center rounded-lg bg-mint px-4 py-2.5 text-sm font-semibold text-night hover:bg-mint-soft">Your player page →</Link><SignOut /></div>} />
+      <PageHeader eyebrow="Your account" title={member.player} sub={<>Your details as the site shows them. Submissions you make while signed in go straight into the records{live ? "" : " once the database is connected"}.</>} right={<div className="flex flex-wrap items-center gap-2">{member.admin && live && <Link href="/admin" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-gold/40 px-4 py-2.5 text-sm font-semibold text-gold hover:bg-gold/10"><ShieldCheck size={16} aria-hidden />Admin</Link>}<Link href={`/squad/${slug}`} className="focus-ring inline-flex items-center rounded-lg border border-transparent bg-mint px-4 py-2.5 text-sm font-semibold text-night hover:bg-mint-soft">Your player page →</Link><SignOut /></div>} />
       {!live && <p className="card border-gold/40 p-4 text-sm text-ash">Saving is not switched on yet: the records database is not connected. You can look, but the save button will tell you the same.</p>}
       <ProfileForm initial={initial} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {([["Submit a score", "/submit", "Recorded as soon as you send it."], ["Log a payment", `/submit?type=payment&player=${encodeURIComponent(member.player)}`, "Straight onto the money page."], ["Add a player", "/submit?type=player", "New signings join the roster instantly."]] as const).map(([t, href, sub]) => (
-          <Link key={href} href={href} className="card focus-ring block p-4 transition-colors hover:bg-white/[0.06]"><p className="display text-2xl text-cream">{t}</p><p className="mt-1 text-xs text-ash">{sub}</p></Link>
+          <Link key={href} href={href} className="card focus-ring block p-4 transition-colors hover:bg-white/[0.06]"><p className="display text-2xl leading-none text-cream">{t}</p><p className="mt-1 text-xs text-ash">{sub}</p></Link>
         ))}
       </div>
     </div>

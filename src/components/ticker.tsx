@@ -6,7 +6,7 @@ import { serviceStatus } from "@/lib/captions";
 import { insights, pickInsights } from "@/lib/insights";
 
 type Item = { text: string; href?: string; tone?: "ok" | "late" | "bad" | "muted" };
-const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-[#ff9a9d]", muted: "text-cream/80" } as const;
+const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-loss-soft", muted: "text-cream/80" } as const;
 
 /** A single-line service-update marquee under the header. Server-rendered from live data; pauses on hover and keyboard focus; under reduced motion the .ticker-viewport rules in globals.css stop it and make it scroll sideways instead, dropping the aria-hidden duplicate strip. */
 export async function ServiceTicker() {

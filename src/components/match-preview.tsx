@@ -17,8 +17,8 @@ function scorersAgainst(matches: Match[], players: Player[], top = 3): { player:
 
 const outcomes = [
   { key: "win", label: "On time", hint: "Win", bar: "bg-win", text: "text-mint-soft" },
-  { key: "draw", label: "Delayed", hint: "Draw", bar: "bg-draw", text: "text-[#ffe27a]" },
-  { key: "loss", label: "Cancelled", hint: "Loss", bar: "bg-loss", text: "text-[#ff9a9d]" },
+  { key: "draw", label: "Delayed", hint: "Draw", bar: "bg-draw", text: "text-draw-soft" },
+  { key: "loss", label: "Cancelled", hint: "Loss", bar: "bg-loss", text: "text-loss-soft" },
 ] as const;
 
 /** Pre-match forecast for an unplayed fixture: outcome odds in the house dialect, expected goals, form, and what history says about this opponent. */
@@ -54,7 +54,7 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
 
       <dl className="mt-5 grid grid-cols-2 gap-2 text-center">
         <div className="flex flex-col-reverse rounded-lg bg-white/[0.03] px-2 py-3"><dt className="eyebrow mt-1">Expected for</dt><dd className="display tabular text-3xl leading-none text-mint-soft">{p.expectedFor.toFixed(1)}</dd></div>
-        <div className="flex flex-col-reverse rounded-lg bg-white/[0.03] px-2 py-3"><dt className="eyebrow mt-1">Expected against</dt><dd className="display tabular text-3xl leading-none text-[#ff9a9d]">{p.expectedAgainst.toFixed(1)}</dd></div>
+        <div className="flex flex-col-reverse rounded-lg bg-white/[0.03] px-2 py-3"><dt className="eyebrow mt-1">Expected against</dt><dd className="display tabular text-3xl leading-none text-loss-soft">{p.expectedAgainst.toFixed(1)}</dd></div>
       </dl>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
@@ -66,7 +66,7 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
         <p className="eyebrow">Against {h2h?.opponent ?? match.opponent}</p>
         {h2h ? (
           <p className="mt-1 text-cream/90">
-            {h2h.played} meeting{h2h.played === 1 ? "" : "s"}: <span className="text-mint-soft">W{h2h.won}</span> <span className="text-[#ffe27a]">D{h2h.drawn}</span> <span className="text-[#ff9a9d]">L{h2h.lost}</span>, goals <span className="tabular">{h2h.gf}–{h2h.ga}</span>.{" "}
+            {h2h.played} meeting{h2h.played === 1 ? "" : "s"}: <span className="text-mint-soft">W{h2h.won}</span> <span className="text-draw-soft">D{h2h.drawn}</span> <span className="text-loss-soft">L{h2h.lost}</span>, goals <span className="tabular">{h2h.gf}–{h2h.ga}</span>.{" "}
             <Link href={`/opponents/${h2h.slug}`} className="link whitespace-nowrap">Full history →</Link>
           </p>
         ) : (

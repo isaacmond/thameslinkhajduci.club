@@ -9,7 +9,7 @@ import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Opponents", description: "Head-to-head records against every team Thameslink Hajduci have met in a game that counted. Bogey teams clearly labelled." };
 
-const gdTone = (gd: number) => (gd > 0 ? "text-mint-soft" : gd < 0 ? "text-[#ff9a9d]" : "text-cream");
+const gdTone = (gd: number) => (gd > 0 ? "text-mint-soft" : gd < 0 ? "text-loss-soft" : "text-cream");
 
 export default async function OpponentsPage() {
   const data = await getData();
@@ -42,12 +42,12 @@ export default async function OpponentsPage() {
               <Link href={`/opponents/${o.slug}`} className="card focus-ring flex items-center gap-3 p-3 transition-colors hover:border-white/15">
                 <Roundel name={o.opponent} size={48} />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start gap-2">
+                  <div className="flex items-baseline gap-2">
                     <span className="display shrink-0 text-lg leading-none text-ash">{rank}</span>
                     <span className="min-w-0 break-words font-semibold leading-tight text-cream">{o.opponent}</span>
                     {v && <Tag tone={v.tone} className="ml-auto shrink-0 !text-[10px]">{v.word}</Tag>}
                   </div>
-                  <p className="tabular mt-1 text-xs text-ash"><span className="text-cream">{o.played}</span> played · <span className="text-mint-soft">{o.won}W</span> <span className="text-[#ffe27a]">{o.drawn}D</span> <span className="text-[#ff9a9d]">{o.lost}L</span> · GD <span className={gdTone(gd)}>{signed(gd)}</span></p>
+                  <p className="tabular mt-1 text-xs text-ash"><span className="text-cream">{o.played}</span> played · <span className="text-mint-soft">{o.won}W</span> <span className="text-draw-soft">{o.drawn}D</span> <span className="text-loss-soft">{o.lost}L</span> · GD <span className={gdTone(gd)}>{signed(gd)}</span></p>
                   <p className="mt-0.5 truncate text-[11px] text-ash/80">{o.seasons.join(" ")} · last met {fmtDate(last)}</p>
                 </div>
                 <span className="display tabular shrink-0 text-2xl leading-none text-cream" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>
@@ -75,8 +75,8 @@ export default async function OpponentsPage() {
                     </td>
                     <td className="num">{o.played}</td>
                     <td className="num text-mint-soft">{o.won}</td>
-                    <td className="num text-[#ffe27a]">{o.drawn}</td>
-                    <td className="num text-[#ff9a9d]">{o.lost}</td>
+                    <td className="num text-draw-soft">{o.drawn}</td>
+                    <td className="num text-loss-soft">{o.lost}</td>
                     <td className="num">{o.gf}–{o.ga}</td>
                     <td className={clsx("num font-semibold", gdTone(gd))}>{signed(gd)}</td>
                     <td className="hidden !whitespace-normal max-w-[9rem] text-xs leading-relaxed text-ash lg:table-cell">{o.seasons.join(" ")}</td>

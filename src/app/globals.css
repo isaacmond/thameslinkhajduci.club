@@ -15,6 +15,9 @@
   --color-loss: #e5484d;
   --color-draw: #f4c81b;
   --color-win: #32c364;
+  --color-loss-soft: #ff9a9d;
+  --color-draw-soft: #ffe27a;
+  --color-assist: #4a8fe0;
   --font-display: var(--font-bebas), "Bebas Neue", Oswald, Impact, sans-serif;
   --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
   --radius-xl: 1rem;
@@ -123,7 +126,8 @@ table.stats th:first-child { z-index: 2; }
 .scroll-x::-webkit-scrollbar, pre::-webkit-scrollbar { height: 8px; }
 .scroll-x::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.28); border-radius: 999px; }
 .scroll-x::-webkit-scrollbar-track, pre::-webkit-scrollbar-track { background: transparent; }
-@media (pointer: coarse) { button.chip, a.chip { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.25rem; } }
+/* Filter chips (marked .chip-tap) grow to a thumb-sized target on touch screens; badge-like chips and inline links keep their size. */
+@media (pointer: coarse) { button.chip-tap, a.chip-tap { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.25rem; } }
 .board-glow { text-shadow: 0 0 6px currentColor; }
 .scanlines::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px); }
 .marquee { display: flex; width: max-content; animation: marquee 70s linear infinite; will-change: transform; }

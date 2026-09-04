@@ -29,8 +29,8 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Scope">
-          <button type="button" onClick={() => setScope("all")} aria-pressed={scope === "all"} className={clsx("focus-ring chip cursor-pointer", scope === "all" ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream")}>All-time</button>
-          {seasons.map((s) => <button key={s} type="button" onClick={() => setScope(s)} aria-pressed={scope === s} className={clsx("focus-ring chip cursor-pointer", scope === s ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream")}>{s}</button>)}
+          <button type="button" onClick={() => setScope("all")} aria-pressed={scope === "all"} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", scope === "all" ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream")}>All-time</button>
+          {seasons.map((s) => <button key={s} type="button" onClick={() => setScope(s)} aria-pressed={scope === s} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", scope === s ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream")}>{s}</button>)}
         </div>
         <Switch className="ml-auto" checked={minApps} onChange={setMinApps} label="Hide players with fewer than 5 apps" />
       </div>
@@ -53,7 +53,7 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
                 <td><Link href={`/squad/${r.slug}`} className="link block max-w-[8rem] truncate font-medium text-cream sm:max-w-none">{r.name}</Link></td>
                 <td className="num">{r.apps}</td><td className="num font-semibold text-cream">{r.goals}</td><td className="num">{r.assists}</td><td className="num" title={`${r.goals} goals over ${r.gpgGames} games with scorers logged`}>{r.goalsPerGame.toFixed(2)}</td><td className="num hidden md:table-cell" title={`${r.assists} assists over ${r.apgGames} games with assists logged`}>{r.assistsPerGame.toFixed(2)}</td>
                 <td className="num hidden md:table-cell">{r.motm || ""}</td>
-                <td className="num text-mint-soft">{r.wins}</td><td className="num hidden text-[#ffe27a] md:table-cell">{r.draws}</td><td className="num text-[#ff9a9d]">{r.losses}</td>
+                <td className="num text-mint-soft">{r.wins}</td><td className="num hidden text-draw-soft md:table-cell">{r.draws}</td><td className="num text-loss-soft">{r.losses}</td>
                 <td className="num hidden md:table-cell">{r.ppg.toFixed(2)}</td><td className="num font-semibold text-cream">{r.winRate.toFixed(1)}%</td>
               </tr>
             ))}

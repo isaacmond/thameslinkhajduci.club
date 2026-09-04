@@ -23,16 +23,16 @@ function FixtureRow({ f, seasonId, nextGw }: { f?: AdminFixture; seasonId: strin
       <label className={field}><span className="eyebrow">GW</span><input name="gw" defaultValue={f?.gw ?? nextGw} inputMode="numeric" className={`${inputClass} tabular`} /></label>
       <label className={field}><span className="eyebrow">Date</span><input name="date" type="date" defaultValue={f?.date ?? ""} className={`${inputClass} tabular`} /></label>
       <label className={field}><span className="eyebrow">Kick-off</span><input name="kickOff" defaultValue={f?.kickOff ?? ""} placeholder="20:15" className={`${inputClass} tabular`} /></label>
-      <label className={`${field} col-span-2 sm:col-span-1`}><span className="eyebrow">Opponent</span><input name="opponent" defaultValue={f?.opponent ?? ""} placeholder="Who we are playing" className={inputClass} /></label>
+      <label className={field}><span className="eyebrow">Opponent</span><input name="opponent" defaultValue={f?.opponent ?? ""} placeholder="Who we are playing" className={inputClass} /></label>
       <label className={field}><span className="eyebrow">Type</span><select name="type" defaultValue={f?.type ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-cream">{TYPES.map((t) => <option key={t.value} value={t.value} className="bg-pine">{t.label}</option>)}</select></label>
       <label className={field}><span className="eyebrow">Pitch £</span><input name="matchCost" defaultValue={f ? f.matchCost.toFixed(2) : ""} inputMode="decimal" placeholder="default" className={`${inputClass} tabular`} /></label>
       <div className="col-span-2 flex h-[2.375rem] items-center gap-2 sm:col-span-1">
         <button type="submit" disabled={pending} className="focus-ring inline-flex h-full w-[5.25rem] items-center justify-center gap-1.5 rounded-lg bg-mint text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50">{f ? <Save size={14} aria-hidden /> : <CalendarPlus size={14} aria-hidden />}{pending ? "…" : f ? "Save" : "Add"}</button>
         {f && !f.played ? (
-          <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className="focus-ring inline-flex h-full w-[2.5rem] items-center justify-center rounded-lg border border-white/15 text-ash hover:text-[#ff9a9d]"><Trash2 size={14} aria-hidden /></button>
+          <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className="focus-ring inline-flex h-full w-[2.5rem] items-center justify-center rounded-lg border border-white/15 text-ash hover:text-loss-soft"><Trash2 size={14} aria-hidden /></button>
         ) : <span className="w-[2.5rem]" aria-hidden />}
       </div>
-      {note && <p role="status" className={`col-span-full text-xs ${note.ok ? "text-mint-soft" : "text-[#ff9a9d]"}`}>{note.message}</p>}
+      {note && <p role="status" className={`col-span-full text-xs ${note.ok ? "text-mint-soft" : "text-loss-soft"}`}>{note.message}</p>}
     </form>
   );
 }
@@ -45,13 +45,13 @@ function SeasonForm({ s, roster }: { s?: AdminSeason; roster: string[] }) {
       <label className={`${field} sm:col-span-3`}><span className="eyebrow">Title</span><input name="title" defaultValue={s?.title ?? ""} placeholder="Season 9 · PlayFootball Old Street · Jan–Apr 2027" className={inputClass} /></label>
       <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue</span><input name="venue" defaultValue={s?.venue ?? ""} className={inputClass} /></label>
       <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue link</span><input name="venueUrl" type="url" defaultValue={s?.venueUrl ?? ""} placeholder="https://www.playfootball.net/venues/whitechapel" className={inputClass} /><span className="text-[11px] text-ash">Linked from the fixture page and the reminder email.</span></label>
-      <label className={field}><span className="eyebrow">Period</span><input name="period" defaultValue={s?.period ?? ""} placeholder="Jan–Apr 2027" className={inputClass} /></label>
-      <label className={field}><span className="eyebrow">Pitch £ per game</span><input name="pitchCost" defaultValue={s?.pitchCost?.toFixed(2) ?? ""} inputMode="decimal" placeholder="79.95" className={`${inputClass} tabular`} /><span className="text-[11px] text-ash">Used for new fixtures; each fixture can still be changed.</span></label>
-      <label className={field}><span className="eyebrow">Pitch paid by</span><select name="paidBy" defaultValue={s?.paidBy ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-cream"><option value="" className="bg-pine">Nobody yet</option>{roster.map((r) => <option key={r} value={r} className="bg-pine">{r}</option>)}</select></label>
-      <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-cream tabular">{s ? `£${s.seasonCost.toFixed(2)}` : "—"} <span className="ml-2 text-xs text-ash">{s ? `${s.fixtures} game${s.fixtures === 1 ? "" : "s"} × pitch` : "price per game × games"}</span></p></div>
-      <div className="col-span-2 flex items-end gap-3 sm:col-span-2">
+      <label className={field}><span className="eyebrow">Period</span><input name="period" defaultValue={s?.period ?? ""} placeholder="Jan–Apr 2027" className={inputClass} /><span className="min-h-[1.25rem] text-[11px] text-ash" /></label>
+      <label className={field}><span className="eyebrow">Pitch £ per game</span><input name="pitchCost" defaultValue={s?.pitchCost?.toFixed(2) ?? ""} inputMode="decimal" placeholder="79.95" className={`${inputClass} tabular`} /><span className="min-h-[1.25rem] text-[11px] text-ash">Used for new fixtures; each fixture can still be changed.</span></label>
+      <label className={field}><span className="eyebrow">Pitch paid by</span><select name="paidBy" defaultValue={s?.paidBy ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-cream"><option value="" className="bg-pine">Nobody yet</option>{roster.map((r) => <option key={r} value={r} className="bg-pine">{r}</option>)}</select><span className="min-h-[1.25rem] text-[11px] text-ash" /></label>
+      <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-cream tabular">{s ? `£${s.seasonCost.toFixed(2)}` : "—"} <span className="ml-2 text-xs text-ash">{s ? `${s.fixtures} game${s.fixtures === 1 ? "" : "s"} × pitch` : "price per game × games"}</span></p><span className="min-h-[1.25rem] text-[11px] text-ash" /></div>
+      <div className="flex items-end gap-3 pb-[1.25rem] sm:col-span-2">
         <button type="submit" disabled={pending} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-4 py-2 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><Save size={16} aria-hidden />{pending ? "Saving…" : s ? "Save season" : "Create season"}</button>
-        {state && <span role="status" className={`text-xs ${state.ok ? "text-mint-soft" : "text-[#ff9a9d]"}`}>{state.message}</span>}
+        {state && <span role="status" className={`text-xs ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.message}</span>}
       </div>
     </form>
   );

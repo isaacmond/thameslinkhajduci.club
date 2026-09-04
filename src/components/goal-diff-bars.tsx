@@ -4,7 +4,7 @@ import { gwLabel, scoreline } from "@/lib/stats";
 
 /* Result colours match C.win / C.draw / C.loss in charts.tsx (and FILL in line-diagram.tsx). Repeated here so this stays a server component and the opponent page ships no chart library for a handful of bars. */
 const FILL = { W: "#22a852", D: "#c4871a", L: "#d9484e" } as const;
-const TEXT = { W: "text-mint-soft", D: "text-[#ffe27a]", L: "text-[#ff9a9d]" } as const;
+const TEXT = { W: "text-mint-soft", D: "text-draw-soft", L: "text-loss-soft" } as const;
 const H = 100; // viewBox height units; the drawn height is fixed in CSS, so the chart never squashes on phones
 const PAD = 6; // headroom above the tallest bar and below the deepest one
 const TICK = 2; // draw marker height, in units

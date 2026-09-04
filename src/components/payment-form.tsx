@@ -60,7 +60,10 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
   return (
     <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
       <div className="card grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6">
-        <Select label="Who paid" value={player} onChange={pick} options={players.map((p) => ({ value: p.name, label: optionLabel(p) }))} className="min-w-0" />
+        <div className="flex min-w-0 flex-col gap-1">
+          <Select label="Who paid" value={player} onChange={pick} options={players.map((p) => ({ value: p.name, label: optionLabel(p) }))} className="min-w-0" />
+          <span className="min-h-[1.25rem] text-[11px] text-ash">Whose share of the pitch this covers.</span>
+        </div>
         <div className="flex min-w-0 flex-col gap-1">
           <Select label="Paid to" value={to} onChange={(v) => { setTo(v); setResult(null); }} options={[...(to ? [] : [{ value: "", label: "Pick who received it" }]), ...players.map((p) => ({ value: p.name, label: p.name === payer ? `${p.name} · booked this season's pitch` : p.name }))]} className="min-w-0" />
           <span className="min-h-[1.25rem] text-[11px] text-ash">{payer ? (to && to !== payer ? `${payer} booked the pitch this season; the admin will check who should be credited.` : `${payer} booked the pitch this season.`) : "Whoever booked the pitch."}</span>
@@ -69,7 +72,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
           <span className="eyebrow">Amount (£)</span>
           <span className="relative"><span className="display pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-ash">£</span><input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.00" required className={`${inputClass} pl-7 tabular`} /></span>
           <span className="min-h-[1.25rem] text-[11px] text-ash">
-            {balance !== null && balance > 0.01 ? <>On the records {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding on the records. Log it anyway if money moved."}
+            {balance !== null && balance > 0.01 ? <>On the records {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding on the records. Log it anyway if money moved."}
           </span>
         </label>
         <label className="flex flex-col gap-1 text-xs text-ash">
@@ -84,7 +87,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? "Sending…" : "Log the payment"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
-        {result && !result.ok && <p className="text-xs text-[#ff9a9d]" role="alert">{result.error}</p>}
+        {result && !result.ok && <p className="text-xs text-loss-soft" role="alert">{result.error}</p>}
         <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/money" className="link">See the balances →</Link></p>
       </div>
     </form>

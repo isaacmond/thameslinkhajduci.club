@@ -27,7 +27,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
     });
   }, [players, sort, filter]);
   const filterLabel = (f: Filter) => f === "all" ? `All ${players.length}` : f === "active" ? `${currentSeason ?? "This season"} squad` : f;
-  const chip = (active: boolean) => clsx("focus-ring chip cursor-pointer whitespace-nowrap transition-colors", active ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream");
+  const chip = (active: boolean) => clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream");
 
   return (
     <div>
@@ -55,7 +55,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                     </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night/90 to-transparent" aria-hidden />
-                  {p.shirt !== null && p.photo && <span className="display absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-gold text-lg text-night shadow">{p.shirt}</span>}
+                  {p.shirt !== null && p.photo && <span className="display absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-gold text-lg leading-none text-night shadow"><span className="translate-y-[0.05em]">{p.shirt}</span></span>}
                   {p.activeThisSeason && <span className="chip absolute left-2 top-2 border-mint/50 bg-night/85 text-mint-soft shadow backdrop-blur">{currentSeason}</span>}
                   <div className="absolute inset-x-0 bottom-0 p-3">
                     <h2 className="display text-2xl leading-none text-cream drop-shadow">{p.name}</h2>

@@ -15,7 +15,7 @@ type Tone = "fame" | "shame" | "neutral";
 function Card({ icon, label, value, sub, href, tone = "neutral" }: { icon: React.ReactNode; label: string; value: React.ReactNode; sub?: React.ReactNode; href?: string; tone?: Tone }) {
   const head = (
     <>
-      <span className={clsx("flex items-center justify-between", tone === "fame" && "text-mint-soft", tone === "shame" && "text-[#ff9a9d]", tone === "neutral" && "text-gold")}>{icon}<span className={clsx("text-[11px] font-bold uppercase tracking-[0.2em]", tone === "fame" ? "text-mint-soft/80" : tone === "shame" ? "text-[#ff9a9d]/80" : "text-ash/90")}>{tone === "neutral" ? "" : tone}</span></span>
+      <span className={clsx("flex items-center justify-between", tone === "fame" && "text-mint-soft", tone === "shame" && "text-loss-soft", tone === "neutral" && "text-gold")}>{icon}<span className={clsx("text-[11px] font-bold uppercase tracking-[0.2em]", tone === "fame" ? "text-mint-soft/80" : tone === "shame" ? "text-loss-soft/80" : "text-ash/90")}>{tone === "neutral" ? "" : tone}</span></span>
       <span className="eyebrow mt-3 block min-h-[2lh] leading-tight">{label}</span>
       <span className="display mt-1 block text-4xl leading-none text-cream">{value}</span>
     </>

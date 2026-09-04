@@ -71,14 +71,14 @@ export function PlayerForm({ roster, takenShirts, seasonId, signedIn = null }: {
           <span className="eyebrow" id="positions-label">Position</span>
           <div role="group" aria-labelledby="positions-label" className="grid grid-cols-4 gap-1.5">
             {POSITIONS.map(([code, word]) => { const on = positions.includes(code); return (
-              <button key={code} type="button" onClick={() => toggle(code)} aria-pressed={on} className={clsx("focus-ring flex h-11 flex-col items-center justify-center rounded-lg border text-center transition-colors", on ? "border-mint/50 bg-mint/15 text-cream" : "border-white/10 text-ash hover:border-white/25 hover:text-cream")}><span className="display text-base leading-none">{code}</span><span className="text-[10px] leading-tight">{word}</span></button>
+              <button key={code} type="button" onClick={() => toggle(code)} aria-pressed={on} className={clsx("focus-ring flex h-[2.375rem] flex-col items-center justify-center rounded-lg border text-center transition-colors", on ? "border-mint/50 bg-mint/15 text-cream" : "border-white/10 text-ash hover:border-white/25 hover:text-cream")}><span className="display text-base leading-none">{code}</span><span className="text-[10px] leading-tight">{word}</span></button>
             ); })}
           </div>
           <span className="min-h-[1.25rem] text-[11px] text-ash">Pick more than one if they float.</span>
         </div>
         <label className="flex flex-col gap-1 text-xs text-ash">
           <span className="eyebrow">Shirt number (optional)</span>
-          <div className="flex items-center gap-3"><input value={shirt} onChange={(e) => setShirt(e.target.value.replace(/[^\d]/g, "").slice(0, 2))} inputMode="numeric" placeholder="1–99" className={`${inputClass} tabular max-w-[7rem]`} /><Shirt number={shirtNo} name={trimmed || "New player"} className="h-11 w-11" /></div>
+          <div className="flex items-center gap-3"><input value={shirt} onChange={(e) => setShirt(e.target.value.replace(/[^\d]/g, "").slice(0, 2))} inputMode="numeric" placeholder="1–99" className={`${inputClass} tabular max-w-[7rem]`} /><Shirt number={shirtNo} name={trimmed || "New player"} className="h-[2.375rem] w-[2.375rem]" /></div>
           <span className={clsx("min-h-[1.25rem] text-[11px]", worn ? "text-gold" : "text-ash")}>{worn ? `${shirtNo} is ${worn}'s. Pick another.` : "Free numbers only; the form checks."}</span>
         </label>
         <label className="flex flex-col gap-1 text-xs text-ash sm:col-span-2"><span className="eyebrow">Photo link (optional)</span><input value={photo} onChange={(e) => setPhoto(e.target.value)} maxLength={300} inputMode="url" placeholder="https://… a square-ish photo works best" className={inputClass} /></label>
@@ -89,7 +89,7 @@ export function PlayerForm({ roster, takenShirts, seasonId, signedIn = null }: {
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? "Sending…" : "Propose the signing"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
-        {result && !result.ok && <p className="text-xs text-[#ff9a9d]" role="alert">{result.error}</p>}
+        {result && !result.ok && <p className="text-xs text-loss-soft" role="alert">{result.error}</p>}
         <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/squad" className="link">Back to the squad →</Link></p>
       </div>
     </form>

@@ -27,20 +27,20 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
             <div className="eyebrow mt-0.5 hidden sm:block"><span lang="sr-Cyrl">Темзлинк Хайдуки</span> · est. 2024</div>
           </div>
         </Link>
-        <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-0.5 md:flex lg:gap-1">
+        <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-0.5 self-stretch md:flex lg:gap-1">
           {LINKS.map((l) => {
             const active = isActive(path, l.href);
             return (
-              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={clsx("focus-ring relative whitespace-nowrap rounded-md px-2.5 py-4 text-sm font-medium transition-colors lg:px-3", active ? "text-cream" : "text-ash hover:text-cream")}>
+              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={clsx("focus-ring relative inline-flex items-center whitespace-nowrap rounded-md px-2.5 py-4 text-sm font-medium transition-colors lg:px-3", active ? "text-cream" : "text-ash hover:text-cream")}>
                 {l.label}
                 {active && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mint" />}
               </Link>
             );
           })}
         </nav>
-        {authEnabled && <span className="hidden md:block"><AccountChip /></span>}
+        {authEnabled && <span className="hidden md:flex"><AccountChip /></span>}
         <span className="ml-auto text-[11px] uppercase tracking-widest text-ash md:hidden" aria-hidden>{LINKS.find((l) => isActive(path, l.href))?.label ?? ""}</span>
-        {authEnabled && <span className="md:hidden"><AccountChip /></span>}
+        {authEnabled && <span className="flex md:hidden"><AccountChip /></span>}
       </div>
     </header>
   );

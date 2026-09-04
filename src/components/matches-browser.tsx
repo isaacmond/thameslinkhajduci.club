@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { MatchLite, Result } from "@/lib/types";
 import { MatchRow } from "./ui";
-import { Switch } from "./controls";
+import { inputClass, Switch } from "./controls";
 
 export function MatchesBrowser({ matches, seasons, initialSeason, today }: { matches: MatchLite[]; seasons: { id: string; number: number; title: string }[]; initialSeason?: string; today: string }) {
   const [season, setSeason] = useState<string>(initialSeason ?? "all");
@@ -39,10 +39,10 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
             {(["all", "W", "D", "L"] as const).map((r) => <Chip key={r} active={result === r} onClick={() => setResult(r)} tone={r}>{r === "all" ? "Any result" : r === "W" ? "Wins" : r === "D" ? "Draws" : "Losses"}</Chip>)}
           </div>
           <Switch checked={includeExcluded} onChange={setIncludeExcluded} label="Friendlies & forfeits" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search opponent, player, comment…" aria-label="Search matches" className="focus-ring w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/70 sm:ml-auto sm:w-64" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search opponent, player, comment…" aria-label="Search matches" className={clsx(inputClass, "py-1.5 sm:ml-auto sm:w-64")} />
         </div>
         <p className="text-xs text-ash">
-          <span className="text-cream">{list.length}</span> match{list.length === 1 ? "" : "es"}{counted.length !== list.length && <> ({list.length - counted.length} not counted)</>} · <span className="text-mint-soft">W{w}</span> <span className="text-[#ffe27a]">D{d}</span> <span className="text-[#ff9a9d]">L{l}</span> · GF {gf} · GA {ga} · GD {gf - ga >= 0 ? "+" : ""}{gf - ga}
+          <span className="text-cream">{list.length}</span> match{list.length === 1 ? "" : "es"}{counted.length !== list.length && <> ({list.length - counted.length} not counted)</>} · <span className="text-mint-soft">W{w}</span> <span className="text-draw-soft">D{d}</span> <span className="text-loss-soft">L{l}</span> · GF {gf} · GA {ga} · GD {gf - ga >= 0 ? "+" : ""}{gf - ga}
         </p>
       </div>
       {groups.map(([sid, ms], gi) => {
@@ -51,10 +51,10 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
         const open = filtering || gi === 0;
         return (
           <details key={sid} open={open} className="group/season mb-4 rounded-2xl border border-white/5 open:border-white/10">
-            <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl px-3 py-3 hover:bg-white/[0.03]">
-              <h2 className="display text-2xl text-cream"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h2>
+            <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 rounded-2xl px-3 py-3 hover:bg-white/[0.03]">
+              <h2 className="display text-2xl leading-none text-cream"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h2>
               <span className="text-xs text-ash">{s?.title.split("·")[1]?.trim()}</span>
-              <span className="ml-auto text-xs text-ash">{ms.length} game{ms.length === 1 ? "" : "s"} · <span className="text-mint-soft">W{cw}</span> <span className="text-[#ffe27a]">D{cd}</span> <span className="text-[#ff9a9d]">L{cl}</span></span>
+              <span className="ml-auto text-xs text-ash">{ms.length} game{ms.length === 1 ? "" : "s"} · <span className="text-mint-soft">W{cw}</span> <span className="text-draw-soft">D{cd}</span> <span className="text-loss-soft">L{cl}</span></span>
               <span className="text-ash transition-transform group-open/season:rotate-180" aria-hidden>▾</span>
             </summary>
             <div className="grid gap-1.5 px-3 pb-3 lg:grid-cols-2">{ms.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
@@ -68,6 +68,6 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
 
 function Chip({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone?: "all" | Result }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className={clsx("focus-ring chip cursor-pointer whitespace-nowrap transition-colors", active ? (tone === "W" ? "result-W" : tone === "D" ? "result-D" : tone === "L" ? "result-L" : "border-mint/50 bg-mint/15 text-mint-soft") : "text-ash hover:text-cream")}>{children}</button>
+    <button type="button" onClick={onClick} aria-pressed={active} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? (tone === "W" ? "result-W" : tone === "D" ? "result-D" : tone === "L" ? "result-L" : "border-mint/50 bg-mint/15 text-mint-soft") : "text-ash hover:text-cream")}>{children}</button>
   );
 }

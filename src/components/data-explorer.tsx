@@ -38,16 +38,16 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
       <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">
         <Select label="Table" value={table} onChange={(v) => pick(() => setTable(v))} options={tables.map((t) => ({ value: t.name, label: t.name }))} className="min-w-[10rem]" />
         <Select label="Season" value={season} onChange={(v) => pick(() => setSeason(v))} disabled={!seasonable} options={[{ value: "", label: "All-time" }, ...seasons.map((s) => ({ value: s, label: s }))]} className="min-w-[8rem]" />
-        <p className="flex-1 text-xs text-ash sm:pb-2">{info}</p>
+        <p className="flex-1 text-xs text-ash sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-white/10 bg-white/[0.02] p-3 text-sm">
-        <a href={url("csv")} download className="focus-ring inline-flex items-center gap-1.5 rounded-lg bg-mint px-3 py-1.5 font-semibold text-night hover:bg-mint-soft"><Download size={15} aria-hidden />CSV</a>
+        <a href={url("csv")} download className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-transparent bg-mint px-3 py-1.5 font-semibold text-night hover:bg-mint-soft"><Download size={15} aria-hidden />CSV</a>
         <a href={url("json")} target="_blank" rel="noopener" className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-cream hover:bg-white/10"><ExternalLink size={15} aria-hidden />JSON</a>
         <Btn onClick={() => copy("md", async () => (await fetch(url("md"))).text())} done={copied === "md"}>Copy Markdown</Btn>
         <Btn onClick={() => copy("sheets", `=IMPORTDATA("${absolute("csv")}")`)} done={copied === "sheets"}>Copy Google Sheets formula</Btn>
         <Btn onClick={() => copy("curl", `curl -s '${absolute("json")}' | jq .rows`)} done={copied === "curl"}>Copy curl</Btn>
         <Btn onClick={() => copy("url", absolute("csv"))} done={copied === "url"}>Copy URL</Btn>
-        {copied === "failed" && <span className="self-center text-xs text-[#ff9a9d]">Clipboard blocked</span>}
+        {copied === "failed" && <span className="self-center text-xs text-loss-soft">Clipboard blocked</span>}
       </div>
       <div className="scroll-x max-h-[520px] overflow-auto">
         {loading && !preview && <p className="px-4 py-8 text-center text-sm text-ash">Loading…</p>}

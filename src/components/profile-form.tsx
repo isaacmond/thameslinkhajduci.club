@@ -41,10 +41,10 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
             <span className="min-h-[1.25rem] text-[11px] text-ash">{clash ? <span className="text-gold">{clash} already wears {shirt}.</span> : "Optional. Shows on your card and page."}</span>
           </label>
           <fieldset className="sm:col-span-2">
-            <legend className="eyebrow mb-2">Positions</legend>
+            <legend className="eyebrow mb-1">Positions</legend>
             <div className="flex flex-wrap gap-2">
               {POSITIONS.map(([code, name]) => (
-                <label key={code} className="chip focus-within:ring-2 focus-within:ring-mint/60 cursor-pointer has-[:checked]:border-mint/60 has-[:checked]:bg-mint/15 has-[:checked]:text-mint-soft">
+                <label key={code} className="chip focus-within:ring-2 focus-within:ring-mint/60 cursor-pointer hover:border-white/25 has-[:checked]:border-mint/60 has-[:checked]:bg-mint/15 has-[:checked]:text-mint-soft">
                   <input type="checkbox" name="positions" value={code} defaultChecked={initial.positions.includes(code)} className="sr-only" />{code} <span className="font-normal text-ash">{name}</span>
                 </label>
               ))}
@@ -55,7 +55,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending || Boolean(clash)} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Save size={16} aria-hidden />{pending ? "Saving…" : "Save changes"}</button>
-        {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-mint-soft" : "text-[#ff9a9d]"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
+        {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
       </div>
     </form>
   );

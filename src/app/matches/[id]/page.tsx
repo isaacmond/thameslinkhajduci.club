@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title, description: `${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} GW${m.gw}`} · ${fmtDate(m.date)}${m.motm ? ` · MOTM ${m.motm}` : ""}` };
 }
 
-const statusText = { ok: "text-mint-soft", late: "text-[#ffe27a]", bad: "text-[#ff9a9d]", muted: "text-ash" } as const;
+const statusText = { ok: "text-mint-soft", late: "text-draw-soft", bad: "text-loss-soft", muted: "text-ash" } as const;
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -89,7 +89,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)} · {fmtMoney(m.costPerPlayer)} each</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
             <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
-            <Link href={`/submit?match=${m.id}`} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-mint/40 bg-mint/10 px-3 py-1.5 text-xs font-semibold text-mint-soft transition-colors hover:bg-mint/20">{m.played ? "Correct this score" : "Submit the score"}</Link>
+            <Link href={`/submit?match=${m.id}`} className="focus-ring chip gap-1.5 border-mint/40 bg-mint/10 text-mint-soft transition-colors hover:bg-mint/20">{m.played ? "Correct this score" : "Submit the score"}</Link>
           </div>
         </div>
       </section>
@@ -140,7 +140,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <div className="card p-5">
               <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"} across ${h2h.seasons.join(", ")}`}>Head to head</SectionTitle>
               <dl className="grid grid-cols-3 gap-2 text-center">
-                {([["Won", h2h.won, "text-mint-soft"], ["Drawn", h2h.drawn, "text-[#ffe27a]"], ["Lost", h2h.lost, "text-[#ff9a9d]"]] as [string, number, string][]).map(([k, v, c]) => <div key={k} className="flex flex-col-reverse"><dt className="eyebrow">{k}</dt><dd className={clsx("display text-3xl", c)}>{v}</dd></div>)}
+                {([["Won", h2h.won, "text-mint-soft"], ["Drawn", h2h.drawn, "text-draw-soft"], ["Lost", h2h.lost, "text-loss-soft"]] as [string, number, string][]).map(([k, v, c]) => <div key={k} className="flex flex-col-reverse"><dt className="eyebrow">{k}</dt><dd className={clsx("display text-3xl", c)}>{v}</dd></div>)}
               </dl>
               <p className="mt-2 text-center text-xs text-ash">Goals {h2h.gf}–{h2h.ga}</p>
               {h2h.matches.filter((x) => x.id !== m.id).length > 0 && (

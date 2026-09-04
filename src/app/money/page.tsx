@@ -29,7 +29,7 @@ export default async function MoneyPage() {
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} right={<Link href="/submit?type=payment" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-mint/40 bg-mint/10 px-4 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-mint/20"><Coins size={16} aria-hidden />Log a payment</Link>} />
+      <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} right={<Link href="/submit?type=payment" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-mint/40 bg-mint/10 px-4 py-2 text-sm font-semibold text-cream transition-colors hover:bg-mint/20"><Coins size={16} aria-hidden />Log a payment</Link>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">
         <div className="col-span-2 lg:col-span-1"><Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay${creditors.length ? ` · owed to ${creditors.map((c) => c.player.split(" ")[0]).join(" & ")}` : ""}` : "Everyone's square"} size="lg" /></div>
@@ -53,7 +53,7 @@ export default async function MoneyPage() {
                       {paidSeasons.map((s) => <td key={s.id} className="num hidden text-ash sm:table-cell">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
                       <td className="num hidden sm:table-cell">{fmtMoney(r.totalCharged)}</td>
                       <td className="num hidden text-mint-soft sm:table-cell" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch hire paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-ash">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
-                      <td className={clsx("num display text-2xl", r.balance > 0.01 ? "text-[#ff9a9d]" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block text-[10px] font-sans tracking-wider text-mint-soft/80">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block text-[10px] font-sans tracking-wider text-[#ff9a9d]/80">owes</span></> : "£0.00"}</td>
+                      <td className={clsx("num display text-2xl", r.balance > 0.01 ? "text-loss-soft" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block text-[10px] font-sans tracking-wider text-mint-soft/80">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block text-[10px] font-sans tracking-wider text-loss-soft/80">owes</span></> : "£0.00"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -65,7 +65,7 @@ export default async function MoneyPage() {
           <div className="card p-5">
             <SectionTitle sub="Every transfer the treasurer has logged">Payments received</SectionTitle>
             {data.money.payments.length ? (
-              <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-center gap-2"><Receipt size={14} className="text-mint-soft" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} />{p.to && <span className="truncate text-xs text-ash">→ <PlayerLink name={p.to} player={byName.get(p.to)} /></span>}<span className="ml-auto tabular text-cream">{fmtMoney(p.amount)}</span><span className="text-xs text-ash">{fmtDate(p.date)}</span></li>)}</ul>
+              <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-baseline gap-2"><Receipt size={14} className="self-center text-mint-soft" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} />{p.to && <span className="truncate text-xs text-ash">→ <PlayerLink name={p.to} player={byName.get(p.to)} /></span>}<span className="ml-auto tabular text-cream">{fmtMoney(p.amount)}</span><span className="text-xs text-ash">{fmtDate(p.date)}</span></li>)}</ul>
             ) : <p className="text-sm text-ash">No transfers logged yet. The treasurer remains optimistic.</p>}
           </div>
           <Callout icon={<Coins size={18} />}>Charges are simply pitch cost ÷ players who played, per game. Whoever paid for the pitch is credited the full cost, so their balance goes negative: that is money owed to them. Pay them, the treasurer logs it, and this page follows within a minute. <Link href="/data" className="link">Export the money table</Link> if you want to argue about it in a spreadsheet of your own.</Callout>

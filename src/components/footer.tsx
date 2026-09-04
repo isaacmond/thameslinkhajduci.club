@@ -15,10 +15,10 @@ export const sponsorFor = (key: string) => SPONSORS[[...key].reduce((h, c) => (h
 export function Sponsors() {
   return (
     <section aria-labelledby="sponsors-heading" className="card p-6 sm:p-8">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
+      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="eyebrow">Our partners</p>
-          <h2 id="sponsors-heading" className="display text-3xl text-cream">Proudly supported by</h2>
+          <h2 id="sponsors-heading" className="display text-3xl leading-none text-cream">Proudly supported by</h2>
         </div>
         <p className="text-xs text-ash">Thank you for keeping us moving</p>
       </div>

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-[#ff9a9d]", muted: "text-ash" } as const;
+const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-loss-soft", muted: "text-ash" } as const;
 
 /**
  * One departure-board row as a standalone card: same scanlines, glow and mono type as the home-page board, no clock.

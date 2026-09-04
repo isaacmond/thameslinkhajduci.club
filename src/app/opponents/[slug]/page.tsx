@@ -50,8 +50,8 @@ type Tone = "fame" | "shame";
 function RecordCard({ icon, label, m, tone, empty }: { icon: React.ReactNode; label: string; m: Match | null; tone: Tone; empty: string }) {
   const body = (
     <>
-      <span className={clsx("flex items-center justify-between", !m ? "text-ash" : tone === "fame" ? "text-mint-soft" : "text-[#ff9a9d]")}>{icon}<span className={clsx("text-[11px] font-bold uppercase tracking-[0.2em]", !m ? "text-ash/90" : tone === "fame" ? "text-mint-soft/80" : "text-[#ff9a9d]/80")}>{m ? tone : "pending"}</span></span>
-      <span className="eyebrow mt-3 block">{label}</span>
+      <span className={clsx("flex items-center justify-between", !m ? "text-ash" : tone === "fame" ? "text-mint-soft" : "text-loss-soft")}>{icon}<span className={clsx("text-[11px] font-bold uppercase tracking-[0.2em]", !m ? "text-ash/90" : tone === "fame" ? "text-mint-soft/80" : "text-loss-soft/80")}>{m ? tone : "pending"}</span></span>
+      <span className="eyebrow mt-3 block min-h-[2lh] leading-tight">{label}</span>
       <span className="display mt-1 block text-4xl leading-none text-cream">{m ? scoreline(m) : "—"}</span>
     </>
   );
@@ -138,7 +138,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
         <section className="card p-5"><SectionTitle sub="Goal difference in every game that counted. Green is us winning, which explains the amount of red.">Meeting by meeting</SectionTitle><GoalDiffBars matches={counted} opponent={o.opponent} /></section>
       ) : (
         <section className="card flex flex-col items-center gap-2 p-6 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div><p className="eyebrow">The rivalry so far</p><p className="display text-3xl text-cream">One meeting. Hardly a rivalry.</p></div>
+          <div><p className="eyebrow">The rivalry so far</p><p className="display text-3xl leading-none text-cream">One meeting. Hardly a rivalry.</p></div>
           <p className="text-sm text-ash">The meeting-by-meeting chart appears once there are two games to compare.</p>
         </section>
       )}

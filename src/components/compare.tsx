@@ -128,7 +128,7 @@ function Bars({ a, b, m }: { a: ComparePlayer; b: ComparePlayer; m: Metric }) {
   const subA = m.sub?.(a), subB = m.sub?.(b);
   return (
     <li className="py-3">
-      <div className="flex items-end justify-between gap-2">
+      <div className="flex items-baseline justify-between gap-2">
         {val(va, aBetter, nA)}
         <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-ash/90">(level)</span>}</span>
         {val(vb, bBetter, nB)}
@@ -198,7 +198,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
       <div className="card p-4 sm:p-5">
         <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <Select label="In the left corner" value={A.slug} onChange={pickA} options={options} />
-          <button type="button" onClick={swap} className="focus-ring inline-flex h-[38px] items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 text-xs font-semibold text-cream transition-colors hover:bg-white/10 sm:w-auto" aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
+          <button type="button" onClick={swap} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 text-xs font-semibold text-cream transition-colors hover:bg-white/10 sm:w-auto" aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
           <Select label="In the right corner" value={B.slug} onChange={pickB} options={options} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">

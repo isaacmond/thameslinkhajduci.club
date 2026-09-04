@@ -55,7 +55,7 @@ export default async function AdminPage() {
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="Admin" title="The desk" sub="Approvals, who can sign in, and the fixture list. Everything here writes straight to the records; the site follows within a minute." right={<Link href="/account" className="focus-ring inline-flex items-center rounded-lg border border-white/15 px-4 py-2.5 text-sm font-semibold text-cream hover:bg-white/10">Your account →</Link>} />
+      <PageHeader eyebrow="Admin" title="The desk" sub="Approvals, who can sign in, and the fixture list. Everything here writes straight to the records; the site follows within a minute." right={<Link href="/account" className="focus-ring inline-flex items-center rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:bg-white/10">Your account →</Link>} />
       <nav aria-label="Admin sections" className="flex flex-wrap gap-2 text-sm">
         {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip focus-ring hover:bg-white/10">{label}</a>)}
       </nav>

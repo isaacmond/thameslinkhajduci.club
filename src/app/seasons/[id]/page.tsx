@@ -91,7 +91,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played{notCounted > 0 && `, ${notCounted} not counted`}{s.summary.paidBy && <>. Pitch paid for by {s.summary.paidBy}, who would like that noted.</>}{paceNote && <span className={clsx("mt-1 block", paceNote.tone === "win" && "text-mint-soft", paceNote.tone === "loss" && "text-[#ff9a9d]", paceNote.tone === "default" && "text-cream")}>{paceNote.text}</span>}</>}
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played{notCounted > 0 && `, ${notCounted} not counted`}{s.summary.paidBy && <>. Pitch paid for by {s.summary.paidBy}, who would like that noted.</>}{paceNote && <span className={clsx("mt-1 block", paceNote.tone === "win" && "text-mint-soft", paceNote.tone === "loss" && "text-loss-soft", paceNote.tone === "default" && "text-cream")}>{paceNote.text}</span>}</>}
         right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip text-ash hover:text-cream"><ChevronLeft size={14} aria-hidden />{prev.id}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip text-ash hover:text-cream">{next.id}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section aria-label="Season summary">
@@ -115,7 +115,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
 
       {gd.length > 0 && (small ? (
         <section className="card flex flex-col items-center gap-2 p-6 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div><p className="eyebrow">The season so far</p><p className="display text-3xl text-cream">{counted.length} game{counted.length === 1 ? "" : "s"}. Small sample. Big feelings.</p></div>
+          <div><p className="eyebrow">The season so far</p><p className="display text-3xl leading-none text-cream">{counted.length} game{counted.length === 1 ? "" : "s"}. Small sample. Big feelings.</p></div>
           <p className="text-sm text-ash">The game-by-game chart appears after three games that count.</p>
         </section>
       ) : (
@@ -163,7 +163,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
                   <td><PlayerLink name={p.name} player={byName.get(p.name)} /></td>
                   <td className="num">{p.apps}</td><td className={clsx("num", p.goals > 0 && "font-semibold text-mint-soft")}>{p.goals}</td><td className="num">{p.assists}</td><td className="num hidden md:table-cell" title={`${p.goals} goals over ${p.gpgGames} games with scorers logged`}>{p.goalsPerGame.toFixed(2)}</td>
                   <td className="num hidden md:table-cell">{p.motm || ""}</td>
-                  <td className="num hidden text-mint-soft sm:table-cell">{p.wins}</td><td className="num hidden text-[#ffe27a] sm:table-cell">{p.draws}</td><td className="num hidden text-[#ff9a9d] sm:table-cell">{p.losses}</td><td className="num hidden sm:table-cell">{p.winRate.toFixed(0)}%</td>
+                  <td className="num hidden text-mint-soft sm:table-cell">{p.wins}</td><td className="num hidden text-draw-soft sm:table-cell">{p.draws}</td><td className="num hidden text-loss-soft sm:table-cell">{p.losses}</td><td className="num hidden sm:table-cell">{p.winRate.toFixed(0)}%</td>
                   {hasMoney && <td className="num">{fmtMoney(p.seasons[0]?.cost ?? 0)}</td>}
                 </tr>
               ))}

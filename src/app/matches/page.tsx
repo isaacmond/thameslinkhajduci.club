@@ -16,7 +16,7 @@ export default async function MatchesPage() {
   return (
     <PageTransition>
     <>
-      <PageHeader eyebrow="Results & fixtures" title="Matches" sub={`${played} games that count, ${data.allTime.won} of them won. Friendlies and forfeits are listed too, but they only count towards character.`} right={<Link href="/submit" className="focus-ring inline-flex items-center rounded-lg bg-mint px-4 py-2.5 text-sm font-semibold text-night transition-colors hover:bg-mint-soft">Submit a score</Link>} />
+      <PageHeader eyebrow="Results & fixtures" title="Matches" sub={`${played} games that count, ${data.allTime.won} of them won. Friendlies and forfeits are listed too, but they only count towards character.`} right={<Link href="/submit" className="focus-ring inline-flex items-center rounded-lg border border-transparent bg-mint px-4 py-2 text-sm font-semibold text-night transition-colors hover:bg-mint-soft">Submit a score</Link>} />
       {upcoming.length > 0 && (
         <section className="mb-8">
           <SectionTitle sub="Kick-off times in London time. Arrival times in Hajduci time.">Coming up</SectionTitle>
