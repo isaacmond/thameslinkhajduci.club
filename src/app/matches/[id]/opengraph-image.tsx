@@ -5,6 +5,8 @@ import { serviceStatus } from "@/lib/captions";
 import { bebasNeue, display, ogFonts } from "@/lib/og-font";
 
 export const alt = "Match report";
+export const revalidate = 3600;
+export async function generateStaticParams() { const d = await getData(); return d.matches.map((m) => ({ id: m.id })); }
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 const tone = { ok: "#7fe0a3", late: "#f4c81b", bad: "#ff9a9d", muted: "#a7b8ab" } as const;

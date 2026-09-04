@@ -6,11 +6,12 @@ import { Select } from "./controls";
 
 type Preview = { table: string; columns: string[]; rows: Record<string, string | number | boolean | null>[] };
 
-export function DataExplorer({ tables, seasons, siteUrl }: { tables: { name: string; info: string }[]; seasons: string[]; siteUrl: string }) {
+export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tables: { name: string; info: string }[]; seasons: string[]; siteUrl: string; initialPreview?: Preview }) {
   const [table, setTable] = useState(tables[0]?.name ?? "players");
   const [season, setSeason] = useState("");
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [preview, setPreview] = useState<Preview | null>(initialPreview ?? null);
+  const [loading, setLoading] = useState(!initialPreview);
+  const [skipFirst, setSkipFirst] = useState(Boolean(initialPreview));
   const [copied, setCopied] = useState<string | null>(null);
   const seasonable = !["seasons", "money", "payments", "opponents"].includes(table) || table === "opponents";
   const qs = useMemo(() => `table=${table}${season && seasonable ? `&season=${season}` : ""}`, [table, season, seasonable]);
@@ -19,11 +20,13 @@ export function DataExplorer({ tables, seasons, siteUrl }: { tables: { name: str
 
   const jsonUrl = `/api/export?${qs}&format=json`;
   useEffect(() => {
+    if (skipFirst) { return; }
     let alive = true;
     fetch(jsonUrl).then((r) => r.json()).then((j: Preview) => { if (alive) setPreview(j); }).catch(() => { if (alive) setPreview(null); }).finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jsonUrl]);
-  const pick = (fn: () => void) => { setLoading(true); fn(); };
+  const pick = (fn: () => void) => { setSkipFirst(false); setLoading(true); fn(); };
 
   const copy = async (label: string, text: string | (() => Promise<string>)) => {
     try { const t = typeof text === "string" ? text : await text(); await navigator.clipboard.writeText(t); setCopied(label); setTimeout(() => setCopied(null), 2000); } catch { setCopied("failed"); setTimeout(() => setCopied(null), 2000); }

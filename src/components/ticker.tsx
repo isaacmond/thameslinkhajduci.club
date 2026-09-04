@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { getData } from "@/lib/data";
 import { currentStreak, fmtDate, fmtMoney, lastResult, leaderboard, nextFixture, scoreline } from "@/lib/stats";
 import { serviceStatus } from "@/lib/captions";
+import { insights, pickInsights } from "@/lib/insights";
 
 type Item = { text: string; href?: string; tone?: "ok" | "late" | "bad" | "muted" };
 const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-[#ff9a9d]", muted: "text-cream/80" } as const;
@@ -22,6 +23,8 @@ export async function ServiceTicker() {
     if (ticket) items.push({ text: `Season ticket holder: ${ticket.player.name} (${ticket.value} apps)`, href: `/squad/${ticket.player.slug}`, tone: "muted" });
     items.push({ text: `${d.allTime.goalsAgainst} goals conceded all-time, and counting`, href: "/records", tone: "bad" });
     if (owed > 0.01) items.push({ text: `Treasury: ${fmtMoney(owed)} outstanding`, href: "/money", tone: "late" });
+    // Talking points: the three strongest club insights. The current run already has its own item above, so skip that one.
+    for (const it of pickInsights(insights(d).filter((x) => x.key !== "streak"), 3)) items.push({ text: it.text, href: it.href, tone: it.tone });
     items.push({ text: "Good service on all other lines", tone: "ok" });
   } catch { return null; }
   if (!items.length) return null;

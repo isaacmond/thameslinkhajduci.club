@@ -3,7 +3,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { getData } from "@/lib/data";
 import type { Player } from "@/lib/types";
-import { chemistry, headToHead, leaderboard, seasonPlayers, signed } from "@/lib/stats";
+import { attendance, chemistry, goalContext, headToHead, leaderboard, seasonPlayers, signed } from "@/lib/stats";
 import { LeaderList, PageHeader, PlayerLink, SectionTitle } from "@/components/ui";
 import { PlayerTable, type PlayerRow } from "@/components/player-table";
 import { StackedBySeason } from "@/components/charts";
@@ -24,6 +24,10 @@ export default async function StatsPage() {
   const pairs = chemistry(data.matches, 5).slice(0, 12);
   const opponents = headToHead(data.matches);
   const byName = new Map(data.players.map((p) => [p.name, p]));
+  const MIN_POSSIBLE = 15, MIN_GOALS = 5;
+  const punctuality = data.players.map((p) => ({ player: p, a: attendance(data, p.name) })).filter((x) => x.a.possible >= MIN_POSSIBLE && x.a.apps > 0).map((x) => ({ player: x.player, value: x.a.pct })).sort((a, b) => b.value - a.value || b.player.apps - a.player.apps || a.player.name.localeCompare(b.player.name));
+  const goalsInWins = data.players.filter((p) => p.goals >= MIN_GOALS).map((p) => ({ player: p, value: goalContext(data, p.name).inWins })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value || b.player.goals - a.player.goals || a.player.name.localeCompare(b.player.name));
+  const bogey = opponents.filter((o) => o.played >= 5 && o.won === 0);
   const boards: { title: string; sub?: string; items: { player: Player; value: number }[]; color?: string; fmt?: (v: number) => string }[] = [
     { title: "Season ticket holders", sub: "Appearances", items: leaderboard(data.players, "apps").slice(0, 5), color: "bg-cream" },
     { title: "Golden boot", sub: "Goals", items: leaderboard(data.players, "goals").slice(0, 5) },
@@ -33,6 +37,8 @@ export default async function StatsPage() {
     { title: "Goals per game", sub: `Min ${MIN} games with scorers logged`, items: leaderboard(data.players, "goalsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2) },
     { title: "Assists per game", sub: `Min ${MIN} games with assists logged`, items: leaderboard(data.players, "assistsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2), color: "bg-[#4a8fe0]" },
     { title: "Win rate", sub: `Min ${MIN} apps`, items: leaderboard(data.players, "winRate", MIN).slice(0, 5), fmt: (v) => `${v}%`, color: "bg-mint" },
+    { title: "Punctuality", sub: `Share of possible games turned up to · min ${MIN_POSSIBLE} possible`, items: punctuality.slice(0, 5), fmt: (v) => `${v}%`, color: "bg-cream" },
+    { title: "Goals in wins", sub: `Goals scored in games we actually won · min ${MIN_GOALS} goals`, items: goalsInWins.slice(0, 5), color: "bg-mint" },
   ];
 
   return (
@@ -67,6 +73,15 @@ export default async function StatsPage() {
             </table>
           </div>
         </div>
+        <div className="space-y-6">
+        <div className="card card-shame p-5">
+          <SectionTitle right={<Link href="/opponents" className="link py-1 text-xs">All opponents</Link>} sub="Played at least five times. Beaten never.">Bogey teams</SectionTitle>
+          {bogey.length ? (
+            <ul className="space-y-2 text-sm">
+              {bogey.map((o) => <li key={o.key} className="flex items-center gap-3"><Link href={`/opponents/${o.slug}`} className="link min-w-0 truncate font-medium text-cream" title={o.opponent}>{o.opponent}</Link><span className="ml-auto shrink-0 text-xs text-ash">{o.played} played</span><span className="tabular shrink-0 text-xs"><span className="text-[#ffe27a]">{o.drawn}D</span> <span className="text-[#ff9a9d]">{o.lost}L</span></span><span className={clsx("tabular w-10 shrink-0 text-right text-xs font-semibold", o.gf - o.ga < 0 ? "text-[#ff9a9d]" : "text-cream")}>{signed(o.gf - o.ga)}</span></li>)}
+            </ul>
+          ) : <p className="text-sm text-ash">No bogey teams. Every side we&apos;ve met five times, we&apos;ve beaten at least once. Frankly astonishing.</p>}
+        </div>
         <div className="card overflow-hidden">
           <div className="p-5 pb-2"><SectionTitle sub="Every opponent we've met, most-played first">Head to head</SectionTitle></div>
           <div className="scroll-x overflow-x-auto sm:max-h-[560px] sm:overflow-auto">
@@ -75,6 +90,7 @@ export default async function StatsPage() {
               <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-cream"><Link href={`/matches/${o.matches[o.matches.length - 1].id}`} className="link block max-w-[9rem] truncate lg:max-w-[12rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num text-mint-soft">{o.won}</td><td className="num text-[#ffe27a]">{o.drawn}</td><td className="num text-[#ff9a9d]">{o.lost}</td><td className={clsx("num", gd > 0 ? "text-mint-soft" : gd < 0 ? "text-[#ff9a9d]" : "")}>{signed(gd)}</td><td className="hidden !whitespace-normal max-w-[7rem] text-xs leading-relaxed text-ash md:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
             </table>
           </div>
+        </div>
         </div>
       </section>
     </div>

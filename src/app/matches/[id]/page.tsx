@@ -11,6 +11,7 @@ import { PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/board";
 import { sponsorFor } from "@/components/footer";
 import { ShareButton } from "@/components/share-button";
+import { MatchPreview } from "@/components/match-preview";
 import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
@@ -50,6 +51,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const firstWin = m.result === "W" && !seasonCounted.some((x) => x.result === "W" && (x.date ?? "") < (m.date ?? "") && x.id !== m.id);
   const verdict = matchVerdict(m, scorers[0]?.goals ?? 0, scorers[0]?.player ?? null, firstWin);
   const sponsor = sponsorFor(m.id);
+  const showPreview = !m.played && !isForfeit;
   const shareText = m.played ? `Thameslink Hajduci ${m.ourGoals}–${m.theirGoals} ${opponentLabel} · ${status.word}${m.motm ? ` · MOTM ${m.motm}` : ""}` : `Thameslink Hajduci vs ${m.opponent} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} ${m.kickOff ?? ""}`;
 
   return (
@@ -82,14 +84,14 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci on the pitch</Tag>}
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)} · {fmtMoney(m.costPerPlayer)} each</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
-            <ShareButton title={shareText} text={shareText} />
+            <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
             <Link href={`/submit?match=${m.id}`} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-mint/40 bg-mint/10 px-3 py-1.5 text-xs font-semibold text-mint-soft transition-colors hover:bg-mint/20">{m.played ? "Correct this score" : "Submit the score"}</Link>
           </div>
         </div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-        <div className={clsx("card overflow-hidden", m.played || (h2h && !isForfeit && h2h.matches.some((x) => x.id !== m.id)) ? "lg:col-span-3" : "lg:col-span-5")}>
+        <div className={clsx("card overflow-hidden", m.played || showPreview || (h2h && !isForfeit && h2h.matches.some((x) => x.id !== m.id)) ? "lg:col-span-3" : "lg:col-span-5")}>
           <div className="p-5 pb-2"><SectionTitle sub={m.played ? (lineup.length ? "Who turned up, and what they did about it" : "No appearance marks recorded for this one") : "Squad TBC. As is our attendance."}>Line-up</SectionTitle></div>
           {lineup.length > 0 && (
             <div className="scroll-x overflow-x-auto">
@@ -122,6 +124,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               </dl>
             </div>
           )}
+          {showPreview && <MatchPreview data={data} match={m} />}
           {h2h && !isForfeit && (m.played || h2h.matches.some((x) => x.id !== m.id)) && (
             <div className="card p-5">
               <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"} across ${h2h.seasons.join(", ")}`}>Head to head</SectionTitle>

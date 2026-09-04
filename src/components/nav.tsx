@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
-import { CalendarDays, ClipboardPen, Coins, Database, Medal, Menu, Target, TrainFront, Trophy, Users, X } from "lucide-react";
+import { CalendarDays, ClipboardPen, Coins, Database, Medal, Menu, Shield, Swords, Target, TrainFront, Trophy, Users, X } from "lucide-react";
 import { usePath } from "./use-path";
 
 const LINKS = [
   { href: "/", label: "Home" }, { href: "/squad", label: "Squad" }, { href: "/matches", label: "Matches" }, { href: "/seasons", label: "Seasons" },
-  { href: "/stats", label: "Stats" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/data", label: "Data" }, { href: "/submit", label: "Submit" },
+  { href: "/stats", label: "Stats" }, { href: "/opponents", label: "Opponents" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/submit", label: "Submit" },
 ];
 const TABS = [{ href: "/", label: "Home", Icon: TrainFront }, { href: "/matches", label: "Matches", Icon: CalendarDays }, { href: "/squad", label: "Squad", Icon: Users }, { href: "/stats", label: "Stats", Icon: Target }];
-const MORE = [{ href: "/submit", label: "Submit a score", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data & API", Icon: Database }];
+const MORE = [{ href: "/submit", label: "Submit a score", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/opponents", label: "Opponents", Icon: Shield }, { href: "/compare", label: "Compare players", Icon: Swords }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data & API", Icon: Database }];
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
 export function Nav() {
@@ -26,11 +26,11 @@ export function Nav() {
             <div className="eyebrow mt-0.5 hidden sm:block"><span lang="sr-Cyrl">Темзлинк Хайдуки</span> · est. 2024</div>
           </div>
         </Link>
-        <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-1 md:flex">
+        <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-0.5 md:flex lg:gap-1">
           {LINKS.map((l) => {
             const active = isActive(path, l.href);
             return (
-              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={clsx("focus-ring relative whitespace-nowrap rounded-md px-3 py-4 text-sm font-medium transition-colors", active ? "text-cream" : "text-ash hover:text-cream")}>
+              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={clsx("focus-ring relative whitespace-nowrap rounded-md px-2.5 py-4 text-sm font-medium transition-colors lg:px-3", active ? "text-cream" : "text-ash hover:text-cream")}>
                 {l.label}
                 {active && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-mint" />}
               </Link>

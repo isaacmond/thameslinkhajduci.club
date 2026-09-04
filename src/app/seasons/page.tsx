@@ -3,9 +3,10 @@ import Link from "next/link";
 import clsx from "clsx";
 import { ArrowRight } from "lucide-react";
 import { getData } from "@/lib/data";
-import { form, ppg, seasonSeries, signed } from "@/lib/stats";
+import { form, pointsProgression, ppg, seasonSeries, signed } from "@/lib/stats";
 import { FormStrip, PageHeader, SectionTitle, Tag } from "@/components/ui";
 import { GoalsBySeason, WDLBySeason } from "@/components/charts";
+import { PointsRaceChart } from "@/components/charts-race";
 import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Seasons", description: "Season by season history of Thameslink Hajduci: venues, records, top scorers." };
@@ -14,13 +15,18 @@ export default async function SeasonsPage() {
   const data = await getData();
   const series = seasonSeries(data);
   const seasons = [...data.seasons].reverse();
+  const progression = pointsProgression(data);
+  const raceSeason = data.seasons.find((s) => s.isCurrent) ?? data.seasons[data.seasons.length - 1] ?? null;
   return (
     <PageTransition>
     <>
       <PageHeader eyebrow="History" title="Seasons" sub={`${data.seasons.length} seasons, ${new Set(data.seasons.map((s) => s.venue)).size} venues, one unwavering commitment to conceding first.`} />
-      <section className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <section className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="card p-5"><SectionTitle sub="Games that counted, per season">Results by season</SectionTitle><WDLBySeason data={series} /></div>
         <div className="card p-5"><SectionTitle sub="Average per game, scored and conceded">Goals by season</SectionTitle><GoalsBySeason data={series} /></div>
+        {progression.length > 0 && (
+          <div className="card p-5"><SectionTitle sub={raceSeason ? `Points after each game that counted. Season ${raceSeason.number}${raceSeason.isCurrent ? ", still running," : ""} in green; the rest in grey.` : "Points after each game that counted"}>Points race</SectionTitle><PointsRaceChart series={progression} current={raceSeason?.id ?? null} /></div>
+        )}
       </section>
       <ol className="stagger space-y-4">
         {seasons.map((s) => {

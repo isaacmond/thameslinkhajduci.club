@@ -1,11 +1,11 @@
 "use client";
 import { useMemo, useState } from "react";
 import clsx from "clsx";
-import type { Match, Result } from "@/lib/types";
+import type { MatchLite, Result } from "@/lib/types";
 import { MatchRow } from "./ui";
 import { Switch } from "./controls";
 
-export function MatchesBrowser({ matches, seasons, initialSeason, today }: { matches: Match[]; seasons: { id: string; number: number; title: string }[]; initialSeason?: string; today: string }) {
+export function MatchesBrowser({ matches, seasons, initialSeason, today }: { matches: MatchLite[]; seasons: { id: string; number: number; title: string }[]; initialSeason?: string; today: string }) {
   const [season, setSeason] = useState<string>(initialSeason ?? "all");
   const [result, setResult] = useState<Result | "all">("all");
   const [includeExcluded, setIncludeExcluded] = useState(true);
@@ -22,7 +22,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
   const counted = list.filter((m) => m.countsForRecords);
   const w = counted.filter((m) => m.result === "W").length, d = counted.filter((m) => m.result === "D").length, l = counted.filter((m) => m.result === "L").length;
   const gf = counted.reduce((s, m) => s + (m.ourGoals ?? 0), 0), ga = counted.reduce((s, m) => s + (m.theirGoals ?? 0), 0);
-  const bySeason = new Map<string, Match[]>();
+  const bySeason = new Map<string, MatchLite[]>();
   for (const m of list) bySeason.set(m.seasonId, [...(bySeason.get(m.seasonId) ?? []), m]);
   const groups = [...bySeason.entries()];
   const filtering = season !== "all" || result !== "all" || q.trim().length > 0;

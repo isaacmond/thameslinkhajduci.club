@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { MobileTabs, Nav } from "@/components/nav";
 import { ServiceTicker } from "@/components/ticker";
@@ -30,6 +32,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <MobileTabs />
         <ScrollHints />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

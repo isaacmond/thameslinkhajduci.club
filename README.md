@@ -10,10 +10,12 @@ The website of Thameslink Hajduci, a six-a-side football club from East London t
 - **Caching:** the fetch is cached for 60 seconds (Next.js data cache, tag `sheet`). `POST /api/revalidate` forces a re-read; the Data page has a button for it.
 - **Rules:** friendlies and forfeits (the `Type` row, or anything in a `Friendlies` tab) are shown but excluded from W/D/L, goals and player totals. The sheet's champagne-moment row is ignored. Whoever is named in a season's "Paid by" cell is credited the pitch cost of played games. Goals-per-game only counts games where scorers were logged; assists-per-game only counts games where assists were logged. Opponent names are normalised so head-to-head records line up.
 - **Profile extras:** photos, shirt numbers and positions come from `src/lib/squad-extras.json` (carried over from the old team app). A tab called `Squad` in the sheet (`Player, Nickname, Position, Shirt, Photo, Bio`) overrides it field by field.
+- **Names without deploys:** optional `Aliases` (`From, To`) and `Opponents` (`Spelling, Canonical`) tabs are read live and applied on top of the built-in maps.
+- **Resilience:** the workbook fetch retries, a per-request/parse cache avoids re-parsing, an in-memory last-good copy and a build-time snapshot (`scripts/snapshot.mjs`) serve stale data if Google is unreachable, and `/api/health` reports status plus records-health findings.
 
 ## Pages
 
-`/` home · `/squad` and `/squad/[player]` · `/matches` and `/matches/[id]` · `/seasons`, `/seasons/[id]` and `/seasons/friendlies` · `/stats` · `/records` · `/money` · `/data` · `/submit` (score submissions, validated and handed to the admin for approval; optional `SCORE_WEBHOOK_URL` posts them to Slack/Discord)
+`/` home (departures board, talking points, milestone watch) · `/squad` and `/squad/[player]` (form, streaks, attendance, insights) · `/matches` and `/matches/[id]` (match report, or a pre-match forecast for fixtures) · `/opponents` and `/opponents/[slug]` (head-to-head history with generated roundels) · `/compare?a=&b=` (two players side by side) · `/seasons`, `/seasons/[id]` (tube-line season diagram, golden-boot race, points race) and `/seasons/friendlies` · `/stats` · `/records` · `/money` · `/data` (exports, records health) · `/submit` (score submissions, validated and handed to the admin for approval; optional `SCORE_WEBHOOK_URL` posts them to Slack/Discord)
 
 ## API
 

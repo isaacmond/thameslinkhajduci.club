@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { cache } from "react";
 import { slugify } from "./slug";
 import staticExtras from "./squad-extras.json";
 import type {
@@ -8,6 +9,7 @@ import type {
 
 import { SHEET_ID as PUBLIC_SHEET_ID, SHEET_URL } from "./config";
 import { londonToday } from "./time";
+import { log } from "./log";
 /** Server-only override wins, then the public id. */
 export const SHEET_ID = process.env.SHEET_ID ?? PUBLIC_SHEET_ID;
 export { SHEET_URL };
@@ -39,7 +41,7 @@ const OPPONENTS: Record<string, string> = {
 export function canonicalOpponent(raw: string) {
   const n = raw.trim().replace(/\s+/g, " ");
   const key = n.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
-  return OPPONENTS[key] ?? n;
+  return sheetOpponents[key] ?? OPPONENTS[key] ?? n;
 }
 
 type Cell = string | number | boolean | Date | null | undefined;
@@ -88,9 +90,17 @@ function timeOfDay(c: Cell): string | null {
   if (typeof c === "string") { const m = c.match(/(\d{1,2}):(\d{2})/); if (m) return `${pad(+m[1])}:${m[2]}`; }
   return null;
 }
+/** Extra aliases from an optional "Aliases" tab (columns From, To); merged over the built-in map before each parse. */
+let sheetAliases: Record<string, string> = {};
+let sheetOpponents: Record<string, string> = {};
 export function canonicalName(raw: string) {
   const n = raw.trim().replace(/\s+/g, " ");
-  return ALIASES[n] ?? n;
+  return sheetAliases[n] ?? ALIASES[n] ?? n;
+}
+function parseAliasTab(grid: Grid): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const row of grid) { const from = str(row?.[0]), to = str(row?.[1]); if (from && to && !/^(from|spelling)$/i.test(from)) out[from.replace(/\s+/g, " ")] = to.replace(/\s+/g, " "); }
+  return out;
 }
 
 function sheetToGrid(ws: XLSX.WorkSheet): Grid {
@@ -365,6 +375,12 @@ export function parseWorkbook(buf: ArrayBuffer): ClubData {
   let extras = new Map<string, SquadExtra>();
   let money: { paidBy: Record<string, string>; rows: MoneyRow[] } = { paidBy: {}, rows: [] };
   let payments: Payment[] = [];
+  // First pass: optional "Aliases" and "Opponents" tabs let the admin fix names without a deploy.
+  sheetAliases = {}; sheetOpponents = {};
+  for (const name of wb.SheetNames) {
+    if (/^aliases$/i.test(name.trim())) sheetAliases = parseAliasTab(sheetToGrid(wb.Sheets[name]));
+    if (/^opponents$/i.test(name.trim())) { const m = parseAliasTab(sheetToGrid(wb.Sheets[name])); for (const [k, v] of Object.entries(m)) sheetOpponents[k.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim()] = v; }
+  }
   for (const name of wb.SheetNames) {
     const grid = sheetToGrid(wb.Sheets[name]);
     if (/^S\d+$/i.test(name.trim())) { const s = parseSeasonTab(name.trim().toUpperCase(), grid); if (s && s.matches.length) seasons.push(s); }
@@ -374,8 +390,11 @@ export function parseWorkbook(buf: ArrayBuffer): ClubData {
     else if (/^payments$/i.test(name.trim())) payments = parsePayments(grid);
   }
   seasons.sort((a, b) => a.number - b.number);
-  // current season = latest season that isn't complete, else the latest season
-  const current = [...seasons].reverse().find((s) => !s.isComplete) ?? seasons[seasons.length - 1];
+  // Current season: the one whose fixtures span today; else the one with the nearest upcoming fixture; else the latest with a result.
+  const today = londonToday();
+  const spans = seasons.filter((s) => s.matches.some((m) => m.date && m.date <= today) && s.matches.some((m) => !m.played && m.date && m.date >= today));
+  const upcoming = seasons.filter((s) => s.matches.some((m) => !m.played && m.date && m.date >= today)).sort((a, b) => (a.matches.find((m) => m.date && m.date >= today)?.date ?? "9999").localeCompare(b.matches.find((m) => m.date && m.date >= today)?.date ?? "9999"));
+  const current = spans[spans.length - 1] ?? upcoming[0] ?? [...seasons].reverse().find((s) => s.matches.some((m) => m.played)) ?? seasons[seasons.length - 1];
   if (current) current.isCurrent = true;
   const matches = [...seasons, ...(friendlies ? [friendlies] : [])].flatMap((s) => s.matches).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.seasonNumber - b.seasonNumber || a.gw - b.gw);
   const players = buildPlayers(seasons, mergeExtras(extras));
@@ -394,18 +413,30 @@ export const REVALIDATE_SECONDS = 60;
 /** Live fetch of the whole workbook. Cached by Next's data cache for REVALIDATE_SECONDS. */
 /** The single cached download of the workbook (Next data cache, tag "sheet"). */
 export async function fetchWorkbook(): Promise<ArrayBuffer> {
+  if (process.env.SHEET_FILE) { const { readFile } = await import("node:fs/promises"); const b = await readFile(process.env.SHEET_FILE); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; }
+  // During `next build` every prerender worker would download the workbook; use the copy the prebuild step just fetched instead (one request, no 429s).
+  if (process.env.NEXT_PHASE === "phase-production-build") { const snap = await snapshotWorkbook(); if (snap) return snap; }
   let lastErr: unknown;
   for (let attempt = 0; attempt < 3; attempt++) {
+    const t0 = Date.now();
     try {
       const res = await fetch(EXPORT_URL, { next: { revalidate: REVALIDATE_SECONDS, tags: ["sheet"] }, headers: { "user-agent": "thameslinkhajduci.club/1.0" } });
       if (!res.ok) throw new Error(`Sheet export failed: ${res.status}`);
-      return await res.arrayBuffer();
+      const buf = await res.arrayBuffer();
+      if (attempt > 0) log("sheet.fetch.recovered", { attempt, ms: Date.now() - t0 });
+      return buf;
     } catch (err) {
       lastErr = err;
+      log("sheet.fetch.failed", { attempt, ms: Date.now() - t0, error: String(err) });
       await new Promise((r) => setTimeout(r, 400 * (attempt + 1))); // Google occasionally hiccups under the build's parallel prerender workers
     }
   }
   throw lastErr;
+}
+
+/** Build-time copy of the workbook (scripts/snapshot.mjs), used only when Google is unreachable and nothing better is in memory. */
+async function snapshotWorkbook(): Promise<ArrayBuffer | null> {
+  try { const { readFile } = await import("node:fs/promises"); const { join } = await import("node:path"); const b = await readFile(join(process.cwd(), ".snapshot", "sheet.xlsx")); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; } catch { return null; }
 }
 
 const colLetter = (i: number) => { let s = ""; let n = i + 1; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
@@ -441,13 +472,25 @@ export async function getSheetLayout(seasonId: string): Promise<SheetLayout | nu
 }
 
 let lastGood: ClubData | null = null;
-export async function getClubData(): Promise<ClubData> {
+let parsed: { key: string; data: ClubData } | null = null;
+/** Cheap content hash so the same download is parsed once per instance, not once per page render. */
+const bufKey = (b: ArrayBuffer) => { const u = new Uint8Array(b); let h = 2166136261; for (let i = 0; i < u.length; i += 97) h = Math.imul(h ^ u[i], 16777619); return `${u.length}:${h >>> 0}`; };
+export function parseWorkbookCached(buf: ArrayBuffer): ClubData {
+  const key = bufKey(buf);
+  if (parsed && parsed.key === key) return { ...parsed.data, fetchedAt: parsed.data.fetchedAt };
+  const t0 = Date.now(); const data = parseWorkbook(buf); log("sheet.parse", { ms: Date.now() - t0, seasons: data.seasons.length, matches: data.matches.length, players: data.players.length });
+  parsed = { key, data }; return data;
+}
+/** Deduped per request with React cache(): layout ticker, generateMetadata and the page share one read. */
+export const getClubData = cache(async (): Promise<ClubData> => {
   try {
-    const data = parseWorkbook(await fetchWorkbook());
+    const data = parseWorkbookCached(await fetchWorkbook());
     lastGood = data;
     return data;
   } catch (err) {
-    if (lastGood) return { ...lastGood, stale: true };
+    if (lastGood) { log("sheet.stale.memory"); return { ...lastGood, stale: true }; }
+    const snap = await snapshotWorkbook();
+    if (snap) { log("sheet.stale.snapshot"); return { ...parseWorkbookCached(snap), stale: true }; }
     throw err;
   }
-}
+});

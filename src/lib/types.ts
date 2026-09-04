@@ -122,6 +122,9 @@ export interface Payment {
   note: string | null;
 }
 
+/** What the client-side match browser needs: a Match without the per-player cost/lineup detail (about a quarter of the bytes). */
+export type MatchLite = Omit<Match, "lineup" | "matchCost" | "playersInGame" | "costPerPlayer"> & { lineup: Pick<PlayerMatchLine, "player" | "played" | "goals">[] };
+
 export interface ClubData {
   fetchedAt: string;
   /** true when served from the in-memory fallback because the sheet could not be reached */

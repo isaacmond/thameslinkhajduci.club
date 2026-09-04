@@ -1,10 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
-import type { Match, Player, Result, SeasonSummary } from "@/lib/types";
+import type { Match, MatchLite, Player, Result, SeasonSummary } from "@/lib/types";
 import { fmtDate, gwLabel, initials, ppg, scoreline, signed } from "@/lib/stats";
 import { slugify } from "@/lib/slug";
 import { CountUp } from "./count-up";
+import { Roundel } from "./roundel";
 
 export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: React.ReactNode; title: React.ReactNode; sub?: React.ReactNode; right?: React.ReactNode }) {
   return (
@@ -73,7 +74,7 @@ export function ResultPill({ result, className, size = "md" }: { result: Result 
   return <span className={clsx("chip justify-center font-bold", `result-${r}`, size === "sm" && "h-6 w-6 !p-0 text-[11px]", size === "md" && "h-7 w-7 !p-0 text-xs", size === "lg" && "h-9 w-9 !p-0 text-sm", className)} aria-label={result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "Not played"}>{r === "X" ? "–" : r}</span>;
 }
 
-export function FormStrip({ matches, size = "md" }: { matches: Match[]; size?: "sm" | "md" }) {
+export function FormStrip({ matches, size = "md" }: { matches: (Match | MatchLite)[]; size?: "sm" | "md" }) {
   return (
     <div className="flex gap-1" aria-label="Recent form">
       {matches.map((m) => <Link key={m.id} href={`/matches/${m.id}`} title={`${fmtDate(m.date)} · ${m.opponent} ${scoreline(m)}`} className="focus-ring -m-1 rounded-full p-1"><ResultPill result={m.result} size={size} /></Link>)}
@@ -110,7 +111,7 @@ const relDay = (date: string | null, today?: string) => {
   return n < 0 ? null : n === 0 ? "Tonight" : n === 1 ? "Tomorrow" : `in ${n}d`;
 };
 /** One fixture/result line. Pass `today` (ISO date from the server) for fixtures so the relative day matches between server and client. */
-export function MatchRow({ m, showSeason = false, today }: { m: Match; showSeason?: boolean; today?: string }) {
+export function MatchRow({ m, showSeason = false, today }: { m: Match | MatchLite; showSeason?: boolean; today?: string }) {
   const scorers = m.lineup.filter((l) => l.goals > 0).sort((a, b) => b.goals - a.goals);
   const rel = m.played ? null : relDay(m.date, today);
   return (
@@ -118,6 +119,7 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match; showSeaso
       {m.played ? <ResultPill result={m.result} size="lg" /> : <span className="chip h-9 w-9 justify-center !p-0 text-[10px] text-ash" aria-label={gwLabel(m)}>{m.seasonId === "FR" ? "F" : "GW"}{m.gw}</span>}
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-2">
+          <Roundel name={m.opponent} size={18} className="shrink-0" />
           <span className="truncate font-semibold text-cream">{m.opponent}</span>
           {m.type && <span className="chip text-ash">{m.type}</span>}
         </div>

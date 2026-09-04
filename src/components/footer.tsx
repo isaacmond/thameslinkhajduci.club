@@ -27,7 +27,7 @@ export function Sponsors() {
           <li key={s.name}>
             <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring group flex h-full flex-col rounded-xl bg-white p-4 transition-transform hover:-translate-y-0.5">
               <div className="relative flex h-14 w-full items-center justify-center">
-                <Image src={s.src} alt={`${s.name} logo`} fill sizes="200px" className="object-contain" loading="eager" />
+                <Image src={s.src} alt={`${s.name} logo`} fill sizes="200px" className="object-contain" />
               </div>
               <p className="mt-auto pt-3 text-center text-[11px] font-semibold uppercase tracking-wider text-neutral-700">{s.name}</p>
               <p className="text-center text-[11px] text-neutral-500">{s.tagline}</p>

@@ -35,12 +35,19 @@ body {
   color: var(--color-cream);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+/* gradients live on a fixed, composited pseudo-element instead of background-attachment: fixed, which repaints on every scroll */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image:
     radial-gradient(1200px 600px at 50% -10%, rgba(50, 195, 100, 0.14), transparent 60%),
     radial-gradient(800px 400px at 100% 20%, rgba(244, 200, 27, 0.06), transparent 60%),
     linear-gradient(to bottom, #0a1f13, var(--color-night) 40%);
-  background-attachment: fixed;
-  min-height: 100dvh;
 }
 
 /* pitch lines texture for hero blocks */
@@ -113,7 +120,7 @@ table.stats th:first-child { z-index: 2; }
 @media (pointer: coarse) { button.chip, a.chip { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.25rem; } }
 .board-glow { text-shadow: 0 0 6px currentColor; }
 .scanlines::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px); }
-.marquee { display: flex; width: max-content; animation: marquee 70s linear infinite; }
+.marquee { display: flex; width: max-content; animation: marquee 70s linear infinite; will-change: transform; }
 .marquee:hover { animation-play-state: paused; }
 .card-fame { border-color: rgba(50, 195, 100, 0.3); background: linear-gradient(180deg, rgba(50, 195, 100, 0.07), rgba(255, 255, 255, 0.02)); }
 .card-shame { border-color: rgba(229, 72, 77, 0.3); background: linear-gradient(180deg, rgba(229, 72, 77, 0.07), rgba(255, 255, 255, 0.02)); }

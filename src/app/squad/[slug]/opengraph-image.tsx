@@ -5,6 +5,8 @@ import { getData } from "@/lib/data";
 import { bebasNeue, display, ogFonts } from "@/lib/og-font";
 
 export const alt = "Player card";
+export const revalidate = 3600;
+export async function generateStaticParams() { const d = await getData(); return d.players.map((p) => ({ slug: p.slug })); }
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

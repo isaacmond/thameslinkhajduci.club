@@ -4,6 +4,8 @@ import Link from "next/link";
 import clsx from "clsx";
 import { Check, Copy, ExternalLink, Minus, Plus, Send } from "lucide-react";
 import { Select } from "./controls";
+import { BoardPreview } from "./board-preview";
+import { serviceStatus } from "@/lib/captions";
 
 export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null };
 type Result = { ok: boolean; error?: string; sent?: boolean; summary?: string; text?: string; edits?: { cell: string; value: string | number; what: string }[]; tab?: string | null; sheetUrl?: string };
@@ -17,6 +19,9 @@ function Counter({ value, onChange, max = 30, label }: { value: number; onChange
     </span>
   );
 }
+
+/** Short date for the board's time column ("4 Sept"), or a shrug when the fixture has none. */
+const boardDate = (iso: string | null) => (iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "TBC");
 
 export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixtures: SubmitFixture[]; roster: string[]; initialMatch?: string; webhook: boolean }) {
   const first = fixtures.find((f) => f.id === initialMatch) ?? fixtures.find((f) => !f.played) ?? fixtures[0];
@@ -65,6 +70,9 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
         <p className="eyebrow">{result.sent ? "Sent for approval" : "Ready to send"}</p>
         <h2 className="display mt-1 text-3xl text-cream">{result.summary}</h2>
         <p className="mt-2 text-sm text-ash">{result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
+        {fx && (() => { const st = serviceStatus(ours > theirs ? "W" : ours === theirs ? "D" : "L"); return (
+          <BoardPreview className="mt-4" time={boardDate(fx.date)} label={fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} destination={`Hajduci ${ours}–${theirs} ${fx.opponent}`} status={st.word} tone={st.tone} caption={result.sent ? "Awaiting approval" : "Not yet official"} />
+        ); })()}
         <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
         <div className="mt-4 flex flex-wrap gap-2">
           <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-4 py-2.5 font-semibold text-night hover:bg-mint-soft"><Send size={16} aria-hidden />Send to the group chat</a>

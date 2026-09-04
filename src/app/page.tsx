@@ -1,13 +1,19 @@
 import Link from "next/link";
+import clsx from "clsx";
 import { ArrowRight, Database, Flame, Skull, Trophy } from "lucide-react";
 import { getData } from "@/lib/data";
-import { chronological, currentStreak, fmtDate, form, lastResult, leaderboard, nextFixture, records, scoreline, seasonPlayers } from "@/lib/stats";
+import { chronological, currentStreak, fmtDate, form, lastResult, leaderboard, type MilestoneKind, nextFixture, records, scoreline, seasonPlayers, upcomingMilestones } from "@/lib/stats";
+import { insights, pickInsights } from "@/lib/insights";
 import { londonToday } from "@/lib/time";
 import { serviceStatus } from "@/lib/captions";
-import { Crest, FormStrip, LeaderList, MatchRow, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { Avatar, Crest, FormStrip, LeaderList, MatchRow, PlayerLink, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { DepartureBoard, type BoardRow } from "@/components/board";
 import { Sponsors } from "@/components/footer";
 import { PageTransition } from "@/components/page-transition";
+
+const DOT = { ok: "bg-mint", late: "bg-gold", bad: "bg-[#ff9a9d]", muted: "bg-ash" } as const;
+const KIND: Record<MilestoneKind, [string, string]> = { apps: ["app", "apps"], goals: ["goal", "goals"], assists: ["assist", "assists"], motm: ["MOTM award", "MOTM awards"] };
+const KIND_LABEL: Record<MilestoneKind, string> = { apps: "Appearances", goals: "Goals", assists: "Assists", motm: "Man of the match" };
 
 export default async function Home() {
   const data = await getData();
@@ -20,6 +26,8 @@ export default async function Home() {
   const today = londonToday();
   const upcoming = current ? chronological(current.matches).filter((m) => !m.played && m.date && m.date >= today).slice(0, 4) : [];
   const recent = form(data.matches, 8);
+  const talking = pickInsights(insights(data), 4);
+  const milestones = upcomingMilestones(data.players, 3).slice(0, 4);
   const readAt = new Date(data.fetchedAt).toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" });
 
   const rows: BoardRow[] = [];
@@ -93,6 +101,45 @@ export default async function Home() {
         <div className="card p-5">
           <SectionTitle right={<span className="flex gap-3"><Link href="/submit" className="link py-1 text-xs">Submit a score</Link><Link href="/matches" className="link py-1 text-xs">All fixtures</Link></span>} sub={current ? `${current.venue} · kick-offs vary, arrivals vary more` : undefined}>Coming up</SectionTitle>
           {upcoming.length ? <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="text-sm text-ash">No fixtures scheduled. The committee is in talks. The committee is also in the pub.</p>}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr] lg:items-start">
+        <div className="card p-5">
+          <SectionTitle right={<Link href="/stats" className="link py-1 text-xs">All the numbers</Link>} sub="What the group chat is arguing about this week">Talking points</SectionTitle>
+          {talking.length ? (
+            <ul className="space-y-1">
+              {talking.map((t) => (
+                <li key={t.key}>
+                  <Link href={t.href ?? "/stats"} className="focus-ring group -mx-2 flex items-start gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-white/[0.04]">
+                    <span className={clsx("mt-[0.45rem] h-2 w-2 shrink-0 rounded-full", DOT[t.tone])} aria-hidden />
+                    <span className="min-w-0 flex-1 text-cream group-hover:text-mint-soft">{t.text}</span>
+                    <ArrowRight size={14} className="mt-1 shrink-0 text-ash opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="text-sm text-ash">Nothing to argue about. Deeply suspicious.</p>}
+        </div>
+        <div className="card p-5">
+          <SectionTitle right={<Link href="/squad" className="link py-1 text-xs">Squad</Link>} sub="Round numbers within touching distance">Milestone watch</SectionTitle>
+          {milestones.length ? (
+            <ul className="space-y-2">
+              {milestones.map((ms) => (
+                <li key={`${ms.player.slug}-${ms.kind}`} className="flex items-center gap-3">
+                  <Avatar name={ms.player.name} photo={ms.player.extra.photo} size={36} />
+                  <span className="min-w-0 flex-1 leading-tight">
+                    <PlayerLink name={ms.player.name} player={ms.player} className="block truncate text-sm" />
+                    <span className="block text-xs text-ash">{ms.away} {KIND[ms.kind][ms.away === 1 ? 0 : 1]} from {ms.target}</span>
+                  </span>
+                  <span className="shrink-0 text-right leading-none">
+                    <span className={clsx("display tabular block text-2xl", ms.away === 1 ? "text-gold" : "text-cream")}>{ms.target}</span>
+                    <span className="eyebrow !text-[9px] !tracking-[0.12em]">{KIND_LABEL[ms.kind]}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="text-sm text-ash">Nobody is near a round number. Everyone is, statistically, mid-table.</p>}
         </div>
       </section>
 

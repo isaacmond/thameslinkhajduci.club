@@ -56,6 +56,8 @@ Friendlies inside a season: enter the game in the season tab and write `Friendly
 
 - **Update anything:** edit the Google Sheet. The site re-reads it within 60 seconds. For instant, hit "Force refresh from sheet" on `/data` (or `POST /api/revalidate`).
 - **New season:** duplicate the `Season template` tab, name it `S9`, and fill it in. It appears everywhere automatically, including the Money tab's `S9 charges` column.
+- **Renames and spellings:** add a row to the `Aliases` tab (player names) or the `Opponents` tab (club names) in the workbook; the site applies it within a minute, no deploy needed.
+- **Force refresh** is throttled to once per 20 seconds. Set a `REVALIDATE_SECRET` env var and send it as an `x-revalidate-secret` header to bypass the throttle from a script.
 - **Photos, shirt numbers, positions:** add a `Squad` tab with columns `Player, Nickname, Position, Shirt, Photo, Bio` to override the bundled data. Photo is any public image URL.
 - **Exports:** `/data` has the point-and-click explorer; `/api/export?table=…&format=csv|json|md` for scripts and Google Sheets `IMPORTDATA`.
 - **If the sheet is unreachable** the site keeps serving the last successful read and shows a small "sheet unreachable" badge on the home page.

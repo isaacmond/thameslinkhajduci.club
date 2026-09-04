@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getData } from "@/lib/data";
-import { chronological, fmtDate, fmtMoney, leaderboard, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
+import { chronological, fmtDate, fmtMoney, goalRace, leaderboard, pace, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffTimeline } from "@/components/charts";
+import { GoalRaceChart } from "@/components/charts-race";
+import { LineDiagram } from "@/components/line-diagram";
 import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
@@ -15,6 +17,15 @@ export async function generateStaticParams() {
   return [...data.seasons.map((s) => ({ id: s.id.toLowerCase() })), ...(data.friendlies ? [{ id: "friendlies" }] : [])];
 }
 type Data = Awaited<ReturnType<typeof getData>>;
+const ordinal = (n: number) => { const s = ["th", "st", "nd", "rd"], v = n % 100; return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`; };
+/** One line on how the current season's start stacks up against every previous one at the same point. */
+function paceLine(p: ReturnType<typeof pace>): { text: string; tone: "win" | "loss" | "default" } | null {
+  if (!p || p.games < 2 || p.of < 2) return null;
+  const after = `${p.pts} point${p.pts === 1 ? "" : "s"} after ${p.games} games`;
+  if (p.bestStart) return { text: `${after}: the best start to a season yet. Nobody panic.`, tone: "win" };
+  if (p.worstStart) return { text: `${after}: the worst start on record. The board is monitoring the situation.`, tone: "loss" };
+  return { text: `${after}, the ${p.tied ? "joint " : ""}${ordinal(p.rank)} best start of ${p.of} seasons.`, tone: "default" };
+}
 const findSeason = (data: Data, id: string) => (/^(friendlies|fr)$/i.test(id) ? data.friendlies : data.seasons.find((x) => x.id === id.toUpperCase())) ?? null;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -39,6 +50,10 @@ function FriendliesPage({ s }: { s: NonNullable<Data["friendlies"]> }) {
         <Stat label="Won" value={w} tone="win" />
         <Stat label="Drawn" value={d} tone="draw" />
         <Stat label="Lost" value={l} tone="loss" />
+      </section>
+      <section className="card p-5" aria-label="Line map">
+        <SectionTitle sub="Every friendly, oldest first, as a line map. Tap a stop for the match.">The line</SectionTitle>
+        <LineDiagram season={s} today={today} />
       </section>
       <section>
         <SectionTitle sub="Oldest first. Scorers and line-ups live on each match page.">Games</SectionTitle>
@@ -69,11 +84,14 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
   const played = s.matches.filter((m) => m.played).length;
   const diff = s.summary.goalsFor - s.summary.goalsAgainst;
   const small = counted.length < 3;
+  const race = goalRace(data, s);
+  const showRace = !small && race.players.length > 0 && race.rows.length >= 3;
+  const paceNote = s.isCurrent ? paceLine(pace(data, s.id)) : null;
 
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played{notCounted > 0 && `, ${notCounted} not counted`}{s.summary.paidBy && <>. Pitch paid for by {s.summary.paidBy}, who would like that noted.</>}</>}
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played{notCounted > 0 && `, ${notCounted} not counted`}{s.summary.paidBy && <>. Pitch paid for by {s.summary.paidBy}, who would like that noted.</>}{paceNote && <span className={clsx("mt-1 block", paceNote.tone === "win" && "text-mint-soft", paceNote.tone === "loss" && "text-[#ff9a9d]", paceNote.tone === "default" && "text-cream")}>{paceNote.text}</span>}</>}
         right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip text-ash hover:text-cream"><ChevronLeft size={14} aria-hidden />{prev.id}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip text-ash hover:text-cream">{next.id}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section aria-label="Season summary">
@@ -90,6 +108,11 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         </div>
       </section>
 
+      <section className="card p-5" aria-label="Line map">
+        <SectionTitle sub="Every stop this season, in order. Tap a station for the match. Mind the gap between ambition and results.">The line</SectionTitle>
+        <LineDiagram season={s} today={today} />
+      </section>
+
       {gd.length > 0 && (small ? (
         <section className="card flex flex-col items-center gap-2 p-6 text-center sm:flex-row sm:justify-between sm:text-left">
           <div><p className="eyebrow">The season so far</p><p className="display text-3xl text-cream">{counted.length} game{counted.length === 1 ? "" : "s"}. Small sample. Big feelings.</p></div>
@@ -98,6 +121,10 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
       ) : (
         <section className="card p-5"><SectionTitle sub="Goal difference per game. Green is good. There is not a lot of green.">The season, game by game</SectionTitle><GoalDiffTimeline data={gd} /></section>
       ))}
+
+      {showRace && (
+        <section className="card p-5"><SectionTitle sub="Running goal totals for the season's top scorers, gameweek by gameweek. Only games with scorers logged move the race on.">Golden boot race</SectionTitle><GoalRaceChart rows={race.rows} players={race.players} /></section>
+      )}
 
       {(() => {
         const cards = [

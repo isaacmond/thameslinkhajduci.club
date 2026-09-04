@@ -6,8 +6,9 @@ import clsx from "clsx";
 import { Crown, Medal, Sparkles, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
-import { chemistry, chronological, fmtDate, fmtMoney, impact, leaderboard, type LeaderKey, scoreline, seasonHref } from "@/lib/stats";
-import { Avatar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref } from "@/lib/stats";
+import { playerInsights } from "@/lib/insights";
+import { Avatar, FormStrip, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
 import { PageTransition } from "@/components/page-transition";
@@ -47,6 +48,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
   const decided = p.wins + p.draws + p.losses;
   const seasonsPlayed = p.seasons.filter((s) => s.apps > 0).length;
   const first = p.name.split(" ")[0];
+  const lastEight = chronological(playedMatches(data.matches)).filter((m) => m.lineup.some((l) => l.player === p.name && l.played)).slice(-8).reverse();
+  const st = playerStreaks(data, p.name), gc = goalContext(data, p.name), att = attendance(data, p.name);
+  const notes = playerInsights(data, p);
+  const showUnbeaten = st.unbeatenRun > 0 && st.unbeatenRun >= st.winlessRun;
 
   return (
     <PageTransition>
@@ -69,6 +74,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
               {ranks.map((r) => <Tag key={r.label} tone="gold"><Crown size={12} aria-hidden />#{r.rank} all-time {r.label}</Tag>)}
               <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.`} />
             </div>
+            {notes.length > 0 && (
+              <div className="mt-4 border-t border-white/10 pt-3">
+                <p className="eyebrow">Notes</p>
+                <ul className="mt-1.5 grid gap-x-6 gap-y-1 text-sm text-cream/85 sm:grid-cols-2" aria-label="Notes from the records">
+                  {notes.map((n) => <li key={n} className="flex gap-2"><span className="mt-[0.5rem] h-1.5 w-1.5 shrink-0 rounded-full bg-mint" aria-hidden />{n}</li>)}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -83,6 +96,32 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <Stat size="sm" label="Man of the match" value={p.motm} tone="gold" sub={bestSeason ? `Best season: ${bestSeason.goals} goals in ${bestSeason.seasonId}` : "Best season: pending"} />
           <Stat size="sm" label="Record" value={`${p.wins}-${p.draws}-${p.losses}`} sub={`${(decided ? (p.wins * 3 + p.draws) / decided : 0).toFixed(2)} pts/game`} />
         </div>
+      </section>
+
+      <section className="card p-5" aria-labelledby="form-streaks">
+        <SectionTitle id="form-streaks" sub={lastEight.length ? `The last ${lastEight.length === 1 ? "game" : `${lastEight.length} games`} that count with ${first} on the pitch, newest first` : "Games that count, newest first"}>Form &amp; streaks</SectionTitle>
+        <FormStrip matches={lastEight} />
+        <dl className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {p.goals === 0 ? (
+            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Goals</dt><dd className="display tabular text-4xl text-ash">0<span className="block font-sans text-xs text-ash">Still waiting for the first. Any day now.</span></dd></div>
+          ) : st.scoringRun > 0 ? (
+            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Scoring run</dt><dd className="display tabular text-4xl text-mint-soft">{st.scoringRun}<span className="block font-sans text-xs text-ash">{st.scoringRun === 1 ? "game" : "straight games"} on the scoresheet · best run {st.longestScoringRun}</span></dd></div>
+          ) : (
+            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Drought</dt><dd className={clsx("display tabular text-4xl", st.drought >= 5 ? "text-[#ff9a9d]" : "text-[#ffe27a]")}>{st.drought}<span className="block font-sans text-xs text-ash">{st.drought === 1 ? "game" : "games"} without a goal · best run {st.longestScoringRun}</span></dd></div>
+          )}
+          {showUnbeaten ? (
+            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Unbeaten run</dt><dd className="display tabular text-4xl text-mint-soft">{st.unbeatenRun}<span className="block font-sans text-xs text-ash">{st.unbeatenRun === 1 ? "game" : "games"} without a defeat{st.winlessRun > 0 && st.lastWin ? ` · last win ${scoreline(st.lastWin)} vs ${st.lastWin.opponent}` : ""}</span></dd></div>
+          ) : (
+            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Winless run</dt><dd className={clsx("display tabular text-4xl", st.winlessRun >= 8 ? "text-[#ff9a9d]" : st.winlessRun > 0 ? "text-[#ffe27a]" : "text-ash")}>{st.winlessRun}<span className="block font-sans text-xs text-ash">{st.lastWin ? <>{st.winlessRun === 1 ? "game" : "games"} since the last win · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} vs {st.lastWin.opponent}</Link>, {fmtDate(st.lastWin.date, { month: "short", year: "numeric" })}</> : st.winlessRun > 0 ? "games and still waiting for a first win" : "no games on record yet"}</span></dd></div>
+          )}
+          <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Punctuality</dt><dd className={clsx("display tabular text-4xl", att.possible ? (att.pct >= 75 ? "text-mint-soft" : att.pct >= 40 ? "text-[#ffe27a]" : "text-[#ff9a9d]") : "text-ash")}>{att.possible ? `${att.pct}%` : "–"}<span className="block font-sans text-xs text-ash">{att.possible ? `turned up to ${att.apps} of ${att.possible} possible games` : "not on a season roster yet"}</span></dd></div>
+          <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Goals in wins</dt><dd className={clsx("display tabular text-4xl", gc.inWins > 0 ? "text-mint-soft" : "text-ash")}>{gc.inWins}<span className="block font-sans text-xs text-ash">{p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats${gc.consolation ? ` (${gc.consolation} consolation)` : ""}` : "no goals to file yet"}</span></dd></div>
+        </dl>
+        {p.goals > 0 && gc.share !== null && (
+          <p className="mt-3 text-sm text-ash">
+            {gc.share}% of every Hajduci goal scored with {first} on the pitch was {first}&apos;s{gc.tight > 0 ? <>, and <span className="text-cream">{gc.tight}</span> of {first}&apos;s came in one-goal games</> : ""}.{gc.consolation > 0 && gc.consolation >= gc.inWins ? " Mostly scoring while the bus was already being called." : gc.inWins > gc.inLosses ? " Scores when it matters, which is more than can be said for the trains." : ""}
+          </p>
+        )}
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
