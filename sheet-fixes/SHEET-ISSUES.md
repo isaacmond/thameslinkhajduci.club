@@ -5,7 +5,7 @@ The site reads the Google Sheet as-is, so anything odd in the sheet shows up on 
 ## What's in this folder
 
 - `thameslink-hajduci-corrected.xlsx`: the whole workbook with the 29 opponent-name fixes below applied, plus the S1 GW5 score corrected to 2–1 (Isaac, 4 Sep 2026). Nothing else touched. Formulas, dates, column widths and the Payments dropdown are preserved.
-- `changes.csv`: the same edits as a flat list (29 opponent names, the S1 GW5 score, the Money Paid formula and header).
+- `changes.csv`: the same edits as a flat list (29 opponent names, the S1 GW5 score, the Money Paid formula and header, the Robin Watson and Eddie McLaughlin renames).
 
 ## How to apply
 
@@ -113,6 +113,35 @@ The Money tab's **Paid** column only summed the Payments tab, so whoever pays fo
 ```
 
 That is: transfers received **plus** the pitch cost of every played game in any season that player paid for. With one S8 game played, Isaac is now shown as **owed £68.53** (paid £79.95, own share £11.42) and the other six players owe £11.42 each, which adds up. `G3` is relabelled "Balance (+ owes · − is owed)". To apply by hand: paste the formula above into `Money!F4` (one line, no spaces) and fill down to F31, then relabel G3.
+
+## 2.9 Player names (fixed in the corrected copy)
+Isaac, 4 Sep 2026: **Robin** is Robin Watson and **Eddie Ringer** is Eddie McLaughlin. The corrected copy renames every cell that carries either name (player rows in all season tabs and the template, the All-time and Money tabs, and MOTM cells). The site applies the same renames itself, so it is already correct; the Payments dropdown will offer the new names once the sheet is updated.
+
+| Tab | Cell | Was | Now |
+|---|---|---|---|
+| S1 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S1 | A37 | Robin | Robin Watson |
+| S2 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S2 | A37 | Robin | Robin Watson |
+| S3 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S3 | A37 | Robin | Robin Watson |
+| S4 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S4 | A37 | Robin | Robin Watson |
+| S5 | O10 | Eddie Ringer | Eddie McLaughlin |
+| S5 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S5 | A37 | Robin | Robin Watson |
+| S6 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S6 | A37 | Robin | Robin Watson |
+| S7 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S7 | A37 | Robin | Robin Watson |
+| S8 | A25 | Eddie Ringer | Eddie McLaughlin |
+| S8 | A37 | Robin | Robin Watson |
+| Season template | A25 | Eddie Ringer | Eddie McLaughlin |
+| Season template | A37 | Robin | Robin Watson |
+| All-time | A10 | Eddie Ringer | Eddie McLaughlin |
+| All-time | A22 | Robin | Robin Watson |
+| Money | A11 | Eddie Ringer | Eddie McLaughlin |
+| Money | A23 | Robin | Robin Watson |
 
 ## 3. Optional: a Squad tab
 Photos, shirt numbers and positions currently come from a copy of the old app's data bundled with the site. If you add a tab called **Squad** with columns `Player, Nickname, Position, Shirt, Photo, Bio`, the site will read it live and it overrides the bundled data field by field (Photo can be any public image URL). Nothing to do if you're happy with what's there.

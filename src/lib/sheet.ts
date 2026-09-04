@@ -15,8 +15,9 @@ const EXPORT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?fo
 
 /** Names that refer to the same person in the sheet vs the old app. */
 const ALIASES: Record<string, string> = {
-  "Robin Watson": "Robin",
+  Robin: "Robin Watson",
   Seb: "Seb Burgess",
+  "Eddie Ringer": "Eddie McLaughlin",
   "Jake Hamilton": "Jake Ringer",
   "Jacob Hamilton": "Jake Ringer",
 };
