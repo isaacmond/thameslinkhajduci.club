@@ -12,7 +12,7 @@ import { currentMember } from "@/lib/auth";
 import { dbConfigured } from "@/lib/db";
 import type { SignedIn } from "@/components/signed-in-note";
 
-/** Reads the session, so this page renders per request (the data underneath is still the cached sheet). */
+/** Reads the session, so this page renders per request (the data underneath is still the cached records). */
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ match?: string; type?: string; player?: string }>;

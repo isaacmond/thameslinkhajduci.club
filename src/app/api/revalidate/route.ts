@@ -5,7 +5,7 @@ import { log } from "@/lib/log";
 import { originAllowed } from "@/lib/submissions";
 
 /**
- * Force a re-read of the sheet (the cache otherwise refreshes itself every minute).
+ * Force a re-read of the records (the cache otherwise refreshes itself every minute).
  * POST only, same-origin only (the refresh button on /data), and throttled to one purge per 20 seconds per instance so nobody can
  * hammer Google's export through us. REVALIDATE_SECRET (optional) in an x-revalidate-secret header lets the admin call it from
  * anywhere and skips the throttle.

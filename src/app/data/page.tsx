@@ -10,7 +10,7 @@ import { DataExplorer } from "@/components/data-explorer";
 import { RefreshButton } from "@/components/refresh-button";
 import { PageTransition } from "@/components/page-transition";
 
-export const metadata: Metadata = { title: "Data & API", description: "Export Thameslink Hajduci stats as CSV, JSON or Markdown, or pull them straight into Google Sheets." };
+export const metadata: Metadata = { title: "Data & API", description: "Export Thameslink Hajduci stats as CSV, JSON, Markdown or a full spreadsheet, or pull a table straight into a sheet of your own." };
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const SEVERITY_UI: Record<Severity, { tone: "loss" | "gold" | "default"; icon: React.ReactNode; blurb: string }> = {

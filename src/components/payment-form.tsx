@@ -69,7 +69,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
           <span className="eyebrow">Amount (£)</span>
           <span className="relative"><span className="display pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-ash">£</span><input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.00" required className={`${inputClass} pl-7 tabular`} /></span>
           <span className="min-h-[1.25rem] text-[11px] text-ash">
-            {balance !== null && balance > 0.01 ? <>On the sheet {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding on the sheet. Log it anyway if money moved."}
+            {balance !== null && balance > 0.01 ? <>On the records {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding on the records. Log it anyway if money moved."}
           </span>
         </label>
         <label className="flex flex-col gap-1 text-xs text-ash">

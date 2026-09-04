@@ -8,7 +8,7 @@ import { Avatar } from "./ui";
 export type ProfileInitial = { player: string; email: string; firstName: string; lastName: string; nickname: string; positions: string[]; shirt: number | null; bio: string; photo: string | null; takenShirts: Record<string, string> };
 const POSITIONS = [["GK", "Goalkeeper"], ["DEF", "Defender"], ["MID", "Midfielder"], ["FWD", "Forward"]] as const;
 
-/** The member's own details. Everything here lands on their Squad-tab row in the records sheet; first and last name go to WorkOS. */
+/** The member's own details. Everything here lands on their players row in the records; first and last name go to WorkOS. */
 export function ProfileForm({ initial }: { initial: ProfileInitial }) {
   const [state, action, pending] = useActionState<ProfileState, FormData>(saveProfile, null);
   const [preview, setPreview] = useState<string | null>(initial.photo);
