@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   description: "Squad, results, stats and questionable decisions from Thameslink Hajduci, a 6-a-side football club running slightly behind schedule since 2024.",
   openGraph: { type: "website", siteName: "Thameslink Hajduci" },
   twitter: { card: "summary_large_image" },
-  icons: { icon: "/crest.png", apple: "/crest.png" },
 };
 export const viewport: Viewport = { themeColor: "#0d2b19" };
 

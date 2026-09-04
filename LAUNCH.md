@@ -1,6 +1,6 @@
 # Launch checklist
 
-Everything below is already done except the three items marked **YOU**.
+Everything below is already done except the items marked **YOU**.
 
 ## Live
 
@@ -9,6 +9,8 @@ Everything below is already done except the three items marked **YOU**.
 - Domains attached to the project: `thameslinkhajduci.club` (primary), `www.thameslinkhajduci.club` → 308 redirect to apex, `thameslinkhajduci.com` → 308 redirect to apex. All three are waiting on DNS.
 
 ## 1. YOU: point the domains at Vercel (Squarespace DNS)
+
+Status on 4 Sep 2026: **thameslinkhajduci.com is done** and already redirects to .club at Vercel. **thameslinkhajduci.club still has Squarespace's parking records** (four `A` records to 198.185.159.x / 198.49.23.x and `www` → ext-sq.squarespace.com), so it shows Squarespace's "Coming Soon" page. Open the **.club** domain's DNS settings, remove the Squarespace Defaults preset (that is where those parking records live), then add the two `.club` rows below. Give your own browser a few minutes afterwards; the old records have a 4-hour TTL, so a private window or another network shows the change sooner.
 
 In Squarespace → Domains → each domain → DNS settings, add these records. Delete any existing `A` or `CNAME` on the same host first (Squarespace pre-fills its own parking records).
 
@@ -26,14 +28,9 @@ Notes:
 - Leave nameservers as Squarespace's. No need to move DNS.
 - Propagation is usually minutes, occasionally an hour. Vercel issues the TLS certificate automatically once it sees the records. Check status any time with `npx vercel domains inspect thameslinkhajduci.club --scope isaacs-projects-d16aba6d`, or in the Vercel dashboard under Project → Settings → Domains.
 
-## 2. YOU: let Vercel see the GitHub repo (one click, optional but recommended)
+## 2. Deploys: automatic on push (done)
 
-Right now deploys are pushed from the command line. To get automatic deploys on every push:
-
-1. Open https://vercel.com/isaacs-projects-d16aba6d/thameslinkhajduci-club/settings/git
-2. Click **Connect Git Repository** → GitHub → install the Vercel GitHub App for `isaacmond` if prompted → pick `thameslinkhajduci.club`.
-
-After that every push to `main` deploys to production and every branch gets a preview URL. Until then, deploy with:
+The Vercel project is linked to `isaacmond/thameslinkhajduci.club`. Every push to `main` builds and goes to production; every other branch or pull request gets a preview URL. Nothing to do. Manual fallback if ever needed:
 
 ```bash
 npx vercel deploy --prod --scope isaacs-projects-d16aba6d
