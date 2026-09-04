@@ -38,9 +38,9 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
             );
           })}
         </nav>
-        {authEnabled && <AccountChip className="hidden md:inline-flex" />}
+        {authEnabled && <span className="hidden md:block"><AccountChip /></span>}
         <span className="ml-auto text-[11px] uppercase tracking-widest text-ash md:hidden" aria-hidden>{LINKS.find((l) => isActive(path, l.href))?.label ?? ""}</span>
-        {authEnabled && <AccountChip className="md:hidden" />}
+        {authEnabled && <span className="md:hidden"><AccountChip /></span>}
       </div>
     </header>
   );
