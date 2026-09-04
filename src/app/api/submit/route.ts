@@ -153,13 +153,15 @@ export async function POST(req: Request) {
   try { body = (await req.json()) as Body; } catch { return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 }); }
   if (body.website) return NextResponse.json({ ok: true, sent: false, summary: "", text: "", edits: [] }); // honeypot: pretend success, do nothing
   const kind: Kind = body.kind === "payment" || body.kind === "player" ? body.kind : "score";
+  // Signed-in members need not say who they are; the session does.
+  const member = await currentMember();
+  if (member && clean(body.submittedBy, 40).length < 2) body.submittedBy = member.member.player;
 
   const data = await getData();
   const built = kind === "score" ? await buildScore(body, data) : kind === "payment" ? await buildPayment(body, data) : await buildPlayer(body, data);
   if ("error" in built) return NextResponse.json({ ok: false, error: built.error }, { status: 400 });
 
   // Members write straight to the records. Anything that goes wrong falls back to the approval email below.
-  const member = await currentMember();
   let applied = false, applyError: string | null = null;
   if (member && sheetsConfigured() && built.edits.length) {
     try {

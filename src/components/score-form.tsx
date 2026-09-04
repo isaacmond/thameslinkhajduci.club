@@ -6,6 +6,7 @@ import { Check, Minus, Plus, Send } from "lucide-react";
 import { Select } from "./controls";
 import { BoardPreview } from "./board-preview";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
+import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { serviceStatus } from "@/lib/captions";
 
 export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null };
@@ -23,7 +24,7 @@ function Counter({ value, onChange, max = 30, label }: { value: number; onChange
 /** Short date for the board's time column ("4 Sept"), or a shrug when the fixture has none. */
 const boardDate = (iso: string | null) => (iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "TBC");
 
-export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixtures: SubmitFixture[]; roster: string[]; initialMatch?: string; webhook: boolean }) {
+export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = null }: { fixtures: SubmitFixture[]; roster: string[]; initialMatch?: string; webhook: boolean; signedIn?: SignedIn | null }) {
   const first = fixtures.find((f) => f.id === initialMatch) ?? fixtures.find((f) => !f.played) ?? fixtures[0];
   const [matchId, setMatchId] = useState(first?.id ?? "");
   const fx = fixtures.find((f) => f.id === matchId);
@@ -33,7 +34,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
   const [scorers, setScorers] = useState<Record<string, number>>(first?.scorers ?? {});
   const [assists, setAssists] = useState<Record<string, number>>(first?.assists ?? {});
   const [motm, setMotm] = useState(first?.motm ?? "");
-  const [who, setWho] = useState("");
+  const [who, setWho] = useState(signedIn?.player ?? "");
   const [note, setNote] = useState("");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
@@ -47,7 +48,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
   const problems: string[] = [];
   if (goalsLogged > ours) problems.push(`Scorers add up to ${goalsLogged}, but we scored ${ours}.`);
   if (assistsLogged > ours) problems.push("More assists than goals.");
-  if (who.trim().length < 2) problems.push("Add your name.");
+  if (!signedIn && who.trim().length < 2) problems.push("Add your name.");
   if (!fx) problems.push("Pick a fixture.");
   const canSubmit = problems.length === 0 && !busy;
 
@@ -66,7 +67,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
     return (
       <SubmissionResult result={result} onEdit={() => setResult(null)}>
         {fx && (() => { const st = serviceStatus(ours > theirs ? "W" : ours === theirs ? "D" : "L"); return (
-          <BoardPreview className="mt-4" time={boardDate(fx.date)} label={fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} destination={`Hajduci ${ours}–${theirs} ${fx.opponent}`} status={st.word} tone={st.tone} caption="Pending the admin's tick" />
+          <BoardPreview className="mt-4" time={boardDate(fx.date)} label={fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} destination={`Hajduci ${ours}–${theirs} ${fx.opponent}`} status={st.word} tone={st.tone} caption={result.applied ? "Recorded" : "Pending the admin's tick"} />
         ); })()}
       </SubmissionResult>
     );
@@ -97,16 +98,16 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
 
       <div className="card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
         <Select label="Man of the match (optional)" value={motm} onChange={setMotm} options={[{ value: "", label: "Nobody in particular" }, ...(playedList.length ? playedList : roster).map((n) => ({ value: n, label: n }))]} />
-        <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="So the admin knows who to blame" className="focus-ring rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/60" /></label>
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="So the admin knows who to blame" className="focus-ring rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/60" /></label>}
         <label className="flex flex-col gap-1 text-xs text-ash sm:col-span-2"><span className="eyebrow">Comment (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Anything worth remembering. Keep it clean-ish." className="focus-ring rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/60" /></label>
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? "Preparing…" : webhook ? "Submit for approval" : "Prepare the request"}</button>
+        <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? (signedIn?.direct ? "Recording…" : "Preparing…") : signedIn?.direct ? "Record the result" : webhook ? "Submit for approval" : "Prepare the request"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
         {result && !result.ok && <p className="text-xs text-[#ff9a9d]" role="alert">{result.error}</p>}
-        <p className="ml-auto text-xs text-ash">Nothing is saved by this page. <Link href="/data" className="link">How the records work →</Link></p>
+        <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/data" className="link">How the records work →</Link></p>
       </div>
     </form>
   );

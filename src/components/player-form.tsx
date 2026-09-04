@@ -6,17 +6,18 @@ import { Send } from "lucide-react";
 import { inputClass } from "./controls";
 import { Shirt } from "./ui";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
+import { SignedInNote, type SignedIn } from "./signed-in-note";
 
 const POSITIONS = [["GK", "Keeper"], ["DEF", "Defender"], ["MID", "Midfield"], ["FWD", "Forward"]] as const;
 
-export function PlayerForm({ roster, takenShirts, seasonId }: { roster: string[]; takenShirts: Record<string, string>; seasonId: string | null }) {
+export function PlayerForm({ roster, takenShirts, seasonId, signedIn = null }: { roster: string[]; takenShirts: Record<string, string>; seasonId: string | null; signedIn?: SignedIn | null }) {
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [positions, setPositions] = useState<string[]>([]);
   const [shirt, setShirt] = useState("");
   const [photo, setPhoto] = useState("");
   const [note, setNote] = useState("");
-  const [who, setWho] = useState("");
+  const [who, setWho] = useState(signedIn?.player ?? "");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -32,7 +33,7 @@ export function PlayerForm({ roster, takenShirts, seasonId }: { roster: string[]
   if (shirtNo !== null && (!Number.isInteger(shirtNo) || shirtNo < 1 || shirtNo > 99)) problems.push("Shirt numbers run 1 to 99.");
   else if (worn) problems.push(`${shirtNo} is ${worn}'s shirt.`);
   if (photo.trim() && !/^https:\/\/\S+$/.test(photo.trim())) problems.push("Photo needs to be an https link.");
-  if (who.trim().length < 2) problems.push("Add your name.");
+  if (!signedIn && who.trim().length < 2) problems.push("Add your name.");
   const canSubmit = problems.length === 0 && !busy;
   const toggle = (p: string) => setPositions((s) => (s.includes(p) ? s.filter((x) => x !== p) : [...s, p]));
 
@@ -81,7 +82,7 @@ export function PlayerForm({ roster, takenShirts, seasonId }: { roster: string[]
           <span className={clsx("min-h-[1.25rem] text-[11px]", worn ? "text-gold" : "text-ash")}>{worn ? `${shirtNo} is ${worn}'s. Pick another.` : "Free numbers only; the form checks."}</span>
         </label>
         <label className="flex flex-col gap-1 text-xs text-ash sm:col-span-2"><span className="eyebrow">Photo link (optional)</span><input value={photo} onChange={(e) => setPhoto(e.target.value)} maxLength={300} inputMode="url" placeholder="https://… a square-ish photo works best" className={inputClass} /></label>
-        <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Who is vouching for them" className={inputClass} /></label>
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Who is vouching for them" className={inputClass} /></label>}
         <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Note (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="How they found us, when they start" className={inputClass} /></label>
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
@@ -89,7 +90,7 @@ export function PlayerForm({ roster, takenShirts, seasonId }: { roster: string[]
         <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? "Sending…" : "Propose the signing"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
         {result && !result.ok && <p className="text-xs text-[#ff9a9d]" role="alert">{result.error}</p>}
-        <p className="ml-auto text-xs text-ash">Nothing is saved by this page. <Link href="/squad" className="link">Back to the squad →</Link></p>
+        <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/squad" className="link">Back to the squad →</Link></p>
       </div>
     </form>
   );
