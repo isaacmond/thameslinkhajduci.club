@@ -394,9 +394,18 @@ export const REVALIDATE_SECONDS = 60;
 /** Live fetch of the whole workbook. Cached by Next's data cache for REVALIDATE_SECONDS. */
 /** The single cached download of the workbook (Next data cache, tag "sheet"). */
 export async function fetchWorkbook(): Promise<ArrayBuffer> {
-  const res = await fetch(EXPORT_URL, { next: { revalidate: REVALIDATE_SECONDS, tags: ["sheet"] }, headers: { "user-agent": "thameslinkhajduci.club/1.0" } });
-  if (!res.ok) throw new Error(`Sheet export failed: ${res.status}`);
-  return res.arrayBuffer();
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(EXPORT_URL, { next: { revalidate: REVALIDATE_SECONDS, tags: ["sheet"] }, headers: { "user-agent": "thameslinkhajduci.club/1.0" } });
+      if (!res.ok) throw new Error(`Sheet export failed: ${res.status}`);
+      return await res.arrayBuffer();
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1))); // Google occasionally hiccups under the build's parallel prerender workers
+    }
+  }
+  throw lastErr;
 }
 
 const colLetter = (i: number) => { let s = ""; let n = i + 1; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };

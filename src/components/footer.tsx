@@ -39,7 +39,7 @@ export function Sponsors() {
   );
 }
 
-/** Quiet one-line version for every other page: monochrome logos that brighten on hover, no layout shift. */
+/** One-line version for every other page: colour logos on small white tiles, so every partner is recognisable at a glance. */
 function SponsorStrip() {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -47,8 +47,8 @@ function SponsorStrip() {
       <ul className="flex flex-wrap items-center gap-x-6 gap-y-3">
         {SPONSORS.map((s) => (
           <li key={s.name}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer" title={s.tagline} className="focus-ring group flex items-center rounded">
-              <Image src={s.src} alt={s.name} width={96} height={28} style={{ width: "auto", height: 24 }} className="max-w-[96px] object-contain opacity-55 grayscale invert transition-opacity duration-300 group-hover:opacity-100" />
+            <a href={s.url} target="_blank" rel="noopener noreferrer" title={`${s.name} · ${s.tagline}`} className="focus-ring group flex h-10 items-center rounded-lg bg-white px-3 shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
+              <Image src={s.src} alt={s.name} width={96} height={28} style={{ width: "auto", height: 22 }} className="max-w-[104px] object-contain" />
             </a>
           </li>
         ))}
