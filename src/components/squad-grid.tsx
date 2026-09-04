@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 import { fmtDate } from "@/lib/stats";
-import { playerCaption } from "@/lib/captions";
 import { Shirt } from "./ui";
 
 export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null };
@@ -72,8 +71,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                   <div key={k} className="px-1 py-2.5"><dt className="text-[10px] uppercase tracking-wider text-ash">{k}</dt><dd className="display tabular text-xl text-cream">{v}</dd></div>
                 ))}
               </dl>
-              <p className="border-t border-white/10 px-3 py-2 text-xs italic text-cream/80">{playerCaption(p)}</p>
-              <p className="hidden px-3 pb-2 text-[11px] text-ash sm:block">Debut {fmtDate(p.debut)} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"} · {p.winRate}% win rate</p>
+              <p className="border-t border-white/10 px-3 py-2 text-[11px] text-ash">Debut {fmtDate(p.debut)} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"} · {p.winRate}% win rate</p>
             </Link>
           </li>
         ))}

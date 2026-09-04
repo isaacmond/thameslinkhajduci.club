@@ -7,7 +7,6 @@ import { Crown, Medal, Sparkles, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import { chemistry, chronological, fmtDate, fmtMoney, impact, leaderboard, type LeaderKey, scoreline } from "@/lib/stats";
-import { playerCaption } from "@/lib/captions";
 import { Avatar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
@@ -22,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const data = await getData();
   const p = data.players.find((x) => x.slug === slug);
   if (!p) notFound();
-  return { title: p.name, description: `${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci. ${playerCaption({ ...p, positions: p.extra.positions })}` };
+  return { title: p.name, description: `${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.` };
 }
 
 export default async function PlayerPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -47,7 +46,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
   const delta = imp.winRateWith !== null && imp.winRateWithout !== null ? imp.winRateWith - imp.winRateWithout : null;
   const decided = p.wins + p.draws + p.losses;
   const seasonsPlayed = p.seasons.filter((s) => s.apps > 0).length;
-  const caption = p.extra.bio ?? playerCaption({ ...p, positions: p.extra.positions });
   const first = p.name.split(" ")[0];
 
   return (
@@ -63,13 +61,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             <p className="eyebrow">{p.extra.positions?.length ? p.extra.positions.join(" / ") : "Utility"}{thisSeason?.apps && current ? ` · Season ${current.number} squad` : ""}</p>
             <h1 className="display text-5xl leading-none text-cream sm:text-7xl">{p.name}</h1>
             {p.extra.nickname && <p className="mt-1 text-lg italic text-ash">“{p.extra.nickname}”</p>}
-            <p className="mt-3 max-w-2xl text-base italic text-cream/90 sm:text-lg">{caption}</p>
+            {p.extra.bio && <p className="mt-3 max-w-2xl text-base text-cream/90 sm:text-lg">{p.extra.bio}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
               <Tag>Debut {fmtDate(p.debut)}</Tag>
               <Tag>Last seen {fmtDate(p.lastPlayed)}</Tag>
               <Tag>{seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}</Tag>
               {ranks.map((r) => <Tag key={r.label} tone="gold"><Crown size={12} aria-hidden />#{r.rank} all-time {r.label}</Tag>)}
-              <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists. ${caption}`} />
+              <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.`} />
             </div>
           </div>
         </div>

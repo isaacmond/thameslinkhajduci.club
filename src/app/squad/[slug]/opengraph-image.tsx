@@ -2,7 +2,6 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getData } from "@/lib/data";
-import { playerCaption } from "@/lib/captions";
 import { bebasNeue, display, ogFonts } from "@/lib/og-font";
 
 export const alt = "Player card";
@@ -33,7 +32,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 112, lineHeight: 0.92, fontFamily: display(font) }}>{p?.name ?? "Player"}</div>
-            <div style={{ marginTop: 18, fontSize: 28, color: "#7fe0a3", fontStyle: "italic" }}>{p ? playerCaption({ ...p, positions: p.extra.positions }) : ""}</div>
+            <div style={{ marginTop: 18, fontSize: 28, color: "#7fe0a3" }}>{p?.extra.bio ?? `Debut ${p?.debut ?? "TBC"}${p?.extra.shirt !== null && p?.extra.shirt !== undefined ? ` · No. ${p.extra.shirt}` : ""}`}</div>
           </div>
           <div style={{ display: "flex", gap: 40 }}>
             {stats.map(([k, v]) => <div key={k} style={{ display: "flex", flexDirection: "column" }}><div style={{ fontSize: 80, lineHeight: 1, fontFamily: display(font) }}>{v}</div><div style={{ fontSize: 18, letterSpacing: 4, color: "#a7b8ab", textTransform: "uppercase", marginTop: 6 }}>{k}</div></div>)}

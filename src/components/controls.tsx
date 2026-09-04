@@ -4,9 +4,9 @@ import { ChevronDown } from "lucide-react";
 
 export function Switch({ checked, onChange, label, className }: { checked: boolean; onChange: (v: boolean) => void; label: React.ReactNode; className?: string }) {
   return (
-    <label className={clsx("inline-flex cursor-pointer items-center gap-2 text-xs text-ash", className)}>
-      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={clsx("focus-ring relative h-5 w-9 shrink-0 rounded-full border transition-colors", checked ? "border-mint/60 bg-mint" : "border-white/15 bg-white/10")}>
-        <span className={clsx("absolute top-0.5 h-3.5 w-3.5 rounded-full bg-night shadow transition-transform", checked ? "translate-x-[1.125rem]" : "translate-x-0.5")} />
+    <label className={clsx("inline-flex cursor-pointer select-none items-center gap-2.5 text-xs text-ash", className)}>
+      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={clsx("relative h-6 w-11 shrink-0 rounded-full border outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#06140c]", checked ? "border-mint bg-mint" : "border-white/15 bg-white/10")}>
+        <span aria-hidden className={clsx("absolute left-0.5 top-0.5 h-[18px] w-[18px] rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.4)] transition-transform duration-200", checked ? "translate-x-5 bg-night" : "translate-x-0 bg-cream")} />
       </button>
       <span>{label}</span>
     </label>
