@@ -1,10 +1,13 @@
+import type { Match } from "./types";
+import type { PaymentChange, PlayerChange, ScoreChange } from "./writes";
+
 /**
  * Validation and message building for /submit requests (scores, payments, new players).
- * Pure functions: no fetch, no sheet access, so they are unit-tested against fixtures.
- * Nothing here writes anywhere. The output is a request for the admin, with the exact cells to change.
+ * Pure functions: no fetch, no database, so they are unit-tested against fixtures. The output is a Built: a typed change
+ * for lib/writes.ts to apply, plus the human summary and message the submitter can drop in the group chat.
  */
-export type Edit = { cell: string; value: string | number; what: string };
-export type Built = { subject: string; summary: string; text: string; edits: Edit[]; tab: string | null; submittedBy: string };
+export type Kind = "score" | "payment" | "player";
+export type Built<C = ScoreChange | PaymentChange | PlayerChange> = { kind: Kind; subject: string; summary: string; text: string; submittedBy: string; change: C };
 export type Rejected = { error: string };
 
 export const POSITIONS = ["GK", "DEF", "MID", "FWD"] as const;
@@ -24,10 +27,6 @@ const isoDate = (s: string) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return fals
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86_400_000);
 export const fmtDay = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const pounds = (n: number) => `£${n.toFixed(2)}`;
-const quote = (v: string | number) => (typeof v === "string" ? `"${v}"` : String(v));
-export const editsLine = (edits: Edit[], tab: string | null) => (edits.length ? `Sheet edits${tab ? ` (tab ${tab})` : ""}: ${edits.map((e) => `${e.cell}=${quote(e.value)}`).join(", ")}` : "Sheet edits: could not map cells, apply by hand");
-/** A cell value starting with = + - or @ would run as a formula when the admin pastes it; a leading apostrophe makes a spreadsheet keep it as text. */
-export const cellSafe = (s: string) => (/^[=+\-@]/.test(s) ? `'${s}` : s);
 
 /**
  * Same-origin gate for the POST routes. Browsers label where a request came from (Sec-Fetch-Site, then Origin), so anything
@@ -42,6 +41,41 @@ export function originAllowed(h: { get(name: string): string | null }): boolean 
   try { from = new URL(origin).host.toLowerCase(); } catch { return false; } // "null" (sandboxed iframe, opaque origin) lands here too
   const ours = [h.get("x-forwarded-host"), h.get("host")].flatMap((v) => (v ?? "").split(",")).map((v) => v.trim().toLowerCase()).filter(Boolean);
   return ours.includes(from);
+}
+
+/* -------------------------------------------------------------------- scores */
+export type ScoreValue = { ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; note: string; submittedBy: string };
+export function validateScore(body: Record<string, unknown>, known: (name: string) => boolean): { ok: true; value: ScoreValue } | { ok: false; error: string } {
+  const ours = body.ours, theirs = body.theirs;
+  if (!isCount(ours) || !isCount(theirs)) return { ok: false, error: "Scores must be whole numbers between 0 and 30." };
+  const asCounts = (v: unknown) => Object.fromEntries(Object.entries((v ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => isCount(e[1]) && e[1] > 0).map(([n, v]) => [clean(n, 40), v]));
+  const scorers = asCounts(body.scorers), assists = asCounts(body.assists);
+  const played = [...new Set([...(Array.isArray(body.played) ? body.played : []).map((s) => clean(s, 40)), ...Object.keys(scorers), ...Object.keys(assists)])].filter(Boolean);
+  const motm = body.motm ? clean(body.motm, 40) : null;
+  const unknown = [...Object.keys(scorers), ...Object.keys(assists), ...played, ...(motm ? [motm] : [])].filter((n) => !known(n));
+  if (unknown.length) return { ok: false, error: `Not on the roster: ${[...new Set(unknown)].join(", ")}. Add them under "New player" first.` };
+  const goalsLogged = Object.values(scorers).reduce((t, v) => t + v, 0), assistsLogged = Object.values(assists).reduce((t, v) => t + v, 0);
+  if (goalsLogged > ours) return { ok: false, error: `Scorers add up to ${goalsLogged} but we scored ${ours}.` };
+  if (assistsLogged > ours) return { ok: false, error: "More assists than goals. Ambitious." };
+  if (played.length > 12) return { ok: false, error: "That is a lot of players for six-a-side." };
+  const submittedBy = clean(body.submittedBy, 40);
+  if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
+  return { ok: true, value: { ours, theirs, scorers, assists, played, motm, note: clean(body.note, 200), submittedBy } };
+}
+export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId" | "gw" | "opponent" | "date" | "played">, when: string): Built<ScoreChange> {
+  const list = (o: Record<string, number>) => Object.entries(o).map(([n, c]) => `${n}${c > 1 ? ` ×${c}` : ""}`).join(", ");
+  const summary = `Hajduci ${v.ours}–${v.theirs} ${m.opponent} · ${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} GW${m.gw}`} · ${when}`;
+  const lines = [
+    `SCORE${m.played ? " (correction)" : ""}`,
+    summary,
+    Object.keys(v.scorers).length ? `Scorers: ${list(v.scorers)}` : "Scorers: none logged",
+    Object.keys(v.assists).length ? `Assists: ${list(v.assists)}` : null,
+    v.motm ? `MOTM: ${v.motm}` : null,
+    v.played.length ? `Played: ${v.played.join(", ")}` : null,
+    v.note ? `Note: ${v.note}` : null,
+    `Submitted by ${v.submittedBy}`,
+  ].filter((l): l is string => l !== null);
+  return { kind: "score", subject: `Score: ${summary}`, summary, text: lines.join("\n"), submittedBy: v.submittedBy, change: { matchId: m.id, ours: v.ours, theirs: v.theirs, scorers: v.scorers, assists: v.assists, played: v.played, motm: v.motm, comment: v.note || null } };
 }
 
 /* ------------------------------------------------------------------ payments */
@@ -66,23 +100,20 @@ export function validatePayment(body: Record<string, unknown>, roster: Iterable<
   if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
   return { ok: true, value: { player, to, amount, date, note: clean(body.note, 120), submittedBy } };
 }
-export type PaymentContext = { payer: string | null; balance: number | null; edits: Edit[]; tab: string | null; sheetUrl: string };
-export function buildPaymentMessage(v: PaymentValue, ctx: PaymentContext): Built {
+export type PaymentContext = { payer: string | null; balance: number | null };
+export function buildPaymentMessage(v: PaymentValue, ctx: PaymentContext): Built<PaymentChange> {
   const to = v.to ?? ctx.payer;
   const summary = `${v.player} paid ${pounds(v.amount)}${to ? ` to ${to}` : ""} · ${fmtDay(v.date)}`;
   const after = ctx.balance === null ? null : Math.round((ctx.balance - v.amount) * 100) / 100;
   const lines = [
-    "PAYMENT SUBMISSION",
+    "PAYMENT",
     summary,
     to ? `From ${v.player} to ${to}${ctx.payer && to !== ctx.payer ? ` (not ${ctx.payer}, who is down as this season's pitch payer; check who should be credited)` : ""}` : `Recipient not given${ctx.payer ? "" : " and no pitch payer is named for this season"}.`,
     ctx.balance === null ? null : ctx.balance > 0.01 ? `Owed before this: ${pounds(ctx.balance)}${after !== null ? ` → ${after > 0.01 ? `${pounds(after)} still to pay` : after < -0.01 ? `${pounds(-after)} overpaid` : "settled"}` : ""}` : `Nothing was outstanding for ${v.player}${ctx.balance < -0.01 ? ` (already ${pounds(-ctx.balance)} in credit)` : ""}. Check this one.`,
     v.note ? `Reference: ${v.note}` : null,
     `Submitted by ${v.submittedBy}`,
-    "",
-    editsLine(ctx.edits, ctx.tab),
-    ctx.sheetUrl,
   ].filter((l): l is string => l !== null);
-  return { subject: `Payment: ${summary}`, summary, text: lines.join("\n"), edits: ctx.edits, tab: ctx.tab, submittedBy: v.submittedBy };
+  return { kind: "payment", subject: `Payment: ${summary}`, summary, text: lines.join("\n"), submittedBy: v.submittedBy, change: { player: v.player, to, amount: v.amount, date: v.date, note: v.note } };
 }
 
 /* ---------------------------------------------------------------- new players */
@@ -112,21 +143,17 @@ export function validatePlayer(body: Record<string, unknown>, roster: Iterable<s
   if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
   return { ok: true, value: { name, nickname, positions, shirt, photo, note: clean(body.note, 200), submittedBy } };
 }
-export type PlayerContext = { seasonId: string | null; edits: Edit[]; warnings: string[]; sheetUrl: string };
-export function buildPlayerMessage(v: PlayerValue, ctx: PlayerContext): Built {
+export type PlayerContext = { seasonId: string | null };
+export function buildPlayerMessage(v: PlayerValue, ctx: PlayerContext): Built<PlayerChange> {
   const summary = `New player: ${v.name}${v.shirt ? ` (#${v.shirt})` : ""}${ctx.seasonId ? ` · joins for ${ctx.seasonId}` : ""}`;
   const lines = [
-    "NEW PLAYER SUBMISSION",
+    "NEW PLAYER",
     summary,
     v.nickname ? `Nickname: ${v.nickname}` : null,
     v.positions.length ? `Position: ${v.positions.join("/")}` : "Position: not given",
     v.photo ? `Photo: ${v.photo}` : null,
     v.note ? `Note: ${v.note}` : null,
     `Submitted by ${v.submittedBy}`,
-    "",
-    editsLine(ctx.edits, null),
-    ...ctx.warnings,
-    ctx.sheetUrl,
   ].filter((l): l is string => l !== null);
-  return { subject: summary, summary, text: lines.join("\n"), edits: ctx.edits, tab: null, submittedBy: v.submittedBy };
+  return { kind: "player", subject: summary, summary, text: lines.join("\n"), submittedBy: v.submittedBy, change: { name: v.name, nickname: v.nickname, positions: [...v.positions], shirt: v.shirt, photo: v.photo, seasonId: ctx.seasonId } };
 }

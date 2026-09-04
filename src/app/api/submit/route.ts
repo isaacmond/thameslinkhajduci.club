@@ -1,26 +1,24 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { getData } from "@/lib/data";
-import { getAdminLayout, getSheetLayout, SHEET_URL } from "@/lib/sheet";
-import { fmtDate, gwLabel } from "@/lib/stats";
+import { dbConfigured } from "@/lib/db";
+import { fmtDate } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
-import { emailScoreSubmission } from "@/lib/notify";
-import { currentMember } from "@/lib/auth";
-import { sheetsConfigured, writeCells } from "@/lib/google-sheets";
+import { emailSubmission } from "@/lib/notify";
 import { log } from "@/lib/log";
-import { buildPaymentMessage, buildPlayerMessage, cellSafe, clean, editsLine, isCount, originAllowed, validatePayment, validatePlayer, type Built, type Edit, type Rejected } from "@/lib/submissions";
+import { currentMember } from "@/lib/auth";
+import { queueSubmission } from "@/lib/writes";
+import { applyChange } from "@/lib/apply";
+import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, clean, originAllowed, validatePayment, validatePlayer, validateScore, type Built, type Kind, type Rejected } from "@/lib/submissions";
+import { SITE_URL } from "@/lib/config";
 import type { ClubData } from "@/lib/types";
 
 /**
- * Submissions: match results, payments and new players. Nothing is written anywhere by this site: each request is
- * validated against the real fixture list, roster and money table, turned into a human summary plus the exact cells to
- * change, then emailed to the admin (Resend via the Vercel Marketplace; SCORE_TO_EMAIL) and/or posted to SCORE_WEBHOOK_URL.
- * The reply carries the same text so the submitter can drop it in the group chat.
- * Signed-in members (src/lib/members.ts) are different: their edits are written straight into the sheet when the site has a
- * Google service account (GOOGLE_SERVICE_ACCOUNT_JSON), and the email becomes a record rather than a request.
+ * Submissions: match results, payments and new players. Each request is validated against the real fixture list, roster
+ * and money table and turned into a typed change plus a human summary. A signed-in member's change is written to the
+ * records immediately; anyone else's goes into the approval queue on the admin's account page. The admin is emailed
+ * either way, and the reply carries the summary so the submitter can drop it in the group chat.
  */
 type Body = Record<string, unknown>;
-type Kind = "score" | "payment" | "player";
 
 const hits = new Map<string, number[]>();
 function rateLimited(ip: string) {
@@ -29,7 +27,7 @@ function rateLimited(ip: string) {
   const arr = (hits.get(ip) ?? []).filter((t) => now - t < 60_000);
   arr.push(now); hits.set(ip, arr); return arr.length > 6;
 }
-/** Outbound notifications are the scarce resource (Resend's quota): at most NOTIFY_BUDGET an hour per instance, whatever the IPs say. Past that the request is still built and returned, just not sent. */
+/** Outbound notifications are the scarce resource (Resend's quota): at most NOTIFY_BUDGET an hour per instance, whatever the IPs say. */
 const NOTIFY_BUDGET = 20, NOTIFY_WINDOW_MS = 3_600_000;
 let notified: number[] = [];
 function notifyBudgetOk() {
@@ -40,108 +38,30 @@ function notifyBudgetOk() {
 const currentSeason = (data: ClubData) => data.seasons.find((s) => s.isCurrent) ?? data.seasons.at(-1) ?? null;
 const fullRoster = (data: ClubData) => [...new Set([...data.players.map((p) => p.name), ...(currentSeason(data)?.players ?? [])])];
 
-async function buildScore(body: Body, data: ClubData): Promise<Built | Rejected> {
+function buildScore(body: Body, data: ClubData): Built | Rejected {
   const m = data.matches.find((x) => x.id === body.match);
   if (!m) return { error: "Pick a fixture from the list." };
-  const ours = body.ours, theirs = body.theirs;
-  if (!isCount(ours) || !isCount(theirs)) return { error: "Scores must be whole numbers between 0 and 30." };
   const roster = new Set(data.players.map((p) => p.name));
   const seasonRoster = new Set((m.seasonId === "FR" ? data.friendlies : data.seasons.find((s) => s.id === m.seasonId))?.players ?? []);
-  const known = (n: string) => roster.has(n) || seasonRoster.has(n);
-  const asCounts = (v: unknown) => Object.entries((v ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => isCount(e[1]) && e[1] > 0);
-  const scorers = asCounts(body.scorers), assists = asCounts(body.assists);
-  const played = [...new Set([...(Array.isArray(body.played) ? body.played : []).map((s) => clean(s, 40)), ...scorers.map(([n]) => n), ...assists.map(([n]) => n)])].filter(Boolean);
-  const motm = body.motm ? clean(body.motm, 40) : null;
-  const unknown = [...scorers.map(([n]) => n), ...assists.map(([n]) => n), ...played, ...(motm ? [motm] : [])].filter((n) => !known(n));
-  if (unknown.length) return { error: `Not on the roster: ${unknown.join(", ")}. Add them under "New player" first.` };
-  const goalsLogged = scorers.reduce((t, [, v]) => t + v, 0), assistsLogged = assists.reduce((t, [, v]) => t + v, 0);
-  if (goalsLogged > ours) return { error: `Scorers add up to ${goalsLogged} but we scored ${ours}.` };
-  if (assistsLogged > ours) return { error: "More assists than goals. Ambitious." };
-  if (played.length > 12) return { error: "That is a lot of players for six-a-side." };
-  const submittedBy = clean(body.submittedBy, 40);
-  if (submittedBy.length < 2) return { error: "Tell us who you are." };
-  const note = clean(body.note, 200);
-
-  // Exact cells to change, so the admin can apply it in seconds.
-  const layout = await getSheetLayout(m.seasonId);
-  const edits: Edit[] = [];
-  if (layout) {
-    const col = layout.gwCol(m.gw);
-    if (col) {
-      edits.push({ cell: `${col}${layout.rows.ourGoals}`, value: ours, what: "Our goals" }, { cell: `${col}${layout.rows.theirGoals}`, value: theirs, what: "Their goals" });
-      if (motm) edits.push({ cell: `${col}${layout.rows.motm}`, value: cellSafe(motm), what: "MOTM" });
-      if (note) edits.push({ cell: `${col}${layout.rows.comments}`, value: cellSafe(note), what: "Comment" });
-      for (const name of played) { const r = layout.playerRows(name); if (r) edits.push({ cell: `${col}${r.apps}`, value: 1, what: `${name} played` }); }
-      for (const [name, v] of scorers) { const r = layout.playerRows(name); if (r) edits.push({ cell: `${col}${r.goals}`, value: v, what: `${name} goals` }); }
-      for (const [name, v] of assists) { const r = layout.playerRows(name); if (r) edits.push({ cell: `${col}${r.assists}`, value: v, what: `${name} assists` }); }
-    }
-  }
-  const when = fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" });
-  const summary = `Hajduci ${ours}–${theirs} ${m.opponent} · ${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} ${gwLabel(m)}`} · ${when}`;
-  const lines = [
-    `SCORE SUBMISSION${m.played ? " (correction)" : ""}`,
-    summary,
-    scorers.length ? `Scorers: ${scorers.map(([n, v]) => `${n}${v > 1 ? ` ×${v}` : ""}`).join(", ")}` : "Scorers: none logged",
-    assists.length ? `Assists: ${assists.map(([n, v]) => `${n}${v > 1 ? ` ×${v}` : ""}`).join(", ")}` : null,
-    motm ? `MOTM: ${motm}` : null,
-    played.length ? `Played: ${played.join(", ")}` : null,
-    note ? `Note: ${note}` : null,
-    `Submitted by ${submittedBy}`,
-    "",
-    editsLine(edits, layout?.tab ?? null),
-    SHEET_URL,
-  ].filter((l): l is string => l !== null);
-  return { subject: `Score submission: ${summary}`, summary, text: lines.join("\n"), edits, tab: layout?.tab ?? null, submittedBy };
+  const v = validateScore(body, (n) => roster.has(n) || seasonRoster.has(n));
+  if (!v.ok) return { error: v.error };
+  return buildScoreMessage(v.value, m, fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" }));
 }
-
-async function buildPayment(body: Body, data: ClubData): Promise<Built | Rejected> {
+function buildPayment(body: Body, data: ClubData): Built | Rejected {
   const current = currentSeason(data);
   const v = validatePayment(body, fullRoster(data), londonToday());
   if (!v.ok) return { error: v.error };
   const payer = (current && data.money.paidBy[current.id]) || null;
   const row = data.money.rows.find((r) => r.player === v.value.player);
-  const layout = await getAdminLayout(current?.id ?? null);
-  const edits: Edit[] = [];
-  if (layout.payments) {
-    const { row: r, cols } = layout.payments;
-    edits.push(
-      { cell: `${cols.date}${r}`, value: cellSafe(v.value.date), what: "Date" },
-      { cell: `${cols.player}${r}`, value: cellSafe(v.value.player), what: "Player" },
-      { cell: `${cols.amount}${r}`, value: v.value.amount, what: "Amount (£)" },
-    );
-    const to = v.value.to ?? payer;
-    if (cols.to && to) edits.push({ cell: `${cols.to}${r}`, value: cellSafe(to), what: "Paid to" });
-    // No "Paid to" column on the sheet yet: keep the recipient in the note so it is not lost.
-    edits.push({ cell: `${cols.note}${r}`, value: cellSafe([v.value.note, !cols.to && to ? `paid to ${to}` : "", `via the site, submitted by ${v.value.submittedBy}`].filter(Boolean).join(" · ")), what: "Note" });
-  }
-  return buildPaymentMessage(v.value, { payer, balance: row ? row.balance : null, edits, tab: layout.payments?.tab ?? null, sheetUrl: SHEET_URL });
+  return buildPaymentMessage(v.value, { payer, balance: row ? row.balance : null });
 }
-
-async function buildPlayer(body: Body, data: ClubData): Promise<Built | Rejected> {
+function buildPlayer(body: Body, data: ClubData): Built | Rejected {
   const current = currentSeason(data);
   const shirts = new Map<number, string>();
   for (const p of data.players) if (p.extra.shirt) shirts.set(p.extra.shirt, p.name);
   const v = validatePlayer(body, fullRoster(data), shirts);
   if (!v.ok) return { error: v.error };
-  const { roster: r } = await getAdminLayout(current?.id ?? null);
-  const edits: Edit[] = [], warnings: string[] = [];
-  const insert = (tab: string | null, row: number | null, what: string) => {
-    if (!tab) return;
-    if (row) edits.push({ cell: `${tab}!A${row}`, value: cellSafe(v.value.name), what });
-    else warnings.push(`${tab}: no free row above Total. Insert one, then add the name.`);
-  };
-  insert(r.seasonTab, r.seasonRow, `Add to the ${r.seasonTab} roster (the goals and assists rows follow automatically)`);
-  insert(r.allTimeTab, r.allTimeRow, "All-time roster");
-  insert(r.moneyTab, r.moneyRow, "Money roster");
-  const extras = [v.value.nickname && `nickname ${v.value.nickname}`, v.value.positions.length ? v.value.positions.join("/") : "", v.value.shirt ? `#${v.value.shirt}` : "", v.value.photo].filter(Boolean).join(", ");
-  if (r.squadTab && r.squadRow) {
-    const c = r.squadCols;
-    const put = (key: string, value: string | number | null, what: string) => { if (value && c[key]) edits.push({ cell: `${r.squadTab}!${c[key]}${r.squadRow}`, value: typeof value === "string" ? cellSafe(value) : value, what }); };
-    put("player", v.value.name, "Squad: name"); put("nickname", v.value.nickname, "Squad: nickname"); put("position", v.value.positions.join("/"), "Squad: position"); put("shirt", v.value.shirt, "Squad: shirt"); put("photo", v.value.photo, "Squad: photo");
-  } else if (extras) {
-    warnings.push(`Shirt, position, nickname and photo live in the site's squad file until there is a Squad tab (columns Player, Nickname, Position, Shirt, Photo, Bio). Details given: ${extras}.`);
-  }
-  return buildPlayerMessage(v.value, { seasonId: current?.id ?? null, edits, warnings, sheetUrl: SHEET_URL });
+  return buildPlayerMessage(v.value, { seasonId: current?.id ?? null });
 }
 
 export async function POST(req: Request) {
@@ -151,43 +71,40 @@ export async function POST(req: Request) {
   if (rateLimited(ip)) return NextResponse.json({ ok: false, error: "Steady on. Try again in a minute." }, { status: 429 });
   let body: Body;
   try { body = (await req.json()) as Body; } catch { return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 }); }
-  if (body.website) return NextResponse.json({ ok: true, sent: false, summary: "", text: "", edits: [] }); // honeypot: pretend success, do nothing
+  if (body.website) return NextResponse.json({ ok: true, sent: false, summary: "", text: "" }); // honeypot: pretend success, do nothing
   const kind: Kind = body.kind === "payment" || body.kind === "player" ? body.kind : "score";
   // Signed-in members need not say who they are; the session does.
   const member = await currentMember();
   if (member && clean(body.submittedBy, 40).length < 2) body.submittedBy = member.member.player;
 
   const data = await getData();
-  const built = kind === "score" ? await buildScore(body, data) : kind === "payment" ? await buildPayment(body, data) : await buildPlayer(body, data);
+  const built = kind === "score" ? buildScore(body, data) : kind === "payment" ? buildPayment(body, data) : buildPlayer(body, data);
   if ("error" in built) return NextResponse.json({ ok: false, error: built.error }, { status: 400 });
 
-  // Members write straight to the records. Anything that goes wrong falls back to the approval email below.
-  let applied = false, applyError: string | null = null;
-  if (member && sheetsConfigured() && built.edits.length) {
+  let applied = false, queued = false, queueId: number | null = null, applyError: string | null = null;
+  if (dbConfigured()) {
     try {
-      const cells = await writeCells(built.edits, built.tab);
-      applied = true;
-      revalidateTag("sheet", { expire: 0 });
-      revalidatePath("/", "layout");
-      log("submit.applied", { kind, player: member.member.player, cells });
+      if (member) { await applyChange(built, `${member.member.player} <${member.email}>`); applied = true; log("submit.applied", { kind, player: member.member.player }); }
+      else { queueId = await queueSubmission(kind, built.change as unknown as Record<string, unknown>, built.summary, built.submittedBy); queued = true; log("submit.queued", { kind, id: queueId }); }
     } catch (err) {
-      console.error("submit apply:", err);
-      applyError = "Could not write to the records sheet.";
-      log("submit.apply.failed", { kind, player: member.member.player });
+      console.error("submit write:", err);
+      applyError = "Could not write to the records.";
+      log("submit.write.failed", { kind, member: member?.member.player ?? null });
     }
   }
   const submittedBy = member ? `${built.submittedBy} (${member.member.player}, signed in)` : built.submittedBy;
-  const subject = applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : built.subject;
-  const text = applied ? built.text.replace("\n\n", `\nRecorded in the sheet by ${member!.member.player}, signed in as ${member!.email}.\n\n`) : built.text;
+  const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/account` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
+  const text = `${built.text}\n\n${status}`;
+  const subject = applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject;
 
   const hook = process.env.SCORE_WEBHOOK_URL;
   const canNotify = notifyBudgetOk();
   if (!canNotify) log("submit.notify.budget", { kind, ip });
   const [emailed, hooked] = canNotify
     ? await Promise.all([
-        emailScoreSubmission({ subject, text, summary: built.summary, edits: built.edits, tab: built.tab, sheetUrl: SHEET_URL, submittedBy, kind, applied }),
+        emailSubmission({ subject, text, summary: built.summary, submittedBy, kind, applied, queued }),
         hook ? fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, content: text.slice(0, 1900) }) }).then((r) => r.ok).catch(() => false) : Promise.resolve(false),
       ])
     : [false, false]; // over budget: the submitter still gets the text to copy or share, the admin just is not pinged
-  return NextResponse.json({ ok: true, kind, sent: emailed || hooked, emailed, applied, appliedBy: applied ? member!.member.player : null, applyError, throttled: !canNotify, summary: built.summary, text, edits: built.edits, tab: built.tab, sheetUrl: SHEET_URL });
+  return NextResponse.json({ ok: true, kind, sent: emailed || hooked, emailed, applied, appliedBy: applied ? member!.member.player : null, queued, applyError, throttled: !canNotify, summary: built.summary, text });
 }

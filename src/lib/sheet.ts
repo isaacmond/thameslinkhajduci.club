@@ -1,11 +1,8 @@
 import * as XLSX from "xlsx";
 import { cache } from "react";
 import { slugify } from "./slug";
-import staticExtras from "./squad-extras.json";
-import type {
-  ClubData, Match, MoneyRow, Payment, Player, PlayerMatchLine, PlayerSeasonStats,
-  Result, Season, SeasonSummary, SquadExtra,
-} from "./types";
+import type { ClubData, Match, MoneyRow, Payment, PlayerMatchLine, Result, Season, SeasonSummary, SquadExtra } from "./types";
+import { assembleClubData, mergeExtras, rejectedPhotos, safePhoto } from "./assemble";
 
 import { SHEET_ID as PUBLIC_SHEET_ID, SHEET_URL } from "./config";
 import { londonToday } from "./time";
@@ -16,7 +13,7 @@ export { SHEET_URL };
 const EXPORT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
 
 /** Names that refer to the same person in the sheet vs the old app. */
-const ALIASES: Record<string, string> = {
+export const ALIASES: Record<string, string> = {
   Robin: "Robin Watson",
   Seb: "Seb Burgess",
   "Eddie Ringer": "Eddie McLaughlin",
@@ -25,7 +22,7 @@ const ALIASES: Record<string, string> = {
 };
 
 /** The sheet spells opponents many ways; collapse them so head-to-head records line up. Keys are lower-case, punctuation-free. */
-const OPPONENTS: Record<string, string> = {
+export const OPPONENTS: Record<string, string> = {
   "enjoy": "Enjoy Your Mane Jane", "enjoy your mane": "Enjoy Your Mane Jane", "enjoy your mane jane": "Enjoy Your Mane Jane", "mane jane": "Enjoy Your Mane Jane",
   "old ivy": "Old Ivy", "old ivy fc": "Old Ivy", "oly ivy": "Old Ivy",
   "britannias": "The Britannias", "the britannias": "The Britannias",
@@ -93,6 +90,8 @@ function timeOfDay(c: Cell): string | null {
 /** Extra aliases from an optional "Aliases" tab (columns From, To); merged over the built-in map before each parse. */
 let sheetAliases: Record<string, string> = {};
 let sheetOpponents: Record<string, string> = {};
+/** Alias maps read from the workbook on the last parse (Aliases / Opponents tabs), for the one-off import into the database. */
+export const lastParsedAliases = () => ({ players: { ...sheetAliases }, opponents: { ...sheetOpponents } });
 export function canonicalName(raw: string) {
   const n = raw.trim().replace(/\s+/g, " ");
   return sheetAliases[n] ?? ALIASES[n] ?? n;
@@ -206,7 +205,7 @@ function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } =
       else if (k === "top scorer") summary.topScorer = str(v);
       else if (k === "most apps") summary.mostApps = str(v);
       else if (k === "season cost") summary.seasonCost = num(v) ?? 0;
-      else if (k === "paid by") summary.paidBy = str(v);
+      else if (k === "paid by") summary.paidBy = str(v) ? canonicalName(str(v)!) : null;
     }
   }
   // Recompute W/D/L from counted matches so the site never disagrees with itself.
@@ -231,19 +230,7 @@ function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } =
   };
 }
 
-/** A photo is a bundled file under public/players or an https link. The OG image reads local photos from disk, so nothing else the sheet says may reach it. */
-export function photoAllowed(s: string) {
-  if (/^\/players\/[a-z0-9-]+\.(jpe?g|png|webp)$/.test(s)) return true;
-  try { return new URL(s).protocol === "https:"; } catch { return false; }
-}
-/** Photo values dropped by photoAllowed() on the last parse, by player, so the health report can point the admin at them. */
-export const rejectedPhotos = new Map<string, string>();
-function safePhoto(name: string, v: string | null | undefined): string | undefined {
-  if (!v) return undefined;
-  if (photoAllowed(v)) return v;
-  rejectedPhotos.set(name, v);
-  return undefined;
-}
+export { photoAllowed, rejectedPhotos } from "./assemble";
 
 function parseSquadTab(grid: Grid): Map<string, SquadExtra> {
   const out = new Map<string, SquadExtra>();
@@ -303,88 +290,6 @@ function parsePayments(grid: Grid): Payment[] {
   return out;
 }
 
-function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Player[] {
-  const map = new Map<string, Player>();
-  const get = (name: string) => {
-    let p = map.get(name);
-    if (!p) {
-      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {} };
-      map.set(name, p);
-    }
-    return p;
-  };
-  for (const s of seasons) {
-    const perSeason = new Map<string, PlayerSeasonStats>();
-    const ps = (name: string) => {
-      let x = perSeason.get(name);
-      if (!x) { x = { seasonId: s.id, apps: 0, gpgGames: 0, apgGames: 0, goals: 0, assists: 0, motm: 0, cost: 0 }; perSeason.set(name, x); }
-      return x;
-    };
-    const roster = new Set(s.players);
-    for (const name of s.players) { get(name); }
-    for (const m of s.matches) {
-      for (const l of m.lineup) {
-        const p = get(l.player); const x = ps(l.player);
-        x.cost += l.cost;
-        if (!m.countsForRecords) continue;
-        if (l.played) {
-          x.apps++; p.apps++;
-          if (m.played && m.scorersRecorded) { x.gpgGames++; p.gpgGames++; }
-          if (m.played && m.assistsRecorded) { x.apgGames++; p.apgGames++; }
-          if (m.played) { if (m.result === "W") p.wins++; else if (m.result === "D") p.draws++; else if (m.result === "L") p.losses++; }
-          if (m.date) { if (!p.debut || m.date < p.debut) p.debut = m.date; if (!p.lastPlayed || m.date > p.lastPlayed) p.lastPlayed = m.date; }
-        }
-        x.goals += l.goals; p.goals += l.goals; x.assists += l.assists; p.assists += l.assists;
-      }
-      // Awards only count for people on the season's roster; a typo or a guest in the MOTM cell must not mint a new squad member.
-      if (m.countsForRecords && m.motm && roster.has(m.motm)) { const p = get(m.motm); p.motm++; ps(m.motm).motm++; }
-    }
-    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm) get(name).seasons.push(x); }
-  }
-  for (const p of map.values()) {
-    p.goalsPerGame = p.gpgGames ? +(p.goals / p.gpgGames).toFixed(2) : 0;
-    p.assistsPerGame = p.apgGames ? +(p.assists / p.apgGames).toFixed(2) : 0;
-    const decided = p.wins + p.draws + p.losses;
-    p.winRate = decided ? +((p.wins / decided) * 100).toFixed(1) : 0;
-  }
-  return [...map.values()].filter((p) => p.apps > 0 || p.goals > 0 || p.assists > 0 || p.motm > 0).sort((a, b) => b.apps - a.apps || b.goals - a.goals || a.name.localeCompare(b.name));
-}
-
-const STATIC_EXTRAS: Record<string, { shirt: number | null; positions: string[]; photo: string | null }> = staticExtras;
-
-/** Bundled profile extras (from the old team app) as a baseline; a "Squad" tab in the sheet overrides field by field. */
-function mergeExtras(fromSheet: Map<string, SquadExtra>): Map<string, SquadExtra> {
-  const merged = new Map<string, SquadExtra>();
-  for (const [name, e] of Object.entries(STATIC_EXTRAS)) { const who = canonicalName(name); merged.set(who, { shirt: e.shirt, positions: e.positions, photo: safePhoto(who, e.photo) }); }
-  for (const [name, e] of fromSheet) {
-    const base = merged.get(name) ?? {};
-    const clean = Object.fromEntries(Object.entries({ ...e, photo: safePhoto(name, e.photo) }).filter(([, v]) => v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0)));
-    merged.set(name, { ...base, ...clean });
-  }
-  return merged;
-}
-
-/**
- * Whoever is named in a season's "Paid by" cell has paid the pitch hire for that season's played games.
- * The sheet's Paid column may or may not include that (the corrected workbook does); if it doesn't, add it here
- * so the payer shows as owed money rather than owing their own share.
- */
-function creditPitchPayers(seasons: Season[], money: { paidBy: Record<string, string>; rows: MoneyRow[] }) {
-  const covered = new Map<string, number>();
-  for (const s of seasons) {
-    const payer = money.paidBy[s.id] ?? (s.summary.paidBy ? canonicalName(s.summary.paidBy) : null);
-    if (!payer) continue;
-    const cost = s.matches.filter((m) => m.played && m.playersInGame > 0).reduce((t, m) => t + m.matchCost, 0);
-    if (cost > 0) covered.set(payer, (covered.get(payer) ?? 0) + cost);
-  }
-  for (const [payer, cost] of covered) {
-    let row = money.rows.find((r) => r.player === payer);
-    if (!row) { row = { player: payer, charges: {}, totalCharged: 0, paid: 0, balance: 0, pitchCovered: 0 }; money.rows.push(row); }
-    row.pitchCovered = cost;
-    if (row.paid + 0.005 < cost) { row.paid += cost; row.balance = row.totalCharged - row.paid; }
-  }
-}
-
 export function parseWorkbook(buf: ArrayBuffer): ClubData {
   const wb = readWorkbookCached(buf);
   const seasons: Season[] = [];
@@ -406,23 +311,7 @@ export function parseWorkbook(buf: ArrayBuffer): ClubData {
     else if (/^money$/i.test(name.trim())) money = parseMoney(grid);
     else if (/^payments$/i.test(name.trim())) payments = parsePayments(grid);
   }
-  seasons.sort((a, b) => a.number - b.number);
-  // Current season: the one whose fixtures span today; else the one with the nearest upcoming fixture; else the latest with a result.
-  const today = londonToday();
-  const spans = seasons.filter((s) => s.matches.some((m) => m.date && m.date <= today) && s.matches.some((m) => !m.played && m.date && m.date >= today));
-  const upcoming = seasons.filter((s) => s.matches.some((m) => !m.played && m.date && m.date >= today)).sort((a, b) => (a.matches.find((m) => m.date && m.date >= today)?.date ?? "9999").localeCompare(b.matches.find((m) => m.date && m.date >= today)?.date ?? "9999"));
-  const current = spans[spans.length - 1] ?? upcoming[0] ?? [...seasons].reverse().find((s) => s.matches.some((m) => m.played)) ?? seasons[seasons.length - 1];
-  if (current) current.isCurrent = true;
-  const matches = [...seasons, ...(friendlies ? [friendlies] : [])].flatMap((s) => s.matches).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.seasonNumber - b.seasonNumber || a.gw - b.gw);
-  const players = buildPlayers(seasons, mergeExtras(extras));
-  creditPitchPayers([...seasons, ...(friendlies ? [friendlies] : [])], money);
-  const allTime: SeasonSummary = seasons.reduce((acc, s) => ({
-    ...acc, played: acc.played + s.summary.played, won: acc.won + s.summary.won, drawn: acc.drawn + s.summary.drawn, lost: acc.lost + s.summary.lost,
-    goalsFor: acc.goalsFor + s.summary.goalsFor, goalsAgainst: acc.goalsAgainst + s.summary.goalsAgainst, seasonCost: acc.seasonCost + s.summary.seasonCost,
-  }), { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, topScorer: null, mostApps: null, seasonCost: 0, paidBy: null } as SeasonSummary);
-  allTime.topScorer = players.length ? `${[...players].sort((a, b) => b.goals - a.goals)[0].name}` : null;
-  allTime.mostApps = players.length ? players[0].name : null;
-  return { fetchedAt: new Date().toISOString(), sheetUrl: SHEET_URL, seasons, friendlies, matches, players, money: { ...money, payments }, allTime };
+  return assembleClubData({ seasons, friendlies, extras: mergeExtras(extras, canonicalName, safePhoto), money, payments, sheetUrl: SHEET_URL });
 }
 
 export const REVALIDATE_SECONDS = 60;
@@ -457,78 +346,6 @@ export async function fetchWorkbook(): Promise<ArrayBuffer> {
 /** Build-time copy of the workbook (scripts/snapshot.mjs), used only when Google is unreachable and nothing better is in memory. */
 async function snapshotWorkbook(): Promise<ArrayBuffer | null> {
   try { const { readFile } = await import("node:fs/promises"); const { join } = await import("node:path"); const b = await readFile(join(process.cwd(), ".snapshot", "sheet.xlsx")); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; } catch { return null; }
-}
-
-const colLetter = (i: number) => { let s = ""; let n = i + 1; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
-
-export interface SheetLayout {
-  tab: string;
-  /** A1 column letter for a gameweek (1-based) */
-  gwCol: (gw: number) => string | null;
-  rows: { ourGoals: number; theirGoals: number; motm: number; comments: number; type: number };
-  /** 1-based row numbers of a player's line in each grid */
-  playerRows: (name: string) => { apps: number; goals: number; assists: number } | null;
-}
-
-/** Where things live in a season tab, so a score submission can be turned into exact cell edits. */
-export async function getSheetLayout(seasonId: string): Promise<SheetLayout | null> {
-  const wb = readWorkbookCached(await fetchWorkbook());
-  const tab = wb.SheetNames.find((n) => (seasonId === "FR" ? /^friendl(y|ies)$/i.test(n.trim()) : n.trim().toUpperCase() === seasonId));
-  if (!tab) return null;
-  const grid = sheetToGrid(wb.Sheets[tab]);
-  const matchRow = findRow(grid, "Match");
-  if (matchRow < 0) return null;
-  const gwCols: number[] = [];
-  grid[matchRow].forEach((c, i) => { if (typeof c === "string" && /^(GW|Game|G|F|Friendly)\s*\d+$/i.test(c.trim())) gwCols.push(i); });
-  const r = (label: string | RegExp) => findRow(grid, label, matchRow) + 1;
-  const appsHdr = findRow(grid, "APPEARANCES"), goalsHdr = findRow(grid, /^GOALS/), assistsHdr = findRow(grid, /^ASSISTS/);
-  const rosterIndex = (name: string) => { for (let i = appsHdr + 1; i < grid.length; i++) { const v = str(grid[i]?.[0]); if (v && v.toLowerCase() === "total") break; if (v && canonicalName(v) === name) return i - appsHdr; } return null; };
-  return {
-    tab,
-    gwCol: (gw) => (gwCols[gw - 1] !== undefined ? colLetter(gwCols[gw - 1]) : null),
-    rows: { ourGoals: r("Our goals"), theirGoals: r("Their goals"), motm: r("MOTM"), comments: r("Comments"), type: r("Type") },
-    playerRows: (name) => { const k = rosterIndex(name); return k === null ? null : { apps: appsHdr + 1 + k, goals: goalsHdr + 1 + k, assists: assistsHdr + 1 + k }; },
-  };
-}
-
-/** Where a new Payments row and a new roster name would go. Rows are 1-based sheet rows; null means "no free row before Total, insert one". */
-export type AdminLayout = {
-  payments: { tab: string; row: number; cols: { date: string; player: string; amount: string; note: string; to: string | null } } | null;
-  roster: { seasonTab: string | null; seasonRow: number | null; allTimeTab: string | null; allTimeRow: number | null; moneyTab: string | null; moneyRow: number | null; squadTab: string | null; squadRow: number | null; squadCols: Record<string, string> };
-};
-export async function getAdminLayout(seasonId: string | null): Promise<AdminLayout> {
-  const wb = readWorkbookCached(await fetchWorkbook());
-  const tabNamed = (re: RegExp) => wb.SheetNames.find((n) => re.test(n.trim())) ?? null;
-  const grid = (tab: string | null) => (tab ? sheetToGrid(wb.Sheets[tab]) : null);
-  const headerCols = (row: Cell[] | undefined) => { const m: Record<string, string> = {}; row?.forEach((c, i) => { const v = str(c); if (v) m[v.toLowerCase().replace(/\s*\(.*$/, "").trim()] = colLetter(i); }); return m; };
-  /** First row after `hdr` whose first `width` cells are all blank, stopping at a "Total" row. */
-  const freeRow = (g: Grid | null, hdr: number, width = 1): number | null => {
-    if (!g || hdr < 0) return null;
-    for (let i = hdr + 1; i < Math.max(g.length, hdr + 2) + 40; i++) {
-      const first = str(g[i]?.[0]);
-      if (first && first.toLowerCase() === "total") return null;
-      if (Array.from({ length: width }, (_, k) => str(g[i]?.[k])).every((v) => v === null)) return i + 1;
-    }
-    return null;
-  };
-  const payTab = tabNamed(/^payments$/i), payGrid = grid(payTab);
-  const payHdr = payGrid ? findRow(payGrid, /^date$/i) : -1;
-  const payCols = headerCols(payGrid?.[payHdr]);
-  const payRow = freeRow(payGrid, payHdr, 3);
-  const seasonTab = seasonId ? wb.SheetNames.find((n) => n.trim().toUpperCase() === seasonId) ?? null : null, seasonGrid = grid(seasonTab);
-  const allTimeTab = tabNamed(/^all-?time$/i), allGrid = grid(allTimeTab);
-  const moneyTab = tabNamed(/^money$/i), moneyGrid = grid(moneyTab);
-  const squadTab = tabNamed(/^squad$/i), squadGrid = grid(squadTab);
-  const squadHdr = squadGrid ? findRow(squadGrid, /^player$/i) : -1;
-  return {
-    payments: payTab && payHdr >= 0 && payRow ? { tab: payTab, row: payRow, cols: { date: payCols.date ?? "A", player: payCols.player ?? "B", amount: payCols.amount ?? "C", note: payCols.note ?? "D", to: payCols["paid to"] ?? payCols.to ?? payCols.recipient ?? null } } : null,
-    roster: {
-      seasonTab, seasonRow: freeRow(seasonGrid, seasonGrid ? findRow(seasonGrid, "APPEARANCES") : -1),
-      allTimeTab, allTimeRow: freeRow(allGrid, allGrid ? findRow(allGrid, /^player$/i) : -1),
-      moneyTab, moneyRow: freeRow(moneyGrid, moneyGrid ? findRow(moneyGrid, /^player$/i) : -1),
-      squadTab, squadRow: freeRow(squadGrid, squadHdr), squadCols: headerCols(squadGrid?.[squadHdr]),
-    },
-  };
 }
 
 let lastGood: ClubData | null = null;

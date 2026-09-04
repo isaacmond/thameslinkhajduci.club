@@ -1,6 +1,7 @@
 // Downloads the workbook once at build time so a Google hiccup at runtime can never leave a cold function with no data at all.
 // Falls back to the corrected copy in sheet-fixes/ if Google is unreachable during the build.
 import { mkdirSync, writeFileSync, copyFileSync, existsSync } from "node:fs";
+if (process.env.DATABASE_URL) { console.log("snapshot: database configured, no workbook needed"); process.exit(0); }
 const id = process.env.SHEET_ID ?? process.env.NEXT_PUBLIC_SHEET_ID ?? "1nCwz2uInlh3gePYORxvW3_0SlpFS8KgRxCCoccvw9zA";
 mkdirSync(".snapshot", { recursive: true });
 try {

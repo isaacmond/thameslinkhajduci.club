@@ -4,7 +4,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { currentMember } from "@/lib/auth";
 import { getData } from "@/lib/data";
-import { sheetsConfigured, upsertSquadRow } from "@/lib/google-sheets";
+import { dbConfigured } from "@/lib/db";
+import { updateProfile } from "@/lib/writes";
 import { log } from "@/lib/log";
 import { slugify } from "@/lib/slug";
 import { clean, POSITIONS, type Position } from "@/lib/submissions";
@@ -14,11 +15,11 @@ export type ProfileState = { ok: boolean; message: string; photo?: string | null
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
-/** Save the signed-in member's own profile: their Squad-tab row in the sheet (and photo in Blob storage), plus their name in WorkOS. */
+/** Save the signed-in member's own profile: their players row (photo in Blob storage), plus their name in WorkOS. */
 export async function saveProfile(_prev: ProfileState, form: FormData): Promise<ProfileState> {
   const s = await currentMember();
   if (!s) return { ok: false, message: "Sign in with an email address on the club list first." };
-  if (!sheetsConfigured()) return { ok: false, message: "Profile editing is not switched on yet: the site has no write access to the records sheet. Ask Isaac to finish the Google set-up in LAUNCH.md." };
+  if (!dbConfigured()) return { ok: false, message: "Profile editing is not switched on yet: the records database is not connected. Ask Isaac." };
 
   const firstName = clean(form.get("firstName"), 40), lastName = clean(form.get("lastName"), 40);
   const nickname = clean(form.get("nickname"), 40);
@@ -51,10 +52,10 @@ export async function saveProfile(_prev: ProfileState, form: FormData): Promise<
   }
 
   try {
-    await upsertSquadRow(s.member.player, { nickname, positions, shirt, bio, ...(photo !== undefined ? { photo } : {}) }, s.email);
+    await updateProfile(s.member.player, { nickname, positions, shirt, bio, ...(photo !== undefined ? { photo } : {}) }, s.email);
   } catch (err) {
-    console.error("sheets:", err);
-    return { ok: false, message: "Could not write to the records sheet. Check that it is shared with the service account, then try again." };
+    console.error("profile write:", err);
+    return { ok: false, message: "Could not save to the records. Try again in a moment." };
   }
 
   if ((firstName && firstName !== (s.firstName ?? "")) || (lastName && lastName !== (s.lastName ?? ""))) {

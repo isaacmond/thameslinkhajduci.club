@@ -9,7 +9,7 @@ import { PlayerForm } from "@/components/player-form";
 import { SubmitTabs, type SubmitKind } from "@/components/submit-tabs";
 import { PageTransition } from "@/components/page-transition";
 import { currentMember } from "@/lib/auth";
-import { sheetsConfigured } from "@/lib/google-sheets";
+import { dbConfigured } from "@/lib/db";
 import type { SignedIn } from "@/components/signed-in-note";
 
 /** Reads the session, so this page renders per request (the data underneath is still the cached sheet). */
@@ -41,7 +41,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
   const current = data.seasons.find((s) => s.isCurrent) ?? data.seasons.at(-1) ?? null;
   const roster = [...new Set([...(current?.players ?? []), ...data.players.map((p) => p.name)])].sort((a, b) => a.localeCompare(b));
   const member = await currentMember();
-  const signedIn: SignedIn | null = member ? { player: member.member.player, direct: sheetsConfigured() } : null;
+  const signedIn: SignedIn | null = member ? { player: member.member.player, direct: dbConfigured() } : null;
   const copy = signedIn ? { ...COPY[kind], sub: SIGNED_IN_COPY[kind][signedIn.direct ? "direct" : "queued"] } : COPY[kind];
 
   let form: React.ReactNode;

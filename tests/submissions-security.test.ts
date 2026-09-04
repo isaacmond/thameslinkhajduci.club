@@ -2,16 +2,7 @@ import * as XLSX from "xlsx";
 import { describe, expect, it } from "vitest";
 import { sheetHealth } from "@/lib/health";
 import { parseWorkbook, photoAllowed, rejectedPhotos } from "@/lib/sheet";
-import { cellSafe, originAllowed } from "@/lib/submissions";
-
-describe("cellSafe", () => {
-  it("neutralises formula prefixes with a leading apostrophe", () => {
-    for (const s of ['=HYPERLINK("https://evil.example")', "+1+1", "-1", "@SUM(A1)", "=cmd|' /C calc'!A0"]) expect(cellSafe(s)).toBe(`'${s}`);
-  });
-  it("leaves ordinary text alone", () => {
-    for (const s of ["", "Seb Burgess", "Great game, 3-2 at the death", "'already quoted", "https://example.com/a.jpg", "2026-05-01", "1 = 1"]) expect(cellSafe(s)).toBe(s);
-  });
-});
+import { originAllowed } from "@/lib/submissions";
 
 describe("originAllowed", () => {
   const h = (o: Record<string, string>) => new Headers(o);

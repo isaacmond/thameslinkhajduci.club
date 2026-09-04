@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPaymentMessage, buildPlayerMessage, editsLine, rosterName, validatePayment, validatePlayer } from "@/lib/submissions";
+import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, rosterName, validatePayment, validatePlayer, validateScore } from "@/lib/submissions";
 
 const roster = ["Phil Knott", "Seb Burgess", "Isaac Mond"];
 const today = "2026-09-04";
@@ -34,30 +34,58 @@ describe("payments", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toMatch(msg);
   });
-  it("builds a message that says what was owed and what is left", () => {
+  it("builds a message that says what was owed and what is left, and a change that names the recipient", () => {
     const v = { player: "Phil Knott", to: null, amount: 10, date: "2026-09-03", note: "", submittedBy: "Phil" };
-    const edits = [{ cell: "A3", value: "2026-09-03", what: "Date" }, { cell: "C3", value: 10, what: "Amount (£)" }];
-    const m = buildPaymentMessage(v, { payer: "Isaac Mond", balance: 11.42, edits, tab: "Payments", sheetUrl: "https://sheet" });
+    const m = buildPaymentMessage(v, { payer: "Isaac Mond", balance: 11.42 });
     expect(m.summary).toBe("Phil Knott paid £10.00 to Isaac Mond · Thu, 3 Sept 2026");
     expect(m.text).toContain("Owed before this: £11.42 → £1.42 still to pay");
-    expect(m.text).toContain('Sheet edits (tab Payments): A3="2026-09-03", C3=10');
-    expect(m.subject).toMatch(/^Payment: /);
     expect(m.text).toContain("From Phil Knott to Isaac Mond");
+    expect(m.subject).toMatch(/^Payment: /);
+    expect(m.change).toEqual({ player: "Phil Knott", to: "Isaac Mond", amount: 10, date: "2026-09-03", note: "" });
   });
-  it("names the recipient and flags one who is not the season's pitch payer", () => {
+  it("flags a recipient who is not the season's pitch payer", () => {
     const base = { player: "Phil Knott", amount: 10, date: today, note: "", submittedBy: "Phil" };
-    const ctx = { payer: "Isaac Mond", balance: null, edits: [], tab: null, sheetUrl: "u" };
-    const same = buildPaymentMessage({ ...base, to: "Isaac Mond" }, ctx);
-    expect(same.summary).toContain("paid £10.00 to Isaac Mond");
-    expect(same.text).not.toContain("pitch payer");
+    const ctx = { payer: "Isaac Mond", balance: null };
+    expect(buildPaymentMessage({ ...base, to: "Isaac Mond" }, ctx).text).not.toContain("pitch payer");
     const other = buildPaymentMessage({ ...base, to: "Seb Burgess" }, ctx);
     expect(other.summary).toContain("paid £10.00 to Seb Burgess");
     expect(other.text).toContain("From Phil Knott to Seb Burgess (not Isaac Mond, who is down as this season's pitch payer; check who should be credited)");
   });
   it("flags a payment from someone who owed nothing", () => {
-    const m = buildPaymentMessage({ player: "Seb Burgess", to: null, amount: 5, date: today, note: "", submittedBy: "Seb" }, { payer: null, balance: -3, edits: [], tab: null, sheetUrl: "u" });
+    const m = buildPaymentMessage({ player: "Seb Burgess", to: null, amount: 5, date: today, note: "", submittedBy: "Seb" }, { payer: null, balance: -3 });
     expect(m.text).toContain("Nothing was outstanding for Seb Burgess (already £3.00 in credit). Check this one.");
-    expect(m.text).toContain("could not map cells");
+    expect(m.change.to).toBeNull();
+  });
+});
+
+describe("scores", () => {
+  const known = (n: string) => roster.includes(n);
+  const fixture = { id: "s8-gw2", seasonId: "S8", gw: 2, opponent: "Inter Islington", date: "2026-09-08", played: false };
+  it("accepts a result with scorers, assists and a line-up", () => {
+    const r = validateScore({ ours: 3, theirs: 1, scorers: { "Seb Burgess": 2, "Phil Knott": 1 }, assists: { "Isaac Mond": 1 }, played: ["Isaac Mond"], motm: "Seb Burgess", submittedBy: "Phil", note: "Late winner" }, known);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.played.sort()).toEqual(["Isaac Mond", "Phil Knott", "Seb Burgess"]);
+    const m = buildScoreMessage(r.value, fixture, "Tue 8 Sept");
+    expect(m.summary).toBe("Hajduci 3–1 Inter Islington · S8 GW2 · Tue 8 Sept");
+    expect(m.text).toContain("Scorers: Seb Burgess ×2, Phil Knott");
+    expect(m.text).toContain("MOTM: Seb Burgess");
+    expect(m.change).toMatchObject({ matchId: "s8-gw2", ours: 3, theirs: 1, motm: "Seb Burgess", comment: "Late winner", scorers: { "Seb Burgess": 2, "Phil Knott": 1 } });
+  });
+  it.each([
+    [{ ours: 3.5, theirs: 1, submittedBy: "Me" }, /whole numbers/],
+    [{ ours: 1, theirs: 1, scorers: { "Seb Burgess": 2 }, submittedBy: "Me" }, /add up to 2/],
+    [{ ours: 1, theirs: 1, assists: { "Seb Burgess": 2 }, submittedBy: "Me" }, /More assists/],
+    [{ ours: 1, theirs: 1, scorers: { Stranger: 1 }, submittedBy: "Me" }, /Not on the roster: Stranger/],
+    [{ ours: 1, theirs: 1, submittedBy: "" }, /who you are/],
+  ])("rejects %j", (body, msg) => {
+    const r = validateScore(body as Record<string, unknown>, known);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toMatch(msg);
+  });
+  it("marks a correction when the fixture already has a score", () => {
+    const r = validateScore({ ours: 0, theirs: 2, submittedBy: "Phil" }, known);
+    expect(r.ok && buildScoreMessage(r.value, { ...fixture, played: true }, "Tue").text.startsWith("SCORE (correction)")).toBe(true);
   });
 });
 
@@ -83,14 +111,12 @@ describe("new players", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toMatch(msg);
   });
-  it("builds a message listing every tab to touch", () => {
+  it("builds a message and a change that joins the current season", () => {
     const v = { name: "Tom Smith", nickname: "Smudger", positions: ["DEF" as const], shirt: 7, photo: "", note: "", submittedBy: "Isaac" };
-    const edits = [{ cell: "S8!A40", value: "Tom Smith", what: "roster" }, { cell: "All-time!A25", value: "Tom Smith", what: "all-time" }];
-    const m = buildPlayerMessage(v, { seasonId: "S8", edits, warnings: ["Money: no free row above Total. Insert one, then add the name."], sheetUrl: "u" });
+    const m = buildPlayerMessage(v, { seasonId: "S8" });
     expect(m.summary).toBe("New player: Tom Smith (#7) · joins for S8");
-    expect(m.text).toContain('Sheet edits: S8!A40="Tom Smith", All-time!A25="Tom Smith"');
-    expect(m.text).toContain("Money: no free row above Total");
     expect(m.text).toContain("Nickname: Smudger");
+    expect(m.change).toEqual({ name: "Tom Smith", nickname: "Smudger", positions: ["DEF"], shirt: 7, photo: "", seasonId: "S8" });
   });
 });
 
@@ -98,8 +124,5 @@ describe("helpers", () => {
   it("matches roster names loosely but returns the roster spelling", () => {
     expect(rosterName("  isaac   mond ", roster)).toBe("Isaac Mond");
     expect(rosterName("Isaac", roster)).toBeNull();
-  });
-  it("quotes strings and leaves numbers bare in the edits line", () => {
-    expect(editsLine([{ cell: "B4", value: "x", what: "" }, { cell: "C4", value: 2, what: "" }], "S8")).toBe('Sheet edits (tab S8): B4="x", C4=2');
   });
 });
