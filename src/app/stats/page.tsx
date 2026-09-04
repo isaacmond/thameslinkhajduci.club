@@ -19,7 +19,8 @@ export default async function StatsPage() {
   const datasets: Record<string, PlayerRow[]> = { all: data.players.map(toRow) };
   for (const s of data.seasons) datasets[s.id] = seasonPlayers(data, s.id).map(toRow);
   const seasonIds = data.seasons.map((s) => s.id);
-  const stack = (key: "goals" | "apps", n = 15) => [...data.players].sort((a, b) => b[key] - a[key] || b.apps - a.apps).filter((p) => p[key] > 0).slice(0, n).map((p) => ({ name: `${p.name} · ${p[key]}`, ...Object.fromEntries(seasonIds.map((sid) => [sid, p.seasons.find((x) => x.seasonId === sid)?.[key] ?? 0])) }));
+  const shortName = (n: string) => (n.length > 14 ? `${n[0]}. ${n.split(" ").slice(-1)[0]}` : n);
+  const stack = (key: "goals" | "apps", n = 15) => [...data.players].sort((a, b) => b[key] - a[key] || b.apps - a.apps).filter((p) => p[key] > 0).slice(0, n).map((p) => ({ name: `${shortName(p.name)} · ${p[key]}`, ...Object.fromEntries(seasonIds.map((sid) => [sid, p.seasons.find((x) => x.seasonId === sid)?.[key] ?? 0])) }));
   const pairs = chemistry(data.matches, 5).slice(0, 12);
   const opponents = headToHead(data.matches);
   const byName = new Map(data.players.map((p) => [p.name, p]));
@@ -61,8 +62,8 @@ export default async function StatsPage() {
           <div className="p-5 pb-2"><SectionTitle sub="Pairs with the most games together (min 5) and how the team did">Partnerships</SectionTitle></div>
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full">
-              <thead><tr><th>Pair</th><th className="num">Together</th><th className="num">Win %</th><th className="num">GF/game</th></tr></thead>
-              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal"><span className="flex flex-wrap items-center gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} /><span className="text-ash">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} /></span></td><td className="num">{x.shared}</td><td className={clsx("num font-semibold", x.winRate >= 30 ? "text-mint-soft" : "text-cream")}>{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
+              <thead><tr><th>Pair</th><th className="num">Games</th><th className="num">Win %</th><th className="num">GF/g</th></tr></thead>
+              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal min-w-[10rem]"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-ash sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className={clsx("num font-semibold", x.winRate >= 30 ? "text-mint-soft" : "text-cream")}>{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
             </table>
           </div>
         </div>
@@ -70,8 +71,8 @@ export default async function StatsPage() {
           <div className="p-5 pb-2"><SectionTitle sub="Every opponent we've met, most-played first">Head to head</SectionTitle></div>
           <div className="scroll-x overflow-x-auto sm:max-h-[560px] sm:overflow-auto">
             <table className="stats w-full">
-              <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th><th>Seasons</th></tr></thead>
-              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-cream"><Link href={`/matches/${o.matches[o.matches.length - 1].id}`} className="link">{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num text-mint-soft">{o.won}</td><td className="num text-[#ffe27a]">{o.drawn}</td><td className="num text-[#ff9a9d]">{o.lost}</td><td className={clsx("num", gd > 0 ? "text-mint-soft" : gd < 0 ? "text-[#ff9a9d]" : "")}>{signed(gd)}</td><td className="text-xs text-ash">{o.seasons.join(" ")}</td></tr>; })}</tbody>
+              <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th><th className="hidden md:table-cell">Seasons</th></tr></thead>
+              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-cream"><Link href={`/matches/${o.matches[o.matches.length - 1].id}`} className="link block max-w-[9rem] truncate lg:max-w-[12rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num text-mint-soft">{o.won}</td><td className="num text-[#ffe27a]">{o.drawn}</td><td className="num text-[#ff9a9d]">{o.lost}</td><td className={clsx("num", gd > 0 ? "text-mint-soft" : gd < 0 ? "text-[#ff9a9d]" : "")}>{signed(gd)}</td><td className="hidden !whitespace-normal max-w-[7rem] text-xs leading-relaxed text-ash md:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
             </table>
           </div>
         </div>

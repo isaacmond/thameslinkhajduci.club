@@ -30,7 +30,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
   return (
     <div>
       <div className="card mb-6 flex flex-col gap-3 p-4">
-        <div className="scrollbar-none -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Season">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Season">
           <Chip active={season === "all"} onClick={() => setSeason("all")}>All seasons</Chip>
           {[...seasons].reverse().map((s) => <Chip key={s.id} active={season === s.id} onClick={() => setSeason(s.id)}>{s.id === "FR" ? "Friendlies" : s.id}</Chip>)}
         </div>

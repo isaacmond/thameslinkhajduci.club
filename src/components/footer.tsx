@@ -25,11 +25,11 @@ export function Sponsors() {
       <ul className="stagger grid grid-cols-2 gap-3 sm:grid-cols-4">
         {SPONSORS.map((s) => (
           <li key={s.name}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring group block rounded-xl bg-white p-4 transition-transform hover:-translate-y-0.5">
+            <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring group flex h-full flex-col rounded-xl bg-white p-4 transition-transform hover:-translate-y-0.5">
               <div className="relative mx-auto flex h-14 items-center justify-center">
                 <Image src={s.src} alt={`${s.name} logo`} fill sizes="200px" className="object-contain" loading="eager" />
               </div>
-              <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-wider text-neutral-700">{s.name}</p>
+              <p className="mt-auto pt-3 text-center text-[11px] font-semibold uppercase tracking-wider text-neutral-700">{s.name}</p>
               <p className="text-center text-[11px] text-neutral-500">{s.tagline}</p>
             </a>
           </li>
@@ -61,8 +61,8 @@ export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-night/60">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <HideOnHome><SponsorStrip /></HideOnHome>
-        <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-ash sm:flex-row sm:items-center sm:justify-between">
+        <HideOnHome><SponsorStrip /><div className="mb-6 mt-6 border-t border-white/10" aria-hidden /></HideOnHome>
+        <div className="flex flex-col gap-4 text-sm text-ash sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Image src="/crest.png" alt="" width={28} height={28} />
             <span className="display text-lg text-cream">Forza Hajduci</span>

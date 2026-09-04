@@ -105,7 +105,11 @@ table.stats .link:hover { color: var(--color-mint-soft); }
 table.stats th:first-child, table.stats td:first-child { position: sticky; left: 0; z-index: 1; background: rgba(8, 26, 16, 0.94); }
 table.stats th:first-child { z-index: 2; }
 .scroll-x { position: relative; }
-@media (max-width: 639px) { .scroll-x::after { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 2rem; pointer-events: none; background: linear-gradient(to left, rgba(6, 20, 12, 0.85), transparent); } }
+.scroll-x.can-scroll:not(.at-end)::after { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 2.5rem; pointer-events: none; background: linear-gradient(to left, rgba(6, 20, 12, 0.9), transparent); }
+.scroll-x, pre { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.28) transparent; }
+.scroll-x::-webkit-scrollbar, pre::-webkit-scrollbar { height: 8px; }
+.scroll-x::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.28); border-radius: 999px; }
+.scroll-x::-webkit-scrollbar-track, pre::-webkit-scrollbar-track { background: transparent; }
 @media (pointer: coarse) { button.chip, a.chip { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.25rem; } }
 .board-glow { text-shadow: 0 0 6px currentColor; }
 .scanlines::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px); }
@@ -121,3 +125,5 @@ table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
 
 /* dense tables on phones: tighter horizontal padding so the key columns fit */
 @media (max-width: 639px) { table.stats th, table.stats td { padding-left: 0.5rem; padding-right: 0.5rem; } }
+
+.nowrap { white-space: nowrap; }

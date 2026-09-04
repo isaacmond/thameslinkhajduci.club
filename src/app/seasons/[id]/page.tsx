@@ -83,10 +83,10 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
           <Stat label="Won" value={s.summary.won} tone="win" />
           <Stat label="Drawn" value={s.summary.drawn} tone="draw" />
           <Stat label="Lost" value={s.summary.lost} tone="loss" />
-          <Stat label="Goals for" value={s.summary.goalsFor} />
+          <Stat label="For" value={s.summary.goalsFor} />
           <Stat label="Against" value={s.summary.goalsAgainst} />
-          <Stat label="Goal diff" value={signed(diff)} tone={diff >= 0 ? "win" : "loss"} />
-          <Stat label="Pts / game" value={ppg(s.summary).toFixed(2)} tone="gold" />
+          <Stat label="Diff" value={signed(diff)} tone={diff >= 0 ? "win" : "loss"} />
+          <Stat label="PPG" value={ppg(s.summary).toFixed(2)} tone="gold" />
         </div>
       </section>
 
@@ -102,7 +102,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
         <div className="lg:col-span-3">
           <SectionTitle sub="Everything on the fixture list, including the ones we'd rather forget">Fixtures &amp; results</SectionTitle>
-          <div className="space-y-1.5">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
+          <div className="grid grid-cols-1 gap-1.5 xl:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
         </div>
         <div className="space-y-6 lg:col-span-2 lg:sticky lg:top-24">
           <div className="card p-5"><SectionTitle>Golden boot</SectionTitle><LeaderList items={leaderboard(players, "goals").slice(0, 5)} emptyText="No goals yet this season." /></div>
@@ -114,15 +114,15 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
       <section className="card overflow-hidden">
         <div className="p-5 pb-3"><SectionTitle sub={`${players.length} players used${hasMoney ? " · cost is each player's share of pitch hire" : ""}`}>Squad stats</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
-          <table className="stats min-w-[640px]">
-            <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num" title="Goals per game (games with scorers logged)">G/G</th><th className="num">MOTM</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>
+          <table className="stats w-full md:min-w-[640px]">
+            <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num hidden md:table-cell" title="Goals per game (games with scorers logged)">G/G</th><th className="num hidden md:table-cell">MOTM</th><th className="num hidden sm:table-cell">W</th><th className="num hidden sm:table-cell">D</th><th className="num hidden sm:table-cell">L</th><th className="num hidden sm:table-cell">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>
             <tbody>
               {players.map((p) => (
                 <tr key={p.slug}>
                   <td><PlayerLink name={p.name} player={byName.get(p.name)} /></td>
-                  <td className="num">{p.apps}</td><td className={clsx("num", p.goals > 0 && "font-semibold text-mint-soft")}>{p.goals}</td><td className="num">{p.assists}</td><td className="num" title={`${p.goals} goals over ${p.gpgGames} games with scorers logged`}>{p.goalsPerGame.toFixed(2)}</td>
-                  <td className="num">{p.motm || ""}</td>
-                  <td className="num text-mint-soft">{p.wins}</td><td className="num text-[#ffe27a]">{p.draws}</td><td className="num text-[#ff9a9d]">{p.losses}</td><td className="num">{p.winRate.toFixed(0)}%</td>
+                  <td className="num">{p.apps}</td><td className={clsx("num", p.goals > 0 && "font-semibold text-mint-soft")}>{p.goals}</td><td className="num">{p.assists}</td><td className="num hidden md:table-cell" title={`${p.goals} goals over ${p.gpgGames} games with scorers logged`}>{p.goalsPerGame.toFixed(2)}</td>
+                  <td className="num hidden md:table-cell">{p.motm || ""}</td>
+                  <td className="num hidden text-mint-soft sm:table-cell">{p.wins}</td><td className="num hidden text-[#ffe27a] sm:table-cell">{p.draws}</td><td className="num hidden text-[#ff9a9d] sm:table-cell">{p.losses}</td><td className="num hidden sm:table-cell">{p.winRate.toFixed(0)}%</td>
                   {hasMoney && <td className="num">{fmtMoney(p.seasons[0]?.cost ?? 0)}</td>}
                 </tr>
               ))}

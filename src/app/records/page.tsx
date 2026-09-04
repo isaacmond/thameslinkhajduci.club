@@ -27,8 +27,8 @@ function Card({ icon, label, value, sub, href, tone = "neutral" }: { icon: React
     </div>
   );
 }
-const matchSub = (m: Match) => <>vs {m.opponent} · {m.seasonId} · {fmtDate(m.date)}</>;
-const streakSub = (s: Streak) => <>{fmtDate(s.start.date, { day: "numeric", month: "short", year: "2-digit" })} → {fmtDate(s.end.date, { day: "numeric", month: "short", year: "2-digit" })}</>;
+const matchSub = (m: Match) => <>vs {m.opponent} · {m.seasonId} · <span className="nowrap">{fmtDate(m.date)}</span></>;
+const streakSub = (s: Streak) => <><span className="nowrap">{fmtDate(s.start.date, { day: "numeric", month: "short", year: "2-digit" })}</span> → <span className="nowrap">{fmtDate(s.end.date, { day: "numeric", month: "short", year: "2-digit" })}</span></>;
 
 export default async function RecordsPage() {
   const data = await getData();
@@ -92,7 +92,7 @@ export default async function RecordsPage() {
             <div className="scroll-x overflow-x-auto">
               <table className="stats w-full">
                 <thead><tr><th>Player</th><th className="num">Goals</th><th>Match</th></tr></thead>
-                <tbody>{r.hatTricks.map((h) => <tr key={`${h.match.id}-${h.player}`}><td className="h-12"><PlayerLink name={h.player} player={byName.get(h.player)} avatar /></td><td className="num display text-xl text-mint-soft">{h.goals}</td><td className="!whitespace-normal"><Link href={`/matches/${h.match.id}`} className="link">{scoreline(h.match)} vs {h.match.opponent}</Link><span className="block text-xs text-ash">{h.match.seasonId} · {fmtDate(h.match.date)}</span></td></tr>)}</tbody>
+                <tbody>{r.hatTricks.map((h) => <tr key={`${h.match.id}-${h.player}`}><td className="h-12 w-[1%] whitespace-nowrap"><PlayerLink name={h.player} player={byName.get(h.player)} avatar /></td><td className="num display w-[1%] text-xl text-mint-soft">{h.goals}</td><td className="!whitespace-normal min-w-[9rem]"><Link href={`/matches/${h.match.id}`} className="link">{scoreline(h.match)} vs {h.match.opponent}</Link><span className="block text-xs text-ash">{h.match.seasonId} · {fmtDate(h.match.date)}</span></td></tr>)}</tbody>
               </table>
             </div>
           ) : <p className="px-5 pb-5 text-sm text-ash">Nobody has managed three in a game. Yet.</p>}

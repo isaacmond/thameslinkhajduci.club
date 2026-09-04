@@ -3,6 +3,7 @@ import { Bebas_Neue, Inter } from "next/font/google";
 import "./globals.css";
 import { MobileTabs, Nav } from "@/components/nav";
 import { ServiceTicker } from "@/components/ticker";
+import { ScrollHints } from "@/components/scroll-hints";
 import { Footer } from "@/components/footer";
 
 const bebas = Bebas_Neue({ weight: "400", subsets: ["latin"], variable: "--font-bebas", display: "swap" });
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-24 pt-6 sm:px-6 md:pb-16 lg:px-8">{children}</main>
         <Footer />
         <MobileTabs />
+        <ScrollHints />
       </body>
     </html>
   );

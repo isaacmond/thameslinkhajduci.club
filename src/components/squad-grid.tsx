@@ -32,10 +32,10 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
   return (
     <div>
       <div className="mb-6 flex flex-col gap-3">
-        <div className="scrollbar-none -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filter players">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter players">
           {FILTERS.filter((f) => f !== "active" || currentSeason).map((f) => <button key={f} type="button" onClick={() => setFilter(f)} aria-pressed={filter === f} className={chip(filter === f)}>{filterLabel(f)}</button>)}
         </div>
-        <div className="scrollbar-none -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Sort players">
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort players">
           <span className="eyebrow mr-1 shrink-0">Sort</span>
           {SORTS.map((s) => <button key={s.key} type="button" onClick={() => setSort(s.key)} aria-pressed={sort === s.key} className={chip(sort === s.key)}>{s.label}</button>)}
         </div>
@@ -50,13 +50,13 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                     <Image src={p.photo} alt="" fill sizes="(min-width: 1024px) 300px, (min-width: 640px) 33vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" unoptimized={p.photo.startsWith("http")} priority={i < 4} />
                   ) : (
                     <div className="pitch absolute inset-0 flex flex-col items-center justify-center">
-                      <Shirt number={p.shirt} name={p.name} className="h-[72%] w-auto drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-[1.04]" />
-                      <span className="chip absolute bottom-16 border-gold/40 bg-night/70 text-[10px] text-gold backdrop-blur">Photo delayed</span>
+                      <Shirt number={p.shirt} name={p.name} className="h-[68%] w-auto -translate-y-3 drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-[1.04]" />
+                      <span className="chip absolute right-2 top-2 whitespace-nowrap border-gold/40 bg-night/80 text-[10px] text-gold backdrop-blur">Photo delayed</span>
                     </div>
                   )}
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night/90 to-transparent" aria-hidden />
                   {p.shirt !== null && p.photo && <span className="display absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-gold text-lg text-night shadow">{p.shirt}</span>}
-                  {p.activeThisSeason && <span className="chip absolute left-2 top-2 border-mint/40 bg-night/70 text-mint-soft backdrop-blur">{currentSeason}</span>}
+                  {p.activeThisSeason && <span className="chip absolute left-2 top-2 border-mint/50 bg-night/85 text-mint-soft shadow backdrop-blur">{currentSeason}</span>}
                   <div className="absolute inset-x-0 bottom-0 p-3">
                     <h2 className="display text-2xl leading-none text-cream drop-shadow">{p.name}</h2>
                     <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-ash">

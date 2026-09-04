@@ -69,9 +69,9 @@ export function GoalsBySeason({ data }: { data: { name: string; avgFor: number; 
   );
 }
 
-export function PlayerSeasonBars({ data }: { data: { name: string; apps: number; goals: number; assists: number }[] }) {
+export function PlayerSeasonBars({ data, height = 220 }: { data: { name: string; apps: number; goals: number; assists: number }[]; height?: number | `${number}%` }) {
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }} barGap={2} barCategoryGap="25%">
         <CartesianGrid vertical={false} stroke={C.grid} />
         <XAxis dataKey="name" {...axis} />
@@ -133,7 +133,7 @@ export function StackedBySeason({ data, seasons }: { data: Record<string, number
       <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }} barCategoryGap="25%">
         <CartesianGrid horizontal={false} stroke={C.grid} />
         <XAxis type="number" {...axis} allowDecimals={false} />
-        <YAxis type="category" dataKey="name" width={168} {...axis} tick={{ fill: C.ink, fontSize: 10 }} />
+        <YAxis type="category" dataKey="name" width={150} {...axis} tick={{ fill: C.ink, fontSize: 10, width: 150 }} interval={0} />
         <Tooltip content={<DefaultTip />} cursor={cursor} />
         <Legend {...legend} />
         {seasons.map((s, i) => <Bar key={s} dataKey={s} name={s} stackId="a" fill={seasonColor(i)} stroke={C.surface} strokeWidth={2} />)}

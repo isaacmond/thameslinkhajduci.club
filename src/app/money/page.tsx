@@ -45,14 +45,14 @@ export default async function MoneyPage() {
           {rows.length ? (
             <div className="scroll-x overflow-x-auto">
               <table className="stats w-full">
-                <thead><tr><th>Player</th>{paidSeasons.map((s) => <th key={s.id} className="num hidden sm:table-cell">{s.id}</th>)}<th className="num hidden sm:table-cell">Charged</th><th className="num">Paid</th><th className="num">Balance</th></tr></thead>
+                <thead><tr><th>Player</th>{paidSeasons.map((s) => <th key={s.id} className="num hidden sm:table-cell">{s.id}</th>)}<th className="num hidden sm:table-cell">Charged</th><th className="num hidden sm:table-cell">Paid</th><th className="num">Balance</th></tr></thead>
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.player}>
                       <td><PlayerLink name={r.player} player={byName.get(r.player)} avatar /></td>
                       {paidSeasons.map((s) => <td key={s.id} className="num hidden text-ash sm:table-cell">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
                       <td className="num hidden sm:table-cell">{fmtMoney(r.totalCharged)}</td>
-                      <td className="num text-mint-soft" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch hire paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-ash">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
+                      <td className="num hidden text-mint-soft sm:table-cell" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch hire paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-ash">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
                       <td className={clsx("num display text-2xl", r.balance > 0.01 ? "text-[#ff9a9d]" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block text-[10px] font-sans tracking-wider text-mint-soft/80">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block text-[10px] font-sans tracking-wider text-[#ff9a9d]/80">owes</span></> : "£0.00"}</td>
                     </tr>
                   ))}
@@ -76,10 +76,10 @@ export default async function MoneyPage() {
         <section className="card overflow-hidden">
           <div className="p-5 pb-2"><SectionTitle sub="Pitch cost split by attendance. Fewer players, bigger bill: an incentive scheme of sorts.">Game by game</SectionTitle></div>
           <div className="scroll-x overflow-x-auto">
-            <table className="stats min-w-[560px]">
-              <thead><tr><th>Opponent</th><th>Result</th><th className="num">Players</th><th className="num">Pitch</th><th className="num">Each</th><th>Date</th></tr></thead>
+            <table className="stats w-full sm:min-w-[560px]">
+              <thead><tr><th>Opponent</th><th>Result</th><th className="num">Players</th><th className="num">Pitch</th><th className="num">Each</th><th className="hidden sm:table-cell">Date</th></tr></thead>
               <tbody>
-                {[...played, ...future.slice(0, 1)].map((m) => <tr key={m.id} className={clsx(!m.played && "opacity-70")}><td><Link href={`/matches/${m.id}`} className="link font-medium text-cream">{m.opponent}</Link>{!m.played && <span className="chip ml-2 text-ash">Next</span>}</td><td><span className="flex items-center gap-2"><ResultPill result={m.result} size="sm" />{m.played && <span className="text-xs text-ash">{scoreline(m)}</span>}</span></td><td className="num">{m.played ? m.playersInGame : "–"}</td><td className="num">{fmtMoney(m.matchCost)}</td><td className="num">{m.played && m.costPerPlayer ? fmtMoney(m.costPerPlayer) : "–"}</td><td className="text-ash">{fmtDate(m.date)}</td></tr>)}
+                {[...played, ...future.slice(0, 1)].map((m) => <tr key={m.id} className={clsx(!m.played && "opacity-70")}><td><Link href={`/matches/${m.id}`} className="link block max-w-[7rem] truncate font-medium text-cream sm:inline sm:max-w-none" title={m.opponent}>{m.opponent}</Link>{!m.played && <span className="chip ml-2 hidden text-ash sm:inline-flex">Next</span>}</td><td><span className="flex items-center gap-2"><ResultPill result={m.result} size="sm" />{m.played && <span className="text-xs text-ash">{scoreline(m)}</span>}</span></td><td className="num">{m.played ? m.playersInGame : "–"}</td><td className="num">{fmtMoney(m.matchCost)}</td><td className="num">{m.played && m.costPerPlayer ? fmtMoney(m.costPerPlayer) : "–"}</td><td className="hidden text-ash sm:table-cell">{fmtDate(m.date)}</td></tr>)}
               </tbody>
             </table>
           </div>

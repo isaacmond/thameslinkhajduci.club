@@ -89,12 +89,12 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-        <div className="card overflow-hidden lg:col-span-3">
+        <div className={clsx("card overflow-hidden", m.played || (h2h && !isForfeit && h2h.matches.some((x) => x.id !== m.id)) ? "lg:col-span-3" : "lg:col-span-5")}>
           <div className="p-5 pb-2"><SectionTitle sub={m.played ? (lineup.length ? "Who turned up, and what they did about it" : "No appearance marks recorded for this one") : "Squad TBC. As is our attendance."}>Line-up</SectionTitle></div>
           {lineup.length > 0 && (
             <div className="scroll-x overflow-x-auto">
               <table className="stats">
-                <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="text-right">Award</th></tr></thead>
+                <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="whitespace-nowrap text-right">Award</th></tr></thead>
                 <tbody>
                   {lineup.map((l) => (
                     <tr key={l.player}>
@@ -122,7 +122,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               </dl>
             </div>
           )}
-          {h2h && !isForfeit && (
+          {h2h && !isForfeit && (m.played || h2h.matches.some((x) => x.id !== m.id)) && (
             <div className="card p-5">
               <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"} across ${h2h.seasons.join(", ")}`}>Head to head</SectionTitle>
               <dl className="grid grid-cols-3 gap-2 text-center">

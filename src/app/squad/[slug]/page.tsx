@@ -85,13 +85,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-2">
           <div className="card p-5">
             <SectionTitle sub="Team win rate with and without them on the pitch">Impact</SectionTitle>
             <dl className="grid grid-cols-2 gap-3 text-center">
-              <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">With {first}</dt><dd className="display tabular text-4xl text-mint-soft">{imp.winRateWith ?? "–"}%<span className="block text-xs font-sans text-ash">{imp.withGames} games · GD {imp.gdWith ?? "–"}/game</span></dd></div>
-              <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Without</dt><dd className="display tabular text-4xl text-ash">{imp.winRateWithout ?? "–"}%<span className="block text-xs font-sans text-ash">{imp.withoutGames} games · GD {imp.gdWithout ?? "–"}/game</span></dd></div>
+              <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">With {first}</dt><dd className="display tabular text-4xl text-mint-soft">{imp.winRateWith ?? "–"}%<span className="block text-xs font-sans text-ash">{imp.withGames} games<br /><span className="nowrap">GD {imp.gdWith ?? "–"}/game</span></span></dd></div>
+              <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow">Without</dt><dd className="display tabular text-4xl text-ash">{imp.winRateWithout ?? "–"}%<span className="block text-xs font-sans text-ash">{imp.withoutGames} games<br /><span className="nowrap">GD {imp.gdWithout ?? "–"}/game</span></span></dd></div>
             </dl>
             {delta !== null && imp.withGames >= 3 && imp.withoutGames >= 3 && (
               <p className="mt-3 text-sm text-ash">{delta > 5 ? <>Hajduci win <span className="text-mint-soft">{delta} points</span> more often with {first} playing. Statistically significant? Absolutely not. Emotionally? Yes.</> : delta < -5 ? <>The team wins <span className="text-[#ff9a9d]">{Math.abs(delta)} points</span> more often without {first}. We&apos;re sure it&apos;s a coincidence.</> : <>No measurable difference either way. The very definition of a squad player.</>}</p>
@@ -106,16 +106,16 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             ) : <p className="text-sm text-ash">Hasn&apos;t shared a pitch with anyone twice. A lone wolf.</p>}
           </div>
         </div>
-        <div className="card p-5 lg:col-span-3">
+        <div className="card flex flex-col p-5 lg:col-span-3">
           <SectionTitle sub="Appearances (outline), goals and assists per season">Season by season</SectionTitle>
-          <PlayerSeasonBars data={perSeason} />
+          <div className="min-h-[240px] flex-1"><PlayerSeasonBars data={perSeason} height="100%" /></div>
         </div>
       </section>
 
       {(hatTricks.length > 0 || motms.length > 0 || (money && (money.totalCharged > 0 || money.paid > 0))) && (
         <section className="grid grid-cols-1 gap-6 md:grid-cols-3 md:items-start">
-          {hatTricks.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Sparkles size={20} className="text-gold" aria-hidden />Hat-tricks</span></SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · {fmtDate(m.date)}</span></li>)}</ul></div>}
-          {motms.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Medal size={20} className="text-gold" aria-hidden />Man of the match</span></SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · {fmtDate(m.date)}</span></li>)}</ul></div>}
+          {hatTricks.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Sparkles size={20} className="text-gold" aria-hidden />Hat-tricks</span></SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
+          {motms.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Medal size={20} className="text-gold" aria-hidden />Man of the match</span></SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
           {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-5"><SectionTitle sub="Season 8 onwards">Tab</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow">Charged</dt><dd className="display text-2xl text-cream">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow">Paid</dt><dd className="display text-2xl text-mint-soft">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className={clsx("display text-2xl", money.balance > 0.01 ? "text-[#ff9a9d]" : "text-mint-soft")}>{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-ash">{money.balance > 0.01 ? "The treasurer has been informed." : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch hire. The others owe ${first}.` : "Fully paid up. A model citizen."} <Link href="/money" className="link">Money →</Link></p></div>}
         </section>
       )}

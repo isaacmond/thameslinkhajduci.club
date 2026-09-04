@@ -81,7 +81,7 @@ export default async function Home() {
         )}
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_3fr] lg:items-start">
         <div className="card p-5">
           <SectionTitle sub="Most recent games that count">Form</SectionTitle>
           <FormStrip matches={[...recent].reverse()} />
@@ -90,7 +90,7 @@ export default async function Home() {
           </ul>
           {streak && <p className="mt-4 text-sm italic text-cream/80">{streak.type === "L" ? `That's ${streak.length} in a row now. The board is monitoring the situation.` : streak.type === "W" ? `${streak.length} straight win${streak.length > 1 ? "s" : ""}. Nobody panic.` : "A draw. Everyone slightly confused."}</p>}
         </div>
-        <div className="card p-5 lg:col-span-2">
+        <div className="card p-5">
           <SectionTitle right={<span className="flex gap-3"><Link href="/submit" className="link py-1 text-xs">Submit a score</Link><Link href="/matches" className="link py-1 text-xs">All fixtures</Link></span>} sub={current ? `${current.venue} · kick-offs vary, arrivals vary more` : undefined}>Coming up</SectionTitle>
           {upcoming.length ? <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="text-sm text-ash">No fixtures scheduled. The committee is in talks. The committee is also in the pub.</p>}
         </div>

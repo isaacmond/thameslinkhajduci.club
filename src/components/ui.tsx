@@ -33,7 +33,7 @@ export function SectionTitle({ children, sub, right, id }: { children: React.Rea
 
 export function Stat({ label, value, sub, tone = "default", size = "md" }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "default" | "win" | "draw" | "loss" | "gold"; size?: "sm" | "md" | "lg" }) {
   return (
-    <div className={clsx("card", size === "sm" ? "px-3 py-2.5" : "px-4 py-3")}>
+    <div className={clsx("card h-full", size === "sm" ? "px-3 py-2.5" : "px-4 py-3")}>
       <p className={clsx("eyebrow", size === "sm" && "!text-[10px] !tracking-[0.14em] whitespace-nowrap")}>{label}</p>
       <p className={clsx("display tabular leading-none", size === "lg" ? "mt-1 text-5xl" : size === "sm" ? "mt-1 text-3xl" : "mt-1 text-4xl", tone === "win" && "text-mint-soft", tone === "loss" && "text-[#ff9a9d]", tone === "draw" && "text-[#ffe27a]", tone === "gold" && "text-gold", tone === "default" && "text-cream")}>{value}</p>
       {sub && <p className={clsx("mt-1 text-ash", size === "sm" ? "text-[11px]" : "text-xs")}>{sub}</p>}
