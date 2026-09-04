@@ -60,6 +60,18 @@ Resend re-checks automatically (status at https://resend.com/domains, or `vercel
 
 Optional extra: `SCORE_WEBHOOK_URL` (Slack or Discord incoming webhook) posts each submission there too. Notifications are capped at 20 an hour per server instance so a prankster cannot burn the email quota; over the cap the submitter still gets the message to copy.
 
+## Signing in (WorkOS AuthKit)
+
+Members on the list in `src/lib/members.ts` can sign in (header "Sign in" link, or `/sign-in`). Signed in, they get `/account`: their own profile (photo, nickname, positions, shirt number, bio, first and last name) and their submissions on `/submit` are **written straight into the sheet** instead of emailed for approval (the email still arrives, as a record). Everyone else keeps the approval flow. The list is currently Isaac (two addresses) and Phil; add a line per person, or set `MEMBERS_JSON` on Vercel to a JSON array of `{ "player": "Name as in the sheet", "emails": ["..."] }` for additions without a deploy.
+
+Set up, in order (the site runs fine with sign-in hidden until all of it is done):
+
+1. **WorkOS dashboard** (https://dashboard.workos.com, the environment whose API key is on Vercel): copy the **Client ID** and run `npx vercel env add WORKOS_CLIENT_ID production` (and `development`) in the repo, or ask me to. Under **Redirects** add the redirect URIs `https://thameslinkhajduci.club/callback` and `http://localhost:3000/callback`, set the **Sign-in URL** to `https://thameslinkhajduci.club/sign-in` and the **Logout URI** to `https://thameslinkhajduci.club/`. Under **Authentication**, turn on Magic Auth (email code) and/or Google so nobody needs a password. Redeploy after the env var lands (`npx vercel redeploy <current production url>`); the header shows "Sign in" once `WORKOS_CLIENT_ID`, `WORKOS_API_KEY` and `WORKOS_COOKIE_PASSWORD` are all present. The last two are already set.
+2. **Google service account** (lets the site write to the sheet): in https://console.cloud.google.com create or pick a project, enable the **Google Sheets API**, create a **service account**, create a **JSON key** for it, and share the records sheet with the service account's email as an **Editor**. Then `npx vercel env add GOOGLE_SERVICE_ACCOUNT_JSON production` and paste the whole JSON file as the value (also `development` for local runs), and redeploy. Until this exists, signed-in members see their account page but saving says it is not switched on, and their submissions fall back to the approval email.
+3. **Photos** live in the Vercel Blob store `hajduci-media` (already created and connected; `BLOB_READ_WRITE_TOKEN` is set). The sheet gets the public URL in the Squad tab's Photo column.
+
+Profiles are stored on a **Squad** tab in the sheet (columns Player, Nickname, Position, Shirt, Photo, Bio, Updated). The site creates the tab and header the first time someone saves; you can edit it by hand too, it is read like any other tab.
+
 ## Friendlies
 
 Friendlies inside a season: enter the game in the season tab and write `Friendly` in the Type row. Friendlies outside any season: fill in the **Friendlies** tab (in the corrected workbook; or duplicate `Season template`, rename it `Friendlies`, and put `Friendly` in row 16 across B–U). They appear on `/matches`, `/seasons/friendlies` and player match logs, and never count towards records.

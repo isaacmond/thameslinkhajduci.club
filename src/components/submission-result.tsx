@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
 
 export type Edit = { cell: string; value: string | number; what: string };
-export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; summary?: string; text?: string; edits?: Edit[]; tab?: string | null; sheetUrl?: string };
+export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; applied?: boolean; appliedBy?: string | null; applyError?: string | null; summary?: string; text?: string; edits?: Edit[]; tab?: string | null; sheetUrl?: string };
 
 /** The "it's gone to the admin" card every submit form ends on: summary, optional preview, the message itself and ways to pass it on. */
 export function SubmissionResult({ result, onEdit, children }: { result: SubmitResult; onEdit: () => void; children?: React.ReactNode }) {
@@ -11,9 +11,9 @@ export function SubmissionResult({ result, onEdit, children }: { result: SubmitR
   const copy = async () => { if (!result.text) return; try { await navigator.clipboard.writeText(result.text); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* clipboard blocked */ } };
   return (
     <div className="card p-5 sm:p-6">
-      <p className="eyebrow">{result.sent ? "Sent for approval" : "Ready to send"}</p>
+      <p className="eyebrow">{result.applied ? "Recorded" : result.sent ? "Sent for approval" : "Ready to send"}</p>
       <h2 className="display mt-1 text-3xl text-cream">{result.summary}</h2>
-      <p className="mt-2 text-sm text-ash">{result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
+      <p className="mt-2 text-sm text-ash">{result.applied ? `Written straight into the records${result.appliedBy ? ` as ${result.appliedBy}` : ""}. The site updates within a minute. Post it to the group chat so everyone knows.` : result.applyError ? `${result.applyError} It has gone to the admin instead, who will apply it by hand.` : result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
       {children}
       <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
       <div className="mt-4 flex flex-wrap gap-2">

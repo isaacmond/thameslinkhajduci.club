@@ -1,9 +1,12 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { getData } from "@/lib/data";
 import { getAdminLayout, getSheetLayout, SHEET_URL } from "@/lib/sheet";
 import { fmtDate, gwLabel } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { emailScoreSubmission } from "@/lib/notify";
+import { currentMember } from "@/lib/auth";
+import { sheetsConfigured, writeCells } from "@/lib/google-sheets";
 import { log } from "@/lib/log";
 import { buildPaymentMessage, buildPlayerMessage, cellSafe, clean, editsLine, isCount, originAllowed, validatePayment, validatePlayer, type Built, type Edit, type Rejected } from "@/lib/submissions";
 import type { ClubData } from "@/lib/types";
@@ -13,6 +16,8 @@ import type { ClubData } from "@/lib/types";
  * validated against the real fixture list, roster and money table, turned into a human summary plus the exact cells to
  * change, then emailed to the admin (Resend via the Vercel Marketplace; SCORE_TO_EMAIL) and/or posted to SCORE_WEBHOOK_URL.
  * The reply carries the same text so the submitter can drop it in the group chat.
+ * Signed-in members (src/lib/members.ts) are different: their edits are written straight into the sheet when the site has a
+ * Google service account (GOOGLE_SERVICE_ACCOUNT_JSON), and the email becomes a record rather than a request.
  */
 type Body = Record<string, unknown>;
 type Kind = "score" | "payment" | "player";
@@ -153,14 +158,34 @@ export async function POST(req: Request) {
   const built = kind === "score" ? await buildScore(body, data) : kind === "payment" ? await buildPayment(body, data) : await buildPlayer(body, data);
   if ("error" in built) return NextResponse.json({ ok: false, error: built.error }, { status: 400 });
 
+  // Members write straight to the records. Anything that goes wrong falls back to the approval email below.
+  const member = await currentMember();
+  let applied = false, applyError: string | null = null;
+  if (member && sheetsConfigured() && built.edits.length) {
+    try {
+      const cells = await writeCells(built.edits, built.tab);
+      applied = true;
+      revalidateTag("sheet", { expire: 0 });
+      revalidatePath("/", "layout");
+      log("submit.applied", { kind, player: member.member.player, cells });
+    } catch (err) {
+      console.error("submit apply:", err);
+      applyError = "Could not write to the records sheet.";
+      log("submit.apply.failed", { kind, player: member.member.player });
+    }
+  }
+  const submittedBy = member ? `${built.submittedBy} (${member.member.player}, signed in)` : built.submittedBy;
+  const subject = applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : built.subject;
+  const text = applied ? built.text.replace("\n\n", `\nRecorded in the sheet by ${member!.member.player}, signed in as ${member!.email}.\n\n`) : built.text;
+
   const hook = process.env.SCORE_WEBHOOK_URL;
   const canNotify = notifyBudgetOk();
   if (!canNotify) log("submit.notify.budget", { kind, ip });
   const [emailed, hooked] = canNotify
     ? await Promise.all([
-        emailScoreSubmission({ subject: built.subject, text: built.text, summary: built.summary, edits: built.edits, tab: built.tab, sheetUrl: SHEET_URL, submittedBy: built.submittedBy }),
-        hook ? fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: built.text, content: built.text.slice(0, 1900) }) }).then((r) => r.ok).catch(() => false) : Promise.resolve(false),
+        emailScoreSubmission({ subject, text, summary: built.summary, edits: built.edits, tab: built.tab, sheetUrl: SHEET_URL, submittedBy, kind, applied }),
+        hook ? fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, content: text.slice(0, 1900) }) }).then((r) => r.ok).catch(() => false) : Promise.resolve(false),
       ])
     : [false, false]; // over budget: the submitter still gets the text to copy or share, the admin just is not pinged
-  return NextResponse.json({ ok: true, kind, sent: emailed || hooked, emailed, throttled: !canNotify, summary: built.summary, text: built.text, edits: built.edits, tab: built.tab, sheetUrl: SHEET_URL });
+  return NextResponse.json({ ok: true, kind, sent: emailed || hooked, emailed, applied, appliedBy: applied ? member!.member.player : null, applyError, throttled: !canNotify, summary: built.summary, text, edits: built.edits, tab: built.tab, sheetUrl: SHEET_URL });
 }

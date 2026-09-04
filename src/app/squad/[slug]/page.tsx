@@ -12,6 +12,7 @@ import { Avatar, FormStrip, PlayerLink, ResultPill, SectionTitle, Stat, Tag } fr
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
 import { PageTransition } from "@/components/page-transition";
+import { EditProfileLink } from "@/components/edit-profile-link";
 
 export async function generateStaticParams() {
   const data = await getData();
@@ -73,6 +74,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
               <Tag>{seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}</Tag>
               {ranks.map((r) => <Tag key={r.label} tone="gold"><Crown size={12} aria-hidden />#{r.rank} all-time {r.label}</Tag>)}
               <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.`} />
+              <EditProfileLink player={p.name} />
             </div>
             {notes.length > 0 && (
               <div className="mt-4 border-t border-white/10 pt-3">
@@ -152,7 +154,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
       </section>
 
       {(hatTricks.length > 0 || motms.length > 0 || (money && (money.totalCharged > 0 || money.paid > 0))) && (
-        <section className="grid grid-cols-1 gap-6 md:grid-cols-3 md:items-start">
+        <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {hatTricks.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Sparkles size={20} className="text-gold" aria-hidden />Hat-tricks</span></SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
           {motms.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Medal size={20} className="text-gold" aria-hidden />Man of the match</span></SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
           {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-5"><SectionTitle sub="Season 8 onwards">Tab</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow">Charged</dt><dd className="display text-2xl text-cream">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow">Paid</dt><dd className="display text-2xl text-mint-soft">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className={clsx("display text-2xl", money.balance > 0.01 ? "text-[#ff9a9d]" : "text-mint-soft")}>{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-ash">{money.balance > 0.01 ? <>The treasurer has been informed. <Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Paid? Log it →</Link></> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch hire. The others owe ${first}.` : "Fully paid up. A model citizen."} <Link href="/money" className="link">Money →</Link></p></div>}

@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
-import { CalendarDays, ClipboardPen, Coins, Database, Medal, Menu, Shield, Swords, Target, TrainFront, Trophy, Users, X } from "lucide-react";
+import { CalendarDays, ClipboardPen, Coins, Database, Medal, Menu, Shield, Swords, Target, TrainFront, Trophy, UserRound, Users, X } from "lucide-react";
 import { usePath } from "./use-path";
+import { AccountChip } from "./account-chip";
 
 const LINKS = [
   { href: "/", label: "Home" }, { href: "/squad", label: "Squad" }, { href: "/matches", label: "Matches" }, { href: "/seasons", label: "Seasons" },
@@ -14,7 +15,7 @@ const TABS = [{ href: "/", label: "Home", Icon: TrainFront }, { href: "/matches"
 const MORE = [{ href: "/submit", label: "Submit a score", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/opponents", label: "Opponents", Icon: Shield }, { href: "/compare", label: "Compare players", Icon: Swords }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data & API", Icon: Database }];
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
-export function Nav() {
+export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
   const path = usePath();
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-night/80 backdrop-blur-md">
@@ -37,15 +38,18 @@ export function Nav() {
             );
           })}
         </nav>
+        {authEnabled && <AccountChip className="hidden md:inline-flex" />}
         <span className="ml-auto text-[11px] uppercase tracking-widest text-ash md:hidden" aria-hidden>{LINKS.find((l) => isActive(path, l.href))?.label ?? ""}</span>
+        {authEnabled && <AccountChip className="md:hidden" />}
       </div>
     </header>
   );
 }
 
 /** Bottom tab bar for phones. Everything reachable in one thumb-tap; the four lesser-used pages sit behind "More". */
-export function MobileTabs() {
+export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
   const path = usePath();
+  const more = authEnabled ? [...MORE, { href: "/account", label: "Your account", Icon: UserRound }] : MORE;
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -53,7 +57,7 @@ export function MobileTabs() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
-  const moreActive = MORE.some((m) => isActive(path, m.href));
+  const moreActive = more.some((m) => isActive(path, m.href));
   const tab = "focus-ring flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors";
   return (
     <>
@@ -61,7 +65,7 @@ export function MobileTabs() {
       {open && (
         <div role="dialog" aria-label="More pages" className="fixed inset-x-3 bottom-[calc(3.5rem+0.75rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-white/10 bg-pine p-2 shadow-card animate-rise md:hidden">
           <ul className="grid grid-cols-2 gap-1">
-            {MORE.map((m) => (
+            {more.map((m) => (
               <li key={m.href}><Link href={m.href} onClick={() => setOpen(false)} aria-current={isActive(path, m.href) ? "page" : undefined} className={clsx("focus-ring flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium", isActive(path, m.href) ? "bg-mint/15 text-mint-soft" : "text-cream hover:bg-white/5")}><m.Icon size={18} aria-hidden />{m.label}</Link></li>
             ))}
           </ul>
