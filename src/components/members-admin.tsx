@@ -37,8 +37,8 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
         <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Email</span><input name="email" type="email" required placeholder="name@example.com" className={inputClass} /></label>
         <Select label="Signs in as" value={player} onChange={setPlayer} options={roster.map((r) => ({ value: r, label: r }))} />
         <input type="hidden" name="player" value={player} />
-        <label className="flex items-center gap-2 pb-2 text-xs text-ash"><input type="checkbox" name="admin" className="accent-mint" />Admin</label>
-        <button type="submit" disabled={pending} className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg bg-mint px-4 py-2 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
+        <label className="flex h-[2.375rem] items-center gap-2 text-xs text-ash"><input type="checkbox" name="admin" className="accent-mint" />Admin</label>
+        <button type="submit" disabled={pending} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-2 rounded-lg bg-mint px-4 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
       </form>
       {state && <p role="status" className={`text-sm ${state.ok ? "text-mint-soft" : "text-[#ff9a9d]"}`}>{state.message}</p>}
     </div>
