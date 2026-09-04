@@ -9,7 +9,7 @@
 export type Member = { player: string; emails: string[]; admin?: boolean };
 
 export const MEMBERS: Member[] = [
-  { player: "Isaac Mond", emails: ["sacdpuntas@ggmail.com", "isaacjlmond@gmail.com"], admin: true },
+  { player: "Isaac Mond", emails: ["sacdpuntas@gmail.com", "isaacjlmond@gmail.com"], admin: true },
   { player: "Phil Knott", emails: ["philknott1997@hotmail.com"] },
 ];
 
