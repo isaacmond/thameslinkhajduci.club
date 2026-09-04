@@ -1,5 +1,5 @@
 // One-off: read the workbook (SHEET_FILE, or the live Google export) and load it into DATABASE_URL, replacing what is there.
-// Run: SHEET_FILE=sheet-fixes/thameslink-hajduci-corrected.xlsx npx tsx scripts/import-sheet.ts
+// Run: SHEET_FILE=sheet-fixes/thameslink-hajduci-corrected.xlsx npx tsx scripts/import-sheet.mts
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "../src/db/schema";
