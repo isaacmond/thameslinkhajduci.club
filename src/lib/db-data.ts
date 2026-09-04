@@ -56,7 +56,8 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
     });
     const perPlayer = new Map<string, { apps: number; goals: number }>();
     for (const m of matches) if (m.countsForRecords) for (const l of m.lineup) { const x = perPlayer.get(l.player) ?? { apps: 0, goals: 0 }; if (l.played) x.apps++; x.goals += l.goals; perPlayer.set(l.player, x); }
-    const top = (key: "apps" | "goals") => { const best = [...perPlayer.entries()].sort((a, b) => b[1][key] - a[1][key] || a[0].localeCompare(b[0]))[0]; return best && best[1][key] > 0 ? best[0] : null; };
+    // "Seb Burgess (14)", the way the sheet's summary block wrote it; ties go to whoever is first on the team sheet
+    const top = (key: "apps" | "goals") => { const best = [...perPlayer.entries()].sort((a, b) => b[1][key] - a[1][key] || (order.get(a[0]) ?? 1e9) - (order.get(b[0]) ?? 1e9))[0]; return best && best[1][key] > 0 ? `${best[0]} (${best[1][key]})` : null; };
     const base: SeasonSummary = { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, topScorer: top("goals"), mostApps: top("apps"), seasonCost: num(s.seasonCost), paidBy: s.paidBy };
     const season: Season = { id: s.id, number: s.number, title: s.title, venue: s.venue, period: s.period, matches, summary: recomputeSummary(matches, base), players: roster, isCurrent: false, isComplete: seasonComplete(matches) };
     if (isFriendlies) { if (matches.length) { season.venue = season.venue || "Various venues"; season.period = season.period || "Whenever we fancy"; friendlies = season; } }
