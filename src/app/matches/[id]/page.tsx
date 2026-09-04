@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
 import { getData } from "@/lib/data";
+import { dbConfigured } from "@/lib/db";
+import { getSquad } from "@/lib/writes";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, opponentKey, playedMatches, scorersFor, scoreline, seasonHref } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, serviceStatus } from "@/lib/captions";
@@ -53,6 +55,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const sponsor = sponsorFor(m.id);
   // A forecast only makes sense before kick-off: an old fixture that never got a score would otherwise be "predicted" from games played after it.
   const showPreview = !m.played && !isForfeit && (!m.date || m.date >= londonToday());
+  const squad = showPreview && dbConfigured() ? await getSquad(m.id).catch(() => null) : null;
   const shareText = m.played ? `Thameslink Hajduci ${m.ourGoals}–${m.theirGoals} ${opponentLabel} · ${status.word}${m.motm ? ` · MOTM ${m.motm}` : ""}` : `Thameslink Hajduci vs ${m.opponent} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} ${m.kickOff ?? ""}`;
 
   return (
@@ -124,6 +127,13 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 {!m.scorersRecorded && (m.ourGoals ?? 0) > 0 && <div><dt className="eyebrow">Note</dt><dd className="mt-1 text-ash">Scorers weren&apos;t logged, so this game doesn&apos;t count towards anyone&apos;s goals-per-game.</dd></div>}
               </dl>
             </div>
+          )}
+          {squad && squad.players.length > 0 && (
+            <section className="card p-5" aria-labelledby="expected-squad">
+              <SectionTitle id="expected-squad" sub={`${squad.players.length} named by the admin. Subject to who actually turns up.`}>Expected squad</SectionTitle>
+              <ul className="flex flex-wrap gap-2">{squad.players.map((p) => <li key={p}><PlayerLink name={p} player={byName.get(p)} avatar className="chip normal-case tracking-normal" /></li>)}</ul>
+              {squad.note && <p className="mt-3 border-l-2 border-mint pl-3 text-sm text-cream/90">{squad.note}</p>}
+            </section>
           )}
           {showPreview && <MatchPreview data={data} match={m} />}
           {h2h && !isForfeit && (m.played || h2h.matches.some((x) => x.id !== m.id)) && (

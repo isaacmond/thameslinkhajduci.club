@@ -4,7 +4,8 @@ import { currentMember, forgetMembers } from "@/lib/auth";
 import { purge } from "@/lib/apply";
 import { getData } from "@/lib/data";
 import { clean, rosterName, validEmailAddress } from "@/lib/admin-validation";
-import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, upsertFixture, upsertSeason } from "@/lib/writes";
+import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, saveSquad, setAdmin, upsertFixture, upsertSeason } from "@/lib/writes";
+import { sendSquadReminders } from "@/lib/reminders";
 import { log } from "@/lib/log";
 
 /** Everything here is admin-only. Each action re-checks the session; the UI merely hides what it must not offer. */
@@ -65,10 +66,10 @@ export async function saveSeasonAction(_prev: ActionState, form: FormData): Prom
   const id = clean(form.get("id"), 6).toUpperCase();
   if (!/^S\d{1,2}$/.test(id)) return fail("Season ids look like S9.");
   const pitchCost = clean(form.get("pitchCost"), 10);
-  const seasonCost = clean(form.get("seasonCost"), 10);
+  if (pitchCost && !(Number(pitchCost) >= 0)) return fail("Pitch cost should be a number of pounds.");
   await upsertSeason({
     id, number: Number(id.slice(1)), title: clean(form.get("title"), 120), venue: clean(form.get("venue"), 120), period: clean(form.get("period"), 60),
-    pitchCost: pitchCost ? Number(pitchCost) : null, paidBy: clean(form.get("paidBy"), 60) || null, seasonCost: seasonCost ? Number(seasonCost) : 0,
+    pitchCost: pitchCost ? Number(pitchCost) : null, paidBy: clean(form.get("paidBy"), 60) || null,
   });
   purge(); revalidatePath("/admin");
   return { ok: true, message: `${id} saved.` };
@@ -96,4 +97,43 @@ export async function deleteFixtureAction(id: string): Promise<ActionState> {
   await deleteFixture(id);
   purge(); revalidatePath("/admin");
   return { ok: true, message: "Fixture removed." };
+}
+
+export async function setAdminAction(player: string, makeAdmin: boolean): Promise<ActionState> {
+  const s = await admin();
+  const rows = await listMembers();
+  const mine = rows.filter((r) => r.player === player);
+  if (!mine.length) return fail(`${player} has no address on the list yet.`);
+  if (!makeAdmin && !rows.some((r) => r.admin && r.player !== player)) return fail("That would leave the club with no admin. Make someone else an admin first.");
+  await setAdmin(player, makeAdmin);
+  forgetMembers();
+  revalidatePath("/admin");
+  log("member.admin", { player, admin: makeAdmin, by: s.member.player });
+  return { ok: true, message: makeAdmin ? `${player} is now an admin.` : `${player} is no longer an admin.` };
+}
+
+export async function saveSquadAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const s = await admin();
+  const matchId = clean(form.get("matchId"), 40);
+  const data = await getData();
+  const m = data.matches.find((x) => x.id === matchId);
+  if (!m) return fail("Pick a fixture.");
+  if (m.played) return fail("That game has been played; the line-up is recorded with the result.");
+  const roster = new Set([...data.players.map((p) => p.name), ...data.seasons.flatMap((x) => x.players)]);
+  const players = form.getAll("players").map(String).filter((p) => roster.has(p));
+  if (players.length > 14) return fail("Fourteen is a lot of people for six-a-side.");
+  await saveSquad(matchId, players, clean(form.get("note"), 400) || null, s.email);
+  revalidatePath("/admin"); revalidatePath(`/matches/${matchId}`);
+  log("squad.saved", { matchId, players: players.length, by: s.member.player });
+  return { ok: true, message: players.length ? `Team sheet saved: ${players.length} for ${m.opponent}. Reminders go out the day before.` : `Team sheet cleared for ${m.opponent}.` };
+}
+
+export async function sendRemindersAction(matchId: string): Promise<ActionState> {
+  const s = await admin();
+  const r = await sendSquadReminders(matchId);
+  revalidatePath("/admin");
+  log("reminders.manual", { matchId, by: s.member.player, ...r });
+  if (r.skipped) return fail(r.skipped);
+  const parts = [r.sent.length ? `Sent to ${r.sent.length}: ${r.sent.join(", ")}.` : "Nobody could be emailed.", r.noEmail.length ? `No email on the members list for ${r.noEmail.join(", ")}: chase them in the group chat.` : "", r.failed.length ? `Failed for ${r.failed.join(", ")}.` : ""].filter(Boolean);
+  return { ok: r.sent.length > 0, message: parts.join(" ") };
 }

@@ -116,3 +116,13 @@ export const submissions = pgTable("submissions", {
   decidedAt: timestamp({ withTimezone: true }),
   decidedBy: text(),
 }, (t) => [index("submissions_status_idx").on(t.status, t.createdAt)]);
+
+/** The expected squad for an upcoming fixture, as the admin sets it; reminders go out the day before. */
+export const squads = pgTable("squads", {
+  matchId: text().primaryKey().references(() => matches.id, { onDelete: "cascade" }),
+  players: text().array().notNull().default([]),
+  note: text(),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updatedBy: text(),
+  remindedAt: timestamp({ withTimezone: true }),
+});

@@ -11,7 +11,7 @@ export type PaymentChange = { player: string; to: string | null; amount: number;
 export type PlayerChange = { name: string; nickname: string; positions: string[]; shirt: number | null; photo: string; seasonId: string | null };
 export type ProfileChange = { nickname?: string; positions?: string[]; shirt?: number | null; photo?: string | null; bio?: string };
 export type FixtureChange = { id?: string; seasonId: string; gw: number; date: string | null; kickOff: string | null; opponent: string; type: string | null; matchCost: number | null; comment?: string | null };
-export type SeasonChange = { id: string; number: number; title: string; venue: string; period: string; pitchCost: number | null; paidBy: string | null; seasonCost: number };
+export type SeasonChange = { id: string; number: number; title: string; venue: string; period: string; pitchCost: number | null; paidBy: string | null };
 
 const money = (n: number | null | undefined) => (n === null || n === undefined ? null : n.toFixed(2));
 
@@ -78,7 +78,7 @@ export async function removeMember(email: string, db: Db = getDb()) {
 
 /* -------------------------------------------------------- seasons & fixtures */
 export async function upsertSeason(c: SeasonChange, db: Db = getDb()) {
-  const row = { number: c.number, title: c.title, venue: c.venue, period: c.period, pitchCost: money(c.pitchCost), paidBy: c.paidBy, seasonCost: c.seasonCost.toFixed(2) };
+  const row = { number: c.number, title: c.title, venue: c.venue, period: c.period, pitchCost: money(c.pitchCost), paidBy: c.paidBy }; // season cost is price per game × fixtures, computed on read
   await db.insert(schema.seasons).values({ id: c.id, ...row }).onConflictDoUpdate({ target: schema.seasons.id, set: row });
 }
 export async function upsertFixture(c: FixtureChange, by: string, db: Db = getDb()) {
@@ -122,4 +122,34 @@ export async function applySubmission(id: number, by: string, db: Db = getDb()):
 }
 export async function rejectSubmission(id: number, by: string, db: Db = getDb()) {
   await db.update(schema.submissions).set({ status: "rejected", decidedAt: new Date(), decidedBy: by }).where(and(eq(schema.submissions.id, id), eq(schema.submissions.status, "pending")));
+}
+
+/* ----------------------------------------------------------------- admin flag */
+/** Make (or unmake) a player an admin; applies to every address they sign in with. */
+export async function setAdmin(player: string, admin: boolean, db: Db = getDb()) {
+  await db.update(schema.members).set({ admin }).where(eq(schema.members.player, player));
+}
+
+/* ---------------------------------------------------------------- team sheets */
+export type Squad = typeof schema.squads.$inferSelect;
+export async function getSquad(matchId: string, db: Db = getDb()): Promise<Squad | null> {
+  const [s] = await db.select().from(schema.squads).where(eq(schema.squads.matchId, matchId));
+  return s ?? null;
+}
+export async function listSquads(db: Db = getDb()): Promise<Squad[]> {
+  return db.select().from(schema.squads);
+}
+/** Set the expected squad for a fixture. Changing it clears the "reminded" mark so the new list gets its reminder. */
+export async function saveSquad(matchId: string, players: string[], note: string | null, by: string, db: Db = getDb()) {
+  const unique = [...new Set(players.map((p) => p.trim()).filter(Boolean))];
+  const row = { players: unique, note: note || null, updatedAt: new Date(), updatedBy: by, remindedAt: null };
+  await db.insert(schema.squads).values({ matchId, ...row }).onConflictDoUpdate({ target: schema.squads.matchId, set: row });
+}
+export async function markReminded(matchId: string, db: Db = getDb()) {
+  await db.update(schema.squads).set({ remindedAt: new Date() }).where(eq(schema.squads.matchId, matchId));
+}
+/** Squads for fixtures on `date` (yyyy-mm-dd) that have not had their reminder yet. */
+export async function squadsNeedingReminder(date: string, db: Db = getDb()): Promise<(Squad & { opponent: string })[]> {
+  const rows = await db.select({ squad: schema.squads, opponent: schema.matches.opponent }).from(schema.squads).innerJoin(schema.matches, eq(schema.matches.id, schema.squads.matchId)).where(and(eq(schema.matches.date, date), sql`${schema.squads.remindedAt} is null`));
+  return rows.map((r) => ({ ...r.squad, opponent: r.opponent }));
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import { ShieldCheck, Trash2, UserPlus } from "lucide-react";
-import { addMemberAction, removeMemberAction, type ActionState } from "@/app/actions/admin";
+import { addMemberAction, removeMemberAction, setAdminAction, type ActionState } from "@/app/actions/admin";
 import { inputClass, Select } from "./controls";
 
 export type MemberRow = { email: string; player: string; admin: boolean };
@@ -13,6 +13,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
   const [removed, setRemoved] = useState<ActionState>(null);
   const [busy, start] = useTransition();
   const remove = (email: string) => start(async () => setRemoved(await removeMemberAction(email)));
+  const toggleAdmin = (player: string, makeAdmin: boolean) => start(async () => setRemoved(await setAdminAction(player, makeAdmin)));
   const byPlayer = new Map<string, MemberRow[]>();
   for (const m of members) byPlayer.set(m.player, [...(byPlayer.get(m.player) ?? []), m]);
   return (
@@ -21,7 +22,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
         {[...byPlayer.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([p, rows]) => (
           <li key={p} className="flex flex-col gap-1 py-2 sm:flex-row sm:items-start sm:gap-4">
             <span className="w-40 shrink-0 font-medium text-cream">{p}{rows.some((r) => r.admin) && <ShieldCheck size={14} className="ml-1 inline text-gold" aria-label="admin" />}</span>
-            <ul className="flex flex-wrap gap-2">
+            <ul className="flex min-w-0 flex-1 flex-wrap gap-2">
               {rows.map((r) => (
                 <li key={r.email} className="chip gap-2">
                   <span className="font-normal normal-case tracking-normal text-cream/90">{r.email}</span>
@@ -29,6 +30,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
                 </li>
               ))}
             </ul>
+            <button type="button" disabled={busy} onClick={() => toggleAdmin(p, !rows.some((r) => r.admin))} className="focus-ring shrink-0 self-start rounded-md px-2 py-0.5 text-xs text-ash hover:text-cream">{rows.some((r) => r.admin) ? "Remove admin" : "Make admin"}</button>
           </li>
         ))}
       </ul>

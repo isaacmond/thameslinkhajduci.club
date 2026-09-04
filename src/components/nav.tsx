@@ -18,7 +18,7 @@ const isActive = (path: string, href: string) => (href === "/" ? path === "/" : 
 export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
   const path = usePath();
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-night/80 backdrop-blur-md">
+    <header className="vt-header sticky top-0 z-40 border-b border-white/10 bg-night/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="focus-ring flex shrink-0 items-center gap-3 rounded-lg py-3">
           <Image src="/crest.png" alt="Thameslink Hajduci crest" width={44} height={44} priority className="h-10 w-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] sm:h-11 sm:w-11" />
@@ -71,7 +71,7 @@ export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
           </ul>
         </div>
       )}
-      <nav aria-label="Primary (mobile)" className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-white/10 bg-night/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+      <nav aria-label="Primary (mobile)" className="vt-tabs fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-white/10 bg-night/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
         {TABS.map((t) => { const active = isActive(path, t.href); return <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined} className={clsx(tab, active ? "text-mint-soft" : "text-ash")}><t.Icon size={20} aria-hidden />{t.label}</Link>; })}
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={clsx(tab, open || moreActive ? "text-mint-soft" : "text-ash")}>{open ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}More</button>
       </nav>

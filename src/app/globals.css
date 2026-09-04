@@ -98,6 +98,12 @@ table.stats th.num, table.stats td.num { text-align: right; font-variant-numeric
 ::view-transition-new(.page-in) { animation: 220ms ease-out 120ms both vt-fade, 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both vt-lift; }
 ::view-transition-group(.morph) { animation-duration: 380ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
 ::view-transition-image-pair(.morph) { animation-name: vt-blur; }
+/* The sticky header and the phone tab bar get their own transition layers, stacked above the page snapshot: otherwise the
+   page's snapshot (captured under the header when scrolled) is painted over the header for the length of the animation. */
+.vt-header { view-transition-name: site-header; }
+.vt-tabs { view-transition-name: site-tabs; }
+::view-transition-group(site-header), ::view-transition-group(site-tabs) { z-index: 100; animation: none; }
+::view-transition-old(site-header), ::view-transition-new(site-header), ::view-transition-old(site-tabs), ::view-transition-new(site-tabs) { animation: none; }
 @keyframes vt-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes vt-lift { from { transform: translateY(10px); } to { transform: none; } }
 @keyframes vt-drop { from { transform: translateY(-6px); } to { transform: none; } }

@@ -75,11 +75,12 @@ describe("members, seasons, fixtures, the queue", () => {
     expect((await listMembers(db)).some((m) => m.email === "maxcobain@live.com")).toBe(false);
   });
   it("creates a season and fixtures, with the season's pitch cost as the default", async () => {
-    await upsertSeason({ id: "S9", number: 9, title: "Season 9 · Old Street · Jan–Apr 2027", venue: "Old Street", period: "Jan–Apr 2027", pitchCost: 81.5, paidBy: "Isaac Mond", seasonCost: 0 }, db);
+    await upsertSeason({ id: "S9", number: 9, title: "Season 9 · Old Street · Jan–Apr 2027", venue: "Old Street", period: "Jan–Apr 2027", pitchCost: 81.5, paidBy: "Isaac Mond" }, db);
     const id = await upsertFixture({ seasonId: "S9", gw: 1, date: "2027-01-05", kickOff: "20:15", opponent: "Old Ivy", type: null, matchCost: null }, "isaac", db);
     expect(id).toBe("s9-gw1");
     const data = await loadClubData(db);
     expect(data.matches.find((m) => m.id === "s9-gw1")).toMatchObject({ opponent: "Old Ivy", matchCost: 81.5, played: false });
+    expect(data.seasons.find((s) => s.id === "S9")!.summary.seasonCost).toBeCloseTo(81.5, 6); // price per game × games
     await deleteFixture("s9-gw1", db);
     expect((await loadClubData(db)).matches.some((m) => m.id === "s9-gw1")).toBe(false);
   });
@@ -95,5 +96,30 @@ describe("members, seasons, fixtures, the queue", () => {
     await rejectSubmission(other, "Isaac Mond", db);
     expect((await pendingSubmissions(db)).length).toBe(0);
     expect((await loadClubData(db)).players.some((p) => p.name === "Nope Nobody")).toBe(false);
+  });
+});
+
+describe("team sheets and the admin flag", () => {
+  it("saves a squad, finds it by date for reminders, and clears the reminded mark on change", async () => {
+    const { getSquad, listSquads, markReminded, saveSquad, squadsNeedingReminder } = await import("@/lib/writes");
+    const data = await loadClubData(db);
+    const fixture = data.seasons.find((s) => s.id === "S8")!.matches.find((m) => !m.played && m.date)!;
+    await saveSquad(fixture.id, ["Phil Knott", "Seb Burgess", "Phil Knott"], "Dark bibs", "isaac", db);
+    expect((await getSquad(fixture.id, db))!.players).toEqual(["Phil Knott", "Seb Burgess"]);
+    expect((await squadsNeedingReminder(fixture.date!, db)).map((s) => s.matchId)).toEqual([fixture.id]);
+    await markReminded(fixture.id, db);
+    expect(await squadsNeedingReminder(fixture.date!, db)).toEqual([]);
+    await saveSquad(fixture.id, ["Phil Knott"], null, "isaac", db);
+    expect((await squadsNeedingReminder(fixture.date!, db)).length).toBe(1);
+    expect((await listSquads(db)).length).toBe(1);
+  });
+  it("flips the admin flag for every address of a player", async () => {
+    const { addMember, listMembers, setAdmin } = await import("@/lib/writes");
+    await addMember("phil@a.test", "Phil Knott", false, "isaac", db);
+    await addMember("phil@b.test", "Phil Knott", false, "isaac", db);
+    await setAdmin("Phil Knott", true, db);
+    expect((await listMembers(db)).filter((m) => m.player === "Phil Knott").every((m) => m.admin)).toBe(true);
+    await setAdmin("Phil Knott", false, db);
+    expect((await listMembers(db)).some((m) => m.player === "Phil Knott" && m.admin)).toBe(false);
   });
 });
