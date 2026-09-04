@@ -44,7 +44,9 @@ See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names it
 
 `/submit` lets anyone report a result, scorers, assists, line-up and MOTM. **Nothing is written by the site.** The request is validated (real fixture, real roster names, scorers can't exceed the score) and turned into a message with the exact cells to change in the sheet (tab, cell, value). The submitter can send it to the group chat (WhatsApp share), copy it, or, if they're an admin, open the sheet. You apply it in seconds; the site follows within a minute.
 
-Optional: set a `SCORE_WEBHOOK_URL` environment variable on the Vercel project (Slack or Discord incoming webhook URL) and every submission is also posted there for approval. Add it under Project → Settings → Environment Variables, then redeploy. Without it the button reads "Prepare the request" instead of "Submit for approval".
+**Email to the admin (Resend, via the Vercel Marketplace).** Every valid submission is emailed to the address in the `SCORE_TO_EMAIL` env var (already set on the project). One step is yours: accept Resend's marketplace terms at https://vercel.com/isaacs-projects-d16aba6d/~/integrations/accept-terms/resend?source=cli, then run `npx vercel integration add resend --no-claim --scope isaacs-projects-d16aba6d` in the repo (or ask me to). That provisions Resend and sets `RESEND_API_KEY` on the project; the next deploy starts sending. Because your Vercel account is the same Gmail address, Resend's default sender reaches it without any DNS work. To send from `scores@thameslinkhajduci.club` instead, verify the domain in the Resend dashboard (it gives you two DNS records for Squarespace) and set `SCORE_FROM_EMAIL`.
+
+Optional extra: `SCORE_WEBHOOK_URL` (Slack or Discord incoming webhook) posts each submission there too.
 
 ## Friendlies
 

@@ -35,7 +35,7 @@ npm run build      # production build (fetches the sheet at build time)
 npm run lint
 ```
 
-Environment variables (all optional): `SHEET_ID` to point at a different spreadsheet, `NEXT_PUBLIC_SITE_URL` for absolute URLs in metadata and the API docs, `SCORE_WEBHOOK_URL` to forward score submissions to a Slack/Discord webhook.
+Environment variables (all optional): `SHEET_ID` to point at a different spreadsheet, `NEXT_PUBLIC_SITE_URL` for absolute URLs in metadata and the API docs, `SCORE_TO_EMAIL` + `RESEND_API_KEY` (Resend via the Vercel Marketplace) to email score submissions to the admin, `SCORE_FROM_EMAIL` to send from a verified domain, `SCORE_WEBHOOK_URL` to also post them to a Slack/Discord webhook.
 
 ## Stack
 

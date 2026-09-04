@@ -64,7 +64,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
       <div className="card p-5 sm:p-6">
         <p className="eyebrow">{result.sent ? "Sent for approval" : "Ready to send"}</p>
         <h2 className="display mt-1 text-3xl text-cream">{result.summary}</h2>
-        <p className="mt-2 text-sm text-ash">{result.sent ? "The admin has it and will update the records once it's checked. Nothing changes on the site until then." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
+        <p className="mt-2 text-sm text-ash">{result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
         <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
         <div className="mt-4 flex flex-wrap gap-2">
           <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-4 py-2.5 font-semibold text-night hover:bg-mint-soft"><Send size={16} aria-hidden />Send to the group chat</a>

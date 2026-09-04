@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { getData } from "@/lib/data";
 import { getSheetLayout, SHEET_URL } from "@/lib/sheet";
 import { fmtDate, gwLabel } from "@/lib/stats";
+import { emailScoreSubmission } from "@/lib/notify";
 
 /**
  * Score submissions. Nothing is written anywhere by this site: the request is validated against the real fixture list
- * and roster, turned into a human summary plus the exact cells to change, and (if SCORE_WEBHOOK_URL is set) posted to
- * the admin's Slack/Discord webhook for approval. The reply also carries the text so the submitter can drop it in the group chat.
+ * and roster, turned into a human summary plus the exact cells to change, then emailed to the admin (Resend via the Vercel
+ * Marketplace; SCORE_TO_EMAIL) and/or posted to SCORE_WEBHOOK_URL. The reply also carries the text so the submitter can drop it in the group chat.
  */
 type Body = { match?: string; ours?: number; theirs?: number; scorers?: Record<string, number>; assists?: Record<string, number>; played?: string[]; motm?: string | null; submittedBy?: string; note?: string; website?: string };
 
@@ -77,10 +78,11 @@ export async function POST(req: Request) {
   ].filter((l): l is string => l !== null);
   const text = lines.join("\n");
 
-  let sent = false;
   const hook = process.env.SCORE_WEBHOOK_URL;
-  if (hook) {
-    try { const r = await fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, content: text.slice(0, 1900) }) }); sent = r.ok; } catch { sent = false; }
-  }
-  return NextResponse.json({ ok: true, sent, summary, text, edits, tab: layout?.tab ?? null, sheetUrl: SHEET_URL });
+  const [emailed, hooked] = await Promise.all([
+    emailScoreSubmission({ subject: `Score submission: ${summary}`, text, summary, edits, tab: layout?.tab ?? null, sheetUrl: SHEET_URL, submittedBy }),
+    hook ? fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, content: text.slice(0, 1900) }) }).then((r) => r.ok).catch(() => false) : Promise.resolve(false),
+  ]);
+  const sent = emailed || hooked;
+  return NextResponse.json({ ok: true, sent, emailed, summary, text, edits, tab: layout?.tab ?? null, sheetUrl: SHEET_URL });
 }

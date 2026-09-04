@@ -30,7 +30,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: Promi
     <PageTransition>
     <div className="space-y-8">
       <PageHeader eyebrow="Match report" title="Submit a score" sub="Just played? Put the result, scorers and line-up in here. It goes to the admin for approval and shows up on the site once it's checked, so nobody can slip a 14–0 past us." />
-      <ScoreForm fixtures={fixtures} roster={roster} initialMatch={match} webhook={Boolean(process.env.SCORE_WEBHOOK_URL)} />
+      <ScoreForm fixtures={fixtures} roster={roster} initialMatch={match} webhook={Boolean(process.env.SCORE_WEBHOOK_URL || (process.env.RESEND_API_KEY && process.env.SCORE_TO_EMAIL))} />
     </div>
     </PageTransition>
   );
