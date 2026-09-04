@@ -8,7 +8,7 @@ The website of Thameslink Hajduci, a six-a-side football club from East London t
 
 - **Source of truth:** the [club spreadsheet](https://docs.google.com/spreadsheets/d/1nCwz2uInlh3gePYORxvW3_0SlpFS8KgRxCCoccvw9zA/edit). One tab per season (`S1`, `S2`, …) plus `Money` and `Payments`. The site downloads the workbook as `.xlsx` and parses it in `src/lib/sheet.ts`.
 - **Caching:** the fetch is cached for 60 seconds (Next.js data cache, tag `sheet`). `POST /api/revalidate` forces a re-read; the Data page has a button for it.
-- **Rules:** friendlies and forfeits (the `Type` row) are shown but excluded from W/D/L, goals and player totals. Goals-per-game only counts games where scorers were logged; assists-per-game only counts games where assists were logged. Opponent names are normalised so head-to-head records line up.
+- **Rules:** friendlies and forfeits (the `Type` row) are shown but excluded from W/D/L, goals and player totals. The sheet's champagne-moment row is ignored. Goals-per-game only counts games where scorers were logged; assists-per-game only counts games where assists were logged. Opponent names are normalised so head-to-head records line up.
 - **Profile extras:** photos, shirt numbers and positions come from `src/lib/squad-extras.json` (carried over from the old team app). A tab called `Squad` in the sheet (`Player, Nickname, Position, Shirt, Photo, Bio`) overrides it field by field.
 
 ## Pages
@@ -47,4 +47,4 @@ Next.js 16 (App Router, ISR), React 19, Tailwind CSS 4, Recharts, SheetJS for th
 
 ## Sponsors
 
-With thanks to TfL, Thameslink, Lime and Deliciously Ella, none of whom know we exist.
+With thanks to our partners Transport for London, Thameslink, Lime and Deliciously Ella.

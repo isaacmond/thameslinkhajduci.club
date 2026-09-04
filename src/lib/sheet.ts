@@ -129,7 +129,7 @@ function parseSeasonTab(id: string, grid: Grid): Season | null {
 
   const row = (label: string) => { const r = findRow(grid, label, matchRow); return r >= 0 ? grid[r] : []; };
   const dates = row("Date"), kos = row("Kick-off"), opps = row("Opponent"), ours = row("Our goals"),
-    theirs = row("Their goals"), results = row("Result"), motms = row("MOTM"), champs = row("Champagne"),
+    theirs = row("Their goals"), results = row("Result"), motms = row("MOTM"),
     comments = row("Comments"), costs = row("Match cost"), pig = row("Players in game"), cpp = row("Cost per player"),
     types = row("Type");
 
@@ -167,7 +167,6 @@ function parseSeasonTab(id: string, grid: Grid): Season | null {
       opponent: opponent ?? "TBC",
       ourGoals: og, theirGoals: tg, result, played,
       motm: str(motms[col]) ? canonicalName(str(motms[col])!) : null,
-      champagne: str(champs[col]) ? canonicalName(str(champs[col])!) : null,
       comment: str(comments[col]),
       type,
       countsForRecords: !type,
@@ -281,7 +280,7 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
   const get = (name: string) => {
     let p = map.get(name);
     if (!p) {
-      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, champagne: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {} };
+      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {} };
       map.set(name, p);
     }
     return p;
@@ -290,7 +289,7 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
     const perSeason = new Map<string, PlayerSeasonStats>();
     const ps = (name: string) => {
       let x = perSeason.get(name);
-      if (!x) { x = { seasonId: s.id, apps: 0, gpgGames: 0, apgGames: 0, goals: 0, assists: 0, motm: 0, champagne: 0, cost: 0 }; perSeason.set(name, x); }
+      if (!x) { x = { seasonId: s.id, apps: 0, gpgGames: 0, apgGames: 0, goals: 0, assists: 0, motm: 0, cost: 0 }; perSeason.set(name, x); }
       return x;
     };
     const roster = new Set(s.players);
@@ -311,9 +310,8 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
       }
       // Awards only count for people on the season's roster; a typo or a guest in the MOTM cell must not mint a new squad member.
       if (m.countsForRecords && m.motm && roster.has(m.motm)) { const p = get(m.motm); p.motm++; ps(m.motm).motm++; }
-      if (m.countsForRecords && m.champagne && roster.has(m.champagne)) { const p = get(m.champagne); p.champagne++; ps(m.champagne).champagne++; }
     }
-    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm || x.champagne) get(name).seasons.push(x); }
+    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm) get(name).seasons.push(x); }
   }
   for (const p of map.values()) {
     p.goalsPerGame = p.gpgGames ? +(p.goals / p.gpgGames).toFixed(2) : 0;
@@ -321,7 +319,7 @@ function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>): Playe
     const decided = p.wins + p.draws + p.losses;
     p.winRate = decided ? +((p.wins / decided) * 100).toFixed(1) : 0;
   }
-  return [...map.values()].filter((p) => p.apps > 0 || p.goals > 0 || p.assists > 0 || p.motm > 0 || p.champagne > 0).sort((a, b) => b.apps - a.apps || b.goals - a.goals || a.name.localeCompare(b.name));
+  return [...map.values()].filter((p) => p.apps > 0 || p.goals > 0 || p.assists > 0 || p.motm > 0).sort((a, b) => b.apps - a.apps || b.goals - a.goals || a.name.localeCompare(b.name));
 }
 
 const STATIC_EXTRAS: Record<string, { shirt: number | null; positions: string[]; photo: string | null }> = staticExtras;

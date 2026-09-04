@@ -4,12 +4,12 @@ The site reads the Google Sheet as-is, so anything odd in the sheet shows up on 
 
 ## What's in this folder
 
-- `thameslink-hajduci-corrected.xlsx`: the whole workbook with the 29 opponent-name fixes below applied and nothing else touched. Formulas, dates, column widths and the Payments dropdown are preserved.
-- `changes.csv`: the same 29 edits as a flat list.
+- `thameslink-hajduci-corrected.xlsx`: the whole workbook with the 29 opponent-name fixes below applied, plus the S1 GW5 score corrected to 2–1 (Isaac, 4 Sep 2026). Nothing else touched. Formulas, dates, column widths and the Payments dropdown are preserved.
+- `changes.csv`: the same 31 cell edits as a flat list.
 
 ## How to apply
 
-**Option A (recommended, 5 minutes): make the 29 cell edits by hand** using the table in section 1. Nothing else changes and you keep the sheet's revision history intact.
+**Option A (recommended, 5 minutes): make the 31 cell edits by hand** using the table in section 1 plus the two cells in 2.1. Nothing else changes and you keep the sheet's revision history intact.
 
 **Option B: replace the whole spreadsheet.** In the Google Sheet: File → Import → Upload → pick `thameslink-hajduci-corrected.xlsx` → Import location "Replace spreadsheet". The URL and sheet ID stay the same, so the site keeps working. Afterwards check that the All-time tab still recalculates (it uses `INDIRECT`, which Sheets supports) and that the Payments tab's dropdown survived. Tab `gid`s may change, which does not matter to the site (it finds tabs by name).
 
@@ -51,16 +51,16 @@ The same club was spelled up to five different ways, which split head-to-head re
 | S7 | J5 | Enjoy your mane Jane | Enjoy Your Mane Jane |
 | S7 | P5 | Xzr Fc | XZR FC |
 
-## 2. Needs your decision
+## 2. Decisions and open questions
 
-### 2.1 Season 1, GW5 vs Clapham Casuals: the score contradicts the scorer marks
-The sheet has it as **1–2 (L)**, but two Hajduci goalscorers and two assists are logged for that game, and the old team app recorded it as **2–1 (W)**. One of those is wrong. If it was 2–1, edit tab **S1** cells **F6** (Our goals) → `2` and **F7** (Their goals) → `1`; Score/Result recalculate. That would make Season 1 W3 D1 L6 and the all-time record one win better. Left untouched in the corrected copy.
+### 2.1 Season 1, GW5 vs Clapham Casuals: now 2–1 (applied)
+Both spreadsheets had **1–2**, but two Hajduci scorers and two assists are logged and the old app said **2–1**. Isaac confirmed 2–1 on 4 Sep 2026, so the corrected copy sets tab **S1** cells **F6** (Our goals) → `2` and **F7** (Their goals) → `1`. Score/Result recalculate. Season 1 becomes W3 D1 L6 and the all-time record gains a win. If you apply edits by hand, these two cells are part of the list.
 
-### 2.2 Season 4, three games with no score
-GW9 (28 Aug 2025 vs Dukes Select), GW10 (4 Sep 2025 vs Old Ivy) and GW12 (18 Sep 2025 vs Enjoy Your Mane Jane) have appearance marks but no score. The site counts the appearances (as the sheet's All-time tab does) but they don't count as played games for W/D/L. If anyone remembers the scores, fill in rows 6 and 7 for those columns.
+### 2.2 Season 4, three games with no score (not recoverable from the legacy sheet)
+GW9 (28 Aug 2025 vs Dukes Select), GW10 (4 Sep 2025 vs Old Ivy) and GW12 (18 Sep 2025 vs Enjoy Your Mane Jane) have appearance marks but no score. The legacy workbook (`Thameslink Haiduci.xlsx`) also records them as `??`, and its Goals grid matches the new sheet game for game, so there is nothing to copy across. The site counts the appearances (as the sheet's All-time tab does) but they don't count as played games for W/D/L. If anyone remembers the scores, fill in rows 6 and 7 for those columns.
 
 ### 2.3 Goals scored but nobody credited
-Per your rule these games are now **excluded from every player's goals-per-game denominator**. If the scorers are known, fill them in and they'll count again.
+Per your rule these games are now **excluded from every player's goals-per-game denominator**. The legacy workbook has no scorers for them either. If the scorers are known, fill them in and they'll count again.
 
 | Game | Opponent | Score |
 |---|---|---|
@@ -97,8 +97,8 @@ These games **do** count towards goals-per-game (someone's goals were recorded),
 ### 2.5 Assists are patchy
 Assists are logged in only **16 of the 79 games** in which Hajduci scored. Per your rule, assists-per-game only counts those 16 games (plus 0–0s and games where we didn't score). Expect the assists-per-game numbers to look high and jumpy until assists are recorded more consistently. The site labels the denominator everywhere it shows the rate.
 
-### 2.6 "Abdul" exists only as a champagne moment
-S1 GW5 (vs Clapham Casuals) awards the champagne moment to **Abdul**, but Abdul has no appearance mark in any game, so he shows up in the squad with 0 apps. Either add his appearance mark(s) in the S1 APPEARANCES grid, or change the champagne cell if it was meant to be someone else.
+### 2.6 Champagne moments
+The site no longer shows champagne moments anywhere (Isaac, 4 Sep 2026), so the "Abdul" entry in S1 GW5 is harmless. The column can stay in the sheet for posterity or go; the site ignores it.
 
 ### 2.7 Opponent recorded as "Forfeit"
 S3 GW1 and S7 GW10 have "Forfeit" in the Opponent cell. Harmless (they are excluded from records anyway) but if you know who forfeited, putting the club name in and leaving "Forfeit" in the Type row keeps the fixture list honest.

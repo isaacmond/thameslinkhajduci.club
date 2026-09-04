@@ -7,7 +7,7 @@ export type Row = Record<string, string | number | boolean | null>;
 
 export const TABLE_INFO: Record<TableName, string> = {
   players: "One row per player with career totals (or season totals when filtered).",
-  matches: "Every fixture and result, including friendlies/forfeits, with MOTM and champagne moments.",
+  matches: "Every fixture and result, including friendlies/forfeits, with MOTM and comments.",
   seasons: "One row per season: venue, dates, W/D/L, goals.",
   appearances: "Long format: one row per player per match played.",
   goals: "Long format: one row per player per match where they scored.",
@@ -26,14 +26,14 @@ export function buildTable(data: ClubData, table: TableName, opts: { season?: st
         const s = season ? p.seasons.find((x) => x.seasonId === season) : null;
         if (season && !s) return [];
         const src = s ?? p;
-        const base: Row = { player: p.name, apps: src.apps, goals: src.goals, assists: src.assists, motm: src.motm, champagne_moments: src.champagne, goals_per_game: src.gpgGames ? +(src.goals / src.gpgGames).toFixed(2) : 0, games_with_scorers_logged: src.gpgGames, assists_per_game: src.apgGames ? +(src.assists / src.apgGames).toFixed(2) : 0, games_with_assists_logged: src.apgGames };
+        const base: Row = { player: p.name, apps: src.apps, goals: src.goals, assists: src.assists, motm: src.motm, goals_per_game: src.gpgGames ? +(src.goals / src.gpgGames).toFixed(2) : 0, games_with_scorers_logged: src.gpgGames, assists_per_game: src.apgGames ? +(src.assists / src.apgGames).toFixed(2) : 0, games_with_assists_logged: src.apgGames };
         if (season) return [base];
         return [{ ...base, wins: p.wins, draws: p.draws, losses: p.losses, win_rate_pct: p.winRate, debut: p.debut, last_played: p.lastPlayed, seasons_played: p.seasons.filter((x) => x.apps > 0).length }];
       });
       return { columns: Object.keys(rows[0] ?? { player: "" }), rows };
     }
     case "matches": {
-      const rows: Row[] = matches.map((m) => ({ season: m.seasonId, gw: m.gw, date: m.date, kick_off: m.kickOff, opponent: m.opponent, our_goals: m.ourGoals, their_goals: m.theirGoals, result: m.result, type: m.type, counts_for_records: m.countsForRecords, scorers_recorded: m.scorersRecorded, assists_recorded: m.assistsRecorded, motm: m.motm, champagne_moment: m.champagne, comment: m.comment, players: m.lineup.filter((l) => l.played).length, scorers: m.lineup.filter((l) => l.goals > 0).map((l) => `${l.player} (${l.goals})`).join("; "), match_cost: m.matchCost || null }));
+      const rows: Row[] = matches.map((m) => ({ season: m.seasonId, gw: m.gw, date: m.date, kick_off: m.kickOff, opponent: m.opponent, our_goals: m.ourGoals, their_goals: m.theirGoals, result: m.result, type: m.type, counts_for_records: m.countsForRecords, scorers_recorded: m.scorersRecorded, assists_recorded: m.assistsRecorded, motm: m.motm, comment: m.comment, players: m.lineup.filter((l) => l.played).length, scorers: m.lineup.filter((l) => l.goals > 0).map((l) => `${l.player} (${l.goals})`).join("; "), match_cost: m.matchCost || null }));
       return { columns: Object.keys(rows[0] ?? {}), rows };
     }
     case "seasons": {

@@ -17,6 +17,9 @@ In Squarespace → Domains → each domain → DNS settings, add these records. 
 | thameslinkhajduci.club | `@` | A | `216.198.79.1` |
 | thameslinkhajduci.club | `www` | CNAME | `6da2290599e19eb2.vercel-dns-017.com` |
 | thameslinkhajduci.com | `@` | A | `216.198.79.1` |
+| thameslinkhajduci.com | `www` | CNAME | `6da2290599e19eb2.vercel-dns-017.com` |
+
+**Making .com redirect to .club.** Nothing extra to configure on Vercel: `thameslinkhajduci.com` and `www.thameslinkhajduci.com` are attached to the project as 308 redirects to `thameslinkhajduci.club`, with the path preserved (so `/squad` on .com lands on `/squad` on .club) and HTTPS handled automatically. Once the two `.com` records above resolve, the redirect is live. Alternative if you would rather not touch DNS: Squarespace → Domains → thameslinkhajduci.com → Domain forwarding → forward to `https://thameslinkhajduci.club`, permanent (301), forward path on. Use one method, not both.
 
 Notes:
 - `216.198.79.1` is the address Vercel currently recommends for this project; `76.76.21.21` also works if Squarespace rejects the first.
@@ -38,7 +41,7 @@ npx vercel deploy --prod --scope isaacs-projects-d16aba6d
 
 ## 3. YOU: tidy the spreadsheet (optional)
 
-See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names itself, so nothing is broken; this is about making the sheet match. There are also a few genuine data questions in there only you can answer (the S1 GW5 score, three unrecorded S4 scores, a champagne moment awarded to a player with no appearances).
+See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names itself, so nothing is broken; this is about making the sheet match. The S1 GW5 score is already corrected to 2–1 in that copy; three S4 scores remain unknown (the legacy workbook has `??` for them too).
 
 ## Operating the site
 

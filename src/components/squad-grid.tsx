@@ -7,7 +7,7 @@ import { fmtDate } from "@/lib/stats";
 import { playerCaption } from "@/lib/captions";
 import { Shirt } from "./ui";
 
-export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; champagne: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null };
+export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null };
 type SortKey = "apps" | "goals" | "assists" | "goalsPerGame" | "winRate" | "motm" | "debut" | "name";
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "apps", label: "Apps" }, { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" }, { key: "goalsPerGame", label: "Goals / game" },

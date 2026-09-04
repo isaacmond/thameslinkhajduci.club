@@ -11,7 +11,7 @@ import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Stats", description: "Leaderboards, sortable player tables, partnerships and head-to-head records for Thameslink Hajduci." };
 
-const toRow = (p: Player): PlayerRow => { const d = p.wins + p.draws + p.losses; return { name: p.name, slug: p.slug, apps: p.apps, goals: p.goals, assists: p.assists, motm: p.motm, champagne: p.champagne, wins: p.wins, draws: p.draws, losses: p.losses, goalsPerGame: p.goalsPerGame, assistsPerGame: p.assistsPerGame, gpgGames: p.gpgGames, apgGames: p.apgGames, winRate: p.winRate, ppg: d ? +((p.wins * 3 + p.draws) / d).toFixed(2) : 0 }; };
+const toRow = (p: Player): PlayerRow => { const d = p.wins + p.draws + p.losses; return { name: p.name, slug: p.slug, apps: p.apps, goals: p.goals, assists: p.assists, motm: p.motm, wins: p.wins, draws: p.draws, losses: p.losses, goalsPerGame: p.goalsPerGame, assistsPerGame: p.assistsPerGame, gpgGames: p.gpgGames, apgGames: p.apgGames, winRate: p.winRate, ppg: d ? +((p.wins * 3 + p.draws) / d).toFixed(2) : 0 }; };
 
 export default async function StatsPage() {
   const data = await getData();
@@ -29,7 +29,6 @@ export default async function StatsPage() {
     { title: "Assists", sub: "Self-reported", items: leaderboard(data.players, "assists").slice(0, 5), color: "bg-[#4a8fe0]" },
     { title: "Goal involvements", sub: "Goals + assists", items: leaderboard(data.players, "ga").slice(0, 5), color: "bg-gold" },
     { title: "Man of the match", items: leaderboard(data.players, "motm").slice(0, 5), color: "bg-gold" },
-    { title: "Champagne moments", sub: "The wall of shame", items: leaderboard(data.players, "champagne").slice(0, 5), color: "bg-[#e5484d]" },
     { title: "Goals per game", sub: `Min ${MIN} games with scorers logged`, items: leaderboard(data.players, "goalsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2) },
     { title: "Assists per game", sub: `Min ${MIN} games with assists logged`, items: leaderboard(data.players, "assistsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2), color: "bg-[#4a8fe0]" },
     { title: "Win rate", sub: `Min ${MIN} apps`, items: leaderboard(data.players, "winRate", MIN).slice(0, 5), fmt: (v) => `${v}%`, color: "bg-mint" },

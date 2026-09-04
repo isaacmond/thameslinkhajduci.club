@@ -80,7 +80,6 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
           <div className="card p-5"><SectionTitle>Golden boot</SectionTitle><LeaderList items={leaderboard(players, "goals").slice(0, 5)} emptyText="No goals yet this season." /></div>
           {!small && <div className="card p-5"><SectionTitle>Season ticket holders</SectionTitle><LeaderList items={leaderboard(players, "apps").slice(0, 5)} color="bg-cream" emptyText="Nobody has turned up yet." /></div>}
           {leaderboard(players, "motm").length > 0 && <div className="card p-5"><SectionTitle>MOTM awards</SectionTitle><LeaderList items={leaderboard(players, "motm").slice(0, 5)} color="bg-gold" /></div>}
-          {leaderboard(players, "champagne").length > 0 && <div className="card p-5"><SectionTitle sub="Awarded for moments of rare, um, quality">Champagne moments</SectionTitle><LeaderList items={leaderboard(players, "champagne").slice(0, 5)} color="bg-gold" /></div>}
         </div>
       </section>
 
@@ -88,13 +87,13 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         <div className="p-5 pb-3"><SectionTitle sub={`${players.length} players used${hasMoney ? " · cost is each player's share of pitch hire" : ""}`}>Squad stats</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
           <table className="stats min-w-[640px]">
-            <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num" title="Goals per game (games with scorers logged)">G/G</th><th className="num">MOTM</th><th className="num"><span aria-hidden>🍾</span><span className="sr-only">Champagne moments</span></th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>
+            <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num" title="Goals per game (games with scorers logged)">G/G</th><th className="num">MOTM</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>
             <tbody>
               {players.map((p) => (
                 <tr key={p.slug}>
                   <td><PlayerLink name={p.name} player={byName.get(p.name)} /></td>
                   <td className="num">{p.apps}</td><td className={clsx("num", p.goals > 0 && "font-semibold text-mint-soft")}>{p.goals}</td><td className="num">{p.assists}</td><td className="num" title={`${p.goals} goals over ${p.gpgGames} games with scorers logged`}>{p.goalsPerGame.toFixed(2)}</td>
-                  <td className="num">{p.motm || ""}</td><td className="num">{p.champagne || ""}</td>
+                  <td className="num">{p.motm || ""}</td>
                   <td className="num text-mint-soft">{p.wins}</td><td className="num text-[#ffe27a]">{p.draws}</td><td className="num text-[#ff9a9d]">{p.losses}</td><td className="num">{p.winRate.toFixed(0)}%</td>
                   {hasMoney && <td className="num">{fmtMoney(p.seasons[0]?.cost ?? 0)}</td>}
                 </tr>

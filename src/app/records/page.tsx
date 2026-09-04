@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import clsx from "clsx";
-import { Crown, Flame, Medal, PartyPopper, ShieldCheck, Siren, Skull, Sparkles, Target, Trophy, Zap } from "lucide-react";
+import { Crown, Flame, Medal, ShieldCheck, Siren, Skull, Sparkles, Target, Trophy, Zap } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import type { Streak } from "@/lib/stats";
@@ -40,7 +40,6 @@ export default async function RecordsPage() {
   const mostAppsSeason = [...seasonBests].sort((a, b) => b.apps - a.apps)[0];
   const mostAssistsSeason = [...seasonBests].sort((a, b) => b.assists - a.assists)[0];
   const motmKing = [...data.players].sort((a, b) => b.motm - a.motm)[0];
-  const champKing = [...data.players].sort((a, b) => b.champagne - a.champagne)[0];
   const mostLosses = [...data.players].sort((a, b) => b.losses - a.losses)[0];
   const best = data.seasons.find((s) => s.id === r.bestSeason), worst = data.seasons.find((s) => s.id === r.worstSeason);
   // Ever-present: played every counted, scored game of a season (seasons of 5+ such games). Compared against the actual line-ups, not the apps column.
@@ -81,7 +80,6 @@ export default async function RecordsPage() {
           {mostAppsSeason && <Card icon={<Medal />} tone="fame" label="Most apps in a season" value={mostAppsSeason.apps} sub={<><PlayerLink name={mostAppsSeason.player.name} player={mostAppsSeason.player} /> · {mostAppsSeason.seasonId}</>} />}
           {mostAssistsSeason && mostAssistsSeason.assists > 0 && <Card icon={<Sparkles />} label="Most assists in a season" value={mostAssistsSeason.assists} sub={<><PlayerLink name={mostAssistsSeason.player.name} player={mostAssistsSeason.player} /> · {mostAssistsSeason.seasonId}</>} />}
           {motmKing && motmKing.motm > 0 && <Card icon={<Crown />} tone="fame" label="Most MOTM awards" value={motmKing.motm} sub={<PlayerLink name={motmKing.name} player={motmKing} />} />}
-          {champKing && champKing.champagne > 0 && <Card icon={<PartyPopper />} tone="shame" label="Most champagne moments" value={champKing.champagne} sub={<><PlayerLink name={champKing.name} player={champKing} /> · a true entertainer</>} />}
           {mostLosses && <Card icon={<Skull />} tone="shame" label="Most defeats witnessed" value={mostLosses.losses} sub={<><PlayerLink name={mostLosses.name} player={mostLosses} /> · loyalty, or masochism</>} />}
           {r.hatTricks[0] && <Card icon={<Zap />} tone="fame" label="Most goals in a game" value={r.hatTricks[0].goals} sub={<><PlayerLink name={r.hatTricks[0].player} player={byName.get(r.hatTricks[0].player)} /> vs {r.hatTricks[0].match.opponent}</>} href={`/matches/${r.hatTricks[0].match.id}`} />}
           <Card icon={<Trophy />} tone="fame" label="Hat-tricks" value={r.hatTricks.length} sub={r.hatTricks.length ? `by ${hatTrickPlayers} different player${hatTrickPlayers === 1 ? "" : "s"}` : "None yet"} />

@@ -21,7 +21,6 @@ export interface Match {
   result: Result | null;
   played: boolean;
   motm: string | null;
-  champagne: string | null;
   comment: string | null;
   type: string | null; // "Forfeit" | "Friendly" | null
   /** false for friendlies/forfeits (Type row). Apps count when true; W/D/L only when also played. */
@@ -72,7 +71,6 @@ export interface PlayerSeasonStats {
   goals: number;
   assists: number;
   motm: number;
-  champagne: number;
   cost: number;
 }
 
@@ -91,7 +89,6 @@ export interface Player {
   goals: number;
   assists: number;
   motm: number;
-  champagne: number;
   wins: number;
   draws: number;
   losses: number;

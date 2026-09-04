@@ -83,7 +83,7 @@ export function records(data: ClubData): Records {
   };
 }
 
-export type LeaderKey = "apps" | "goals" | "assists" | "motm" | "champagne" | "goalsPerGame" | "assistsPerGame" | "winRate" | "ga";
+export type LeaderKey = "apps" | "goals" | "assists" | "motm" | "goalsPerGame" | "assistsPerGame" | "winRate" | "ga";
 /** Ranked players by a stat. For per-game rates the minimum applies to the games actually in the denominator (games with scorers/assists logged), not raw apps. */
 export function leaderboard(players: Player[], key: LeaderKey, minApps = 0): { player: Player; value: number }[] {
   return players
@@ -104,7 +104,7 @@ export function seasonPlayers(data: ClubData, seasonId: string): Player[] {
     let w = 0, d = 0, l = 0;
     for (const m of season.matches) if (m.countsForRecords && m.played && m.lineup.some((x) => x.player === base.name && x.played)) { if (m.result === "W") w++; else if (m.result === "D") d++; else l++; }
     const decided = w + d + l;
-    map.set(base.name, { ...base, apps: ps.apps, gpgGames: ps.gpgGames, apgGames: ps.apgGames, goals: ps.goals, assists: ps.assists, motm: ps.motm, champagne: ps.champagne, wins: w, draws: d, losses: l, goalsPerGame: ps.gpgGames ? +(ps.goals / ps.gpgGames).toFixed(2) : 0, assistsPerGame: ps.apgGames ? +(ps.assists / ps.apgGames).toFixed(2) : 0, winRate: decided ? +((w / decided) * 100).toFixed(1) : 0, seasons: [ps] });
+    map.set(base.name, { ...base, apps: ps.apps, gpgGames: ps.gpgGames, apgGames: ps.apgGames, goals: ps.goals, assists: ps.assists, motm: ps.motm, wins: w, draws: d, losses: l, goalsPerGame: ps.gpgGames ? +(ps.goals / ps.gpgGames).toFixed(2) : 0, assistsPerGame: ps.apgGames ? +(ps.assists / ps.apgGames).toFixed(2) : 0, winRate: decided ? +((w / decided) * 100).toFixed(1) : 0, seasons: [ps] });
   }
   return [...map.values()].sort((a, b) => b.apps - a.apps || b.goals - a.goals);
 }

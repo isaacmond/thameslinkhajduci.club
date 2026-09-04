@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight, MapPin, PartyPopper, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import { assistersFor, chronological, fmtDate, fmtMoney, headToHead, opponentKey, playedMatches, scorersFor, scoreline } from "@/lib/stats";
 import { londonEpoch } from "@/lib/time";
@@ -79,7 +79,6 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <p className="mt-6 text-center text-lg italic text-cream/90 sm:text-xl">{m.comment ? <>“{m.comment}”</> : verdict}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {m.motm && <span className="chip border-gold/40 bg-gold/10 text-gold"><Star size={12} aria-hidden />MOTM <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></span>}
-            {m.champagne && <span className="chip border-peach/40 bg-peach/10 text-peach"><PartyPopper size={12} aria-hidden />Champagne moment: <PlayerLink name={m.champagne} player={byName.get(m.champagne)} className="!text-peach" /></span>}
             {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci on the pitch</Tag>}
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)} · {fmtMoney(m.costPerPlayer)} each</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
@@ -101,7 +100,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                       <td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /></td>
                       <td className={clsx("num display text-xl", l.goals > 0 ? "text-mint-soft" : "text-ash/40")}>{l.goals || "·"}</td>
                       <td className={clsx("num display text-xl", l.assists > 0 ? "text-cream" : "text-ash/40")}>{l.assists || "·"}</td>
-                      <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} aria-hidden />MOTM</span>}{m.champagne === l.player && <span className="ml-2 inline-flex items-center gap-1 text-peach"><PartyPopper size={12} aria-hidden />Champagne</span>}</td>
+                      <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} aria-hidden />MOTM</span>}</td>
                     </tr>
                   ))}
                   {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-ash">(no appearance mark)</span></td><td className="num display text-xl text-mint-soft">{l.goals || "·"}</td><td className="num display text-xl">{l.assists || "·"}</td><td></td></tr>)}

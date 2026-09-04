@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import clsx from "clsx";
-import { Crown, Medal, PartyPopper, Sparkles, Star } from "lucide-react";
+import { Crown, Medal, Sparkles, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import { chemistry, chronological, fmtDate, fmtMoney, impact, leaderboard, type LeaderKey, scoreline } from "@/lib/stats";
@@ -35,10 +35,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
   const imp = impact(data, p.name);
   const partners = chemistry(data.matches, 2).filter((x) => x.a === p.name || x.b === p.name).slice(0, 6).map((x) => ({ ...x, other: x.a === p.name ? x.b : x.a }));
   const rankOf = (key: LeaderKey, minApps = 0) => { const i = leaderboard(data.players, key, minApps).findIndex((x) => x.player.name === p.name); return i >= 0 ? i + 1 : null; };
-  const ranks = ([["goals", "scorer"], ["apps", "for appearances"], ["assists", "for assists"], ["motm", "for MOTM awards"], ["champagne", "for champagne moments"]] as [LeaderKey, string][]).map(([k, label]) => ({ label, rank: rankOf(k) })).filter((r) => r.rank && r.rank <= 5);
+  const ranks = ([["goals", "scorer"], ["apps", "for appearances"], ["assists", "for assists"], ["motm", "for MOTM awards"]] as [LeaderKey, string][]).map(([k, label]) => ({ label, rank: rankOf(k) })).filter((r) => r.rank && r.rank <= 5);
   const hatTricks = log.filter((m) => m.countsForRecords && (mine(m)?.goals ?? 0) >= 3);
   const motms = log.filter((m) => m.countsForRecords && m.motm === p.name);
-  const champagne = data.matches.filter((m) => m.countsForRecords && m.champagne === p.name);
   const perSeason = data.seasons.map((s) => { const x = p.seasons.find((y) => y.seasonId === s.id); return { name: s.id, apps: x?.apps ?? 0, goals: x?.goals ?? 0, assists: x?.assists ?? 0 }; });
   const money = data.money.rows.find((r) => r.player === p.name);
   const current = data.seasons.find((s) => s.isCurrent);
@@ -84,7 +83,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <Stat size="sm" label="Goals per game" value={p.goalsPerGame.toFixed(2)} sub={`over ${p.gpgGames} game${p.gpgGames === 1 ? "" : "s"} with scorers logged`} />
           <Stat size="sm" label="Assists per game" value={p.assistsPerGame.toFixed(2)} sub={`over ${p.apgGames} game${p.apgGames === 1 ? "" : "s"} with assists logged`} />
           <Stat size="sm" label="Man of the match" value={p.motm} tone="gold" sub={bestSeason ? `Best season: ${bestSeason.goals} goals in ${bestSeason.seasonId}` : "Best season: pending"} />
-          <Stat size="sm" label="Record" value={`${p.wins}-${p.draws}-${p.losses}`} sub={`${(decided ? (p.wins * 3 + p.draws) / decided : 0).toFixed(2)} pts/game · ${p.champagne} champagne moment${p.champagne === 1 ? "" : "s"}`} />
+          <Stat size="sm" label="Record" value={`${p.wins}-${p.draws}-${p.losses}`} sub={`${(decided ? (p.wins * 3 + p.draws) / decided : 0).toFixed(2)} pts/game`} />
         </div>
       </section>
 
@@ -115,11 +114,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         </div>
       </section>
 
-      {(hatTricks.length > 0 || motms.length > 0 || champagne.length > 0 || (money && (money.totalCharged > 0 || money.paid > 0))) && (
+      {(hatTricks.length > 0 || motms.length > 0 || (money && (money.totalCharged > 0 || money.paid > 0))) && (
         <section className="grid grid-cols-1 gap-6 md:grid-cols-3 md:items-start">
           {hatTricks.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Sparkles size={20} className="text-gold" aria-hidden />Hat-tricks</span></SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · {fmtDate(m.date)}</span></li>)}</ul></div>}
           {motms.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Medal size={20} className="text-gold" aria-hidden />Man of the match</span></SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · {fmtDate(m.date)}</span></li>)}</ul></div>}
-          {champagne.length > 0 && <div className="card p-5"><SectionTitle sub="Moments of, let's say, distinction"><span className="inline-flex items-center gap-2"><PartyPopper size={20} className="text-peach" aria-hidden />Champagne moments</span></SectionTitle><ul className="space-y-2 text-sm">{champagne.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {fmtDate(m.date)}</span>{m.comment && <p className="italic text-cream/80">“{m.comment}”</p>}</li>)}</ul></div>}
           {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-5"><SectionTitle sub="Season 8 onwards">Tab</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow">Charged</dt><dd className="display text-2xl text-cream">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow">Paid</dt><dd className="display text-2xl text-mint-soft">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow">Owes</dt><dd className={clsx("display text-2xl", money.balance > 0.01 ? "text-[#ff9a9d]" : "text-mint-soft")}>{fmtMoney(money.balance)}</dd></div></dl><p className="mt-2 text-xs text-ash">{money.balance > 0.01 ? "The treasurer has been informed." : "Fully paid up. A model citizen."} <Link href="/money" className="link">Money →</Link></p></div>}
         </section>
       )}
