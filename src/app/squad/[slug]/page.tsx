@@ -123,19 +123,19 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
       <section className="card overflow-hidden">
         <div className="p-5 pb-3"><SectionTitle sub={`${log.length} game${log.length === 1 ? "" : "s"} on record, newest first`}>Match log</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
-          <table className="stats min-w-[640px]">
-            <thead><tr><th>Opponent</th><th>Result</th><th className="num">Score</th><th className="num">G</th><th className="num">A</th><th>Date</th><th>Season</th><th>Notes</th></tr></thead>
+          <table className="stats w-full sm:min-w-[640px]">
+            <thead><tr><th>Opponent</th><th>Result</th><th className="num">Score</th><th className="num">G</th><th className="num">A</th><th className="hidden sm:table-cell">Date</th><th className="hidden sm:table-cell">Season</th><th className="hidden sm:table-cell">Notes</th></tr></thead>
             <tbody>
               {log.map((m) => { const l = mine(m)!; return (
                 <tr key={m.id} className={clsx(!m.countsForRecords && "opacity-60")}>
-                  <td><Link href={`/matches/${m.id}`} className="link font-medium text-cream">{m.opponent}</Link>{m.type && <span className="chip ml-2 text-ash">{m.type}</span>}</td>
+                  <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-cream sm:inline">{m.opponent}</Link><span className="block text-[10px] text-ash sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <span className="ml-1 text-gold">★ MOTM</span>}</span>{m.type && <span className="chip ml-2 hidden text-ash sm:inline-flex">{m.type}</span>}</td>
                   <td><ResultPill result={m.result} size="sm" /></td>
                   <td className="num display text-lg">{scoreline(m)}</td>
                   <td className={clsx("num", l.goals > 0 && "font-semibold text-mint-soft")}>{l.goals || ""}</td>
                   <td className="num">{l.assists || ""}</td>
-                  <td className="text-ash">{fmtDate(m.date)}</td>
-                  <td className="text-ash"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : m.seasonId}</Link> {m.seasonId === "FR" ? `#${m.gw}` : `GW${m.gw}`}</td>
-                  <td className="text-xs text-ash">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} aria-hidden />MOTM</span>}{!l.played && "Scored without an appearance mark"}</td>
+                  <td className="hidden text-ash sm:table-cell">{fmtDate(m.date)}</td>
+                  <td className="hidden text-ash sm:table-cell"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : m.seasonId}</Link> {m.seasonId === "FR" ? `#${m.gw}` : `GW${m.gw}`}</td>
+                  <td className="hidden text-xs text-ash sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} aria-hidden />MOTM</span>}{!l.played && "Scored without an appearance mark"}</td>
                 </tr>); })}
             </tbody>
           </table>

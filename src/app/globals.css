@@ -118,3 +118,6 @@ select.control { appearance: none; -webkit-appearance: none; background-image: n
 /* bigger hit areas for dense table links and sort buttons without changing the visual */
 table.stats td a { display: inline-block; padding: 0.3rem 0; margin: -0.3rem 0; }
 table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
+
+/* dense tables on phones: tighter horizontal padding so the key columns fit */
+@media (max-width: 639px) { table.stats th, table.stats td { padding-left: 0.5rem; padding-right: 0.5rem; } }
