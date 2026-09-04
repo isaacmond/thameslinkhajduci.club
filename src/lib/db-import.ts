@@ -1,6 +1,5 @@
 import { schema, type Db } from "./db";
 import { STATIC_EXTRAS } from "./assemble";
-import { MEMBERS } from "./members";
 import { slugify } from "./slug";
 import type { ClubData, Season } from "./types";
 
@@ -44,8 +43,6 @@ export async function importClubData(db: Db, data: ClubData, extras: ImportExtra
   if (aliasRows.length) await db.insert(schema.aliases).values(aliasRows);
   const oppRows = Object.entries(extras.opponents).map(([key, toName]) => ({ key, toName }));
   if (oppRows.length) await db.insert(schema.opponentAliases).values(oppRows);
-  const memberRows = MEMBERS.flatMap((m) => m.emails.map((e) => ({ email: e.toLowerCase(), player: m.player, admin: Boolean(m.admin), addedBy: "import" })));
-  if (memberRows.length) await db.insert(schema.members).values(memberRows).onConflictDoNothing();
   const tracked = seasons.filter((s) => s.id !== "FR" && s.matches.some((m) => m.matchCost > 0)).map((s) => s.number);
   await db.insert(schema.settings).values({ key: "money_from_season", value: String(tracked.length ? Math.min(...tracked) : 8) });
   return { seasons: seasons.length, matches: seasons.reduce((t, s) => t + s.matches.length, 0), players: names.size, payments: data.money.payments.length };

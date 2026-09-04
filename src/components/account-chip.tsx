@@ -14,9 +14,12 @@ export function AccountChip({ className }: { className?: string }) {
   if (me === undefined) return <span className={clsx("inline-block h-8 w-8", className)} aria-hidden />;
   if (!me) return <a href="/sign-in" className={clsx("focus-ring inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm font-medium text-ash transition-colors hover:text-cream", className)}><LogIn size={16} aria-hidden />Sign in</a>;
   return (
-    <Link href="/account" title={`Signed in as ${me.email}`} className={clsx("focus-ring inline-flex items-center gap-2 rounded-full", className)}>
-      {me.player ? <Avatar name={me.player} photo={me.photo ?? undefined} size={32} /> : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-ash"><UserRound size={16} aria-hidden /></span>}
-      <span className="sr-only">Your account</span>
-    </Link>
+    <span className={clsx("inline-flex items-center gap-2", className)}>
+      {me.admin && <Link href="/admin" className="focus-ring hidden rounded-md px-2 py-1 text-sm font-medium text-ash transition-colors hover:text-cream sm:inline">Admin</Link>}
+      <Link href="/account" title={`Signed in as ${me.email}`} className="focus-ring inline-flex items-center rounded-full">
+        {me.player ? <Avatar name={me.player} photo={me.photo ?? undefined} size={32} /> : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-ash"><UserRound size={16} aria-hidden /></span>}
+        <span className="sr-only">Your account</span>
+      </Link>
+    </span>
   );
 }

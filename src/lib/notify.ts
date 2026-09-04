@@ -15,10 +15,10 @@ export async function emailSubmission(input: { subject: string; text: string; su
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
   const details = input.text.split("\n\n")[0];
   const cta = input.queued
-    ? `<p style="margin:22px 0 0"><a href="${esc(SITE_URL)}/account#pending" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Review and approve</a></p>`
+    ? `<p style="margin:22px 0 0"><a href="${esc(SITE_URL)}/admin#pending" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Review and approve</a></p>`
     : `<p style="margin:22px 0 0"><a href="${esc(SITE_URL)}" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Open the site</a></p>`;
   const footer = input.applied ? `Recorded by ${esc(input.submittedBy)}. Already in the records; the site follows within a minute. This email is your copy.`
-    : input.queued ? `Submitted by ${esc(input.submittedBy)}. Nothing changes on the site until you approve it on your account page.`
+    : input.queued ? `Submitted by ${esc(input.submittedBy)}. Nothing changes on the site until you approve it on the admin page.`
     : `Submitted by ${esc(input.submittedBy)}. Nothing changes on the site until you apply this.`;
   const html = `<!doctype html><html><body style="margin:0;background:#06140c;color:#f6f1e6;font-family:Inter,system-ui,sans-serif">
   <div style="max-width:640px;margin:0 auto;padding:28px 20px">

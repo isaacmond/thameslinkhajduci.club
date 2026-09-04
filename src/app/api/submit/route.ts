@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     }
   }
   const submittedBy = member ? `${built.submittedBy} (${member.member.player}, signed in)` : built.submittedBy;
-  const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/account` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
+  const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/admin` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
   const text = `${built.text}\n\n${status}`;
   const subject = applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject;
 

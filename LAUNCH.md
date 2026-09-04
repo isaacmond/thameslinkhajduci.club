@@ -51,7 +51,7 @@ The site's records live in **Neon Postgres** (Vercel Marketplace, project `thame
 `/submit` has three tabs. Each request is validated against the real fixture list, roster and money table and turned into a typed change.
 
 - **Signed-in members** (see below): the change is written to the records immediately and the site follows within a minute. The email you get is a copy.
-- **Everyone else**: the change goes into the **approval queue** on your account page (`/account#pending`) and you are emailed. One tap records it, one tap bins it. Nothing changes on the site until then.
+- **Everyone else**: the change goes into the **approval queue** on the admin page (`/admin#pending`) and you are emailed. One tap records it, one tap bins it. Nothing changes on the site until then.
 - **Match result** (`/submit`): result, scorers, assists, line-up and MOTM. Submitting again for the same fixture is a correction and replaces the earlier line-up.
 - **Payment** (`/submit?type=payment`): who paid, who they paid (defaults to the season's pitch payer), how much, when, a reference. The form pre-fills what they owe.
 - **New player** (`/submit?type=player`): name, nickname, positions, shirt number (checked against numbers in use), photo link. They join the current season's team sheet.
@@ -62,8 +62,8 @@ The site's records live in **Neon Postgres** (Vercel Marketplace, project `thame
 
 Email and password, hosted by WorkOS. Members sign in from the header; the first time they use **Sign up** with an address on the members list. Signed in, they get `/account`: their own profile (photo, nickname, positions, shirt number, bio, first and last name) and direct recording of their submissions.
 
-- **Members list**: the admin adds or removes addresses on `/account#members` (pick the player, type the email; effective immediately, no deploy). `src/lib/members.ts` holds the seed list (you and Phil) that cannot be removed from the site.
-- **Admin** (you): `/account` also has the approval queue and the **seasons & fixtures** editor: add next week's game, fix a date or opponent, mark a forfeit, start a new season (id like `S9`, pitch cost per game, who pays the pitch).
+- **Members list**: the admin adds or removes addresses on `/admin#members` (pick the player, type the email; effective within seconds, no deploy). Nothing is hard-coded: the `members` table is the whole list. You cannot remove your own address or the last admin's.
+- **Admin** (you): `/admin` has the approval queue, the members list and the **seasons & fixtures** editor: add next week's game, fix a date or opponent, mark a forfeit, start a new season (id like `S9`, pitch cost per game, who pays the pitch).
 - **WorkOS dashboard**: the callback `https://thameslinkhajduci.club/callback` is registered. Under **Applications → your app → Redirects**, set the Initiate login URL to `https://thameslinkhajduci.club/sign-in` and the Sign-out URI to `https://thameslinkhajduci.club/`; the sign-out button errors until the latter exists. Branding assets are on your Desktop in `workos-branding/`.
 - Env on Vercel: `WORKOS_API_KEY` (live key on production), `WORKOS_CLIENT_ID`, `WORKOS_COOKIE_PASSWORD`, `NEXT_PUBLIC_WORKOS_REDIRECT_URI`. Photos go to the Vercel Blob store `hajduci-media` (`BLOB_READ_WRITE_TOKEN`).
 
@@ -73,8 +73,8 @@ Friendlies inside a season: add the fixture in the seasons & fixtures editor wit
 
 ## Operating the site
 
-- **Update anything:** sign in and use Submit or your account page. The site re-reads the records within 60 seconds of any change (or hit "Force refresh" on `/data`).
-- **New season:** account page → Seasons & fixtures → New season, then add its fixtures. It appears everywhere automatically, including the money page.
+- **Update anything:** sign in and use Submit, your account page (profile) or `/admin` (everything else). The site re-reads the records within 60 seconds of any change (or hit "Force refresh" on `/data`).
+- **New season:** `/admin` → Seasons & fixtures → New season, then add its fixtures. It appears everywhere automatically, including the money page.
 - **Renames and spellings:** player and opponent aliases from the sheet were imported into the `aliases` and `opponent_aliases` tables; edit them in Drizzle Studio for now.
 - **Money:** a player's charge for a game is the pitch cost split between everyone who played; whoever is the season's "pitch paid by" is credited every played game's cost. Payments logged through Submit reduce what people owe. Tracking starts at the season in the `money_from_season` setting (S8).
 - **Health:** `/data` lists anything inconsistent in the records (scorers v goals, MOTM not in the line-up, overdue scores).

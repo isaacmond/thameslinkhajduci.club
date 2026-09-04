@@ -31,7 +31,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
           <p className="text-center text-[11px] text-ash">JPEG, PNG or WebP, up to 5 MB. Square crops look best.</p>
         </div>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <p className="sm:col-span-2 text-sm text-ash">Playing as <span className="text-cream">{initial.player}</span> · signed in as <span className="text-cream">{initial.email}</span>. Your name in the records is fixed to the sheet; ask the admin if it needs changing.</p>
+          <p className="sm:col-span-2 text-sm text-ash">Playing as <span className="text-cream">{initial.player}</span> · signed in as <span className="text-cream">{initial.email}</span>. Your name in the records is set by the admin; ask them if it needs changing.</p>
           <label className={label}><span className="eyebrow">First name</span><input name="firstName" defaultValue={initial.firstName} maxLength={40} autoComplete="given-name" className={inputClass} /></label>
           <label className={label}><span className="eyebrow">Last name</span><input name="lastName" defaultValue={initial.lastName} maxLength={40} autoComplete="family-name" className={inputClass} /></label>
           <label className={label}><span className="eyebrow">Nickname</span><input name="nickname" defaultValue={initial.nickname} maxLength={40} placeholder="What the group chat calls you" className={inputClass} /></label>

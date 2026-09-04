@@ -4,7 +4,7 @@ import { currentMember, forgetMembers } from "@/lib/auth";
 import { purge } from "@/lib/apply";
 import { getData } from "@/lib/data";
 import { clean, rosterName, validEmailAddress } from "@/lib/admin-validation";
-import { addMember, applySubmission, deleteFixture, rejectSubmission, removeMember, upsertFixture, upsertSeason } from "@/lib/writes";
+import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, upsertFixture, upsertSeason } from "@/lib/writes";
 import { log } from "@/lib/log";
 
 /** Everything here is admin-only. Each action re-checks the session; the UI merely hides what it must not offer. */
@@ -23,14 +23,14 @@ export async function approveSubmissionAction(id: number): Promise<ActionState> 
   if (!done) return fail("That one has already been dealt with.");
   purge();
   log("submission.approved", { id, kind: done.kind, by: s.member.player });
-  revalidatePath("/account");
+  revalidatePath("/admin");
   return { ok: true, message: `Recorded: ${done.summary}` };
 }
 export async function rejectSubmissionAction(id: number): Promise<ActionState> {
   const s = await admin();
   await rejectSubmission(id, s.member.player);
   log("submission.rejected", { id, by: s.member.player });
-  revalidatePath("/account");
+  revalidatePath("/admin");
   return { ok: true, message: "Rejected. Nothing changed." };
 }
 
@@ -44,16 +44,19 @@ export async function addMemberAction(_prev: ActionState, form: FormData): Promi
   if (!player) return fail("Pick a player from the list.");
   await addMember(email, player, form.get("admin") === "on", s.email);
   forgetMembers();
-  revalidatePath("/account");
+  revalidatePath("/admin");
   log("member.added", { player, by: s.member.player });
   return { ok: true, message: `${email} can now sign in as ${player}.` };
 }
 export async function removeMemberAction(email: string): Promise<ActionState> {
   const s = await admin();
   if (email.toLowerCase() === s.email.toLowerCase()) return fail("You cannot remove your own address.");
+  const rows = await listMembers();
+  const target = rows.find((r) => r.email === email.toLowerCase());
+  if (target?.admin && !rows.some((r) => r.admin && r.email !== target.email)) return fail("That is the only admin address. Make someone else an admin first.");
   await removeMember(email);
   forgetMembers();
-  revalidatePath("/account");
+  revalidatePath("/admin");
   return { ok: true, message: `${email} removed.` };
 }
 
@@ -67,7 +70,7 @@ export async function saveSeasonAction(_prev: ActionState, form: FormData): Prom
     id, number: Number(id.slice(1)), title: clean(form.get("title"), 120), venue: clean(form.get("venue"), 120), period: clean(form.get("period"), 60),
     pitchCost: pitchCost ? Number(pitchCost) : null, paidBy: clean(form.get("paidBy"), 60) || null, seasonCost: seasonCost ? Number(seasonCost) : 0,
   });
-  purge(); revalidatePath("/account");
+  purge(); revalidatePath("/admin");
   return { ok: true, message: `${id} saved.` };
 }
 export async function saveFixtureAction(_prev: ActionState, form: FormData): Promise<ActionState> {
@@ -85,12 +88,12 @@ export async function saveFixtureAction(_prev: ActionState, form: FormData): Pro
   try {
     await upsertFixture({ id, seasonId, gw, date, kickOff, opponent: clean(form.get("opponent"), 60) || "TBC", type, matchCost: cost ? Number(cost) : null }, s.email);
   } catch (err) { return fail(err instanceof Error ? err.message : "Could not save the fixture."); }
-  purge(); revalidatePath("/account");
+  purge(); revalidatePath("/admin");
   return { ok: true, message: `${seasonId} GW${gw} saved.` };
 }
 export async function deleteFixtureAction(id: string): Promise<ActionState> {
   await admin();
   await deleteFixture(id);
-  purge(); revalidatePath("/account");
+  purge(); revalidatePath("/admin");
   return { ok: true, message: "Fixture removed." };
 }

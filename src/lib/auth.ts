@@ -1,7 +1,7 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
 import { dbConfigured } from "./db";
 import { listMembers } from "./writes";
-import { allMembers, memberFor, mergeMembers, type Member } from "./members";
+import { groupMembers, memberFor, type Member } from "./members";
 
 /** Sign-in is on only when WorkOS is fully configured; without it every page behaves as before and the account UI is hidden. */
 export function authEnabled(): boolean {
@@ -11,20 +11,15 @@ export function authEnabled(): boolean {
 export type Session = { userId: string; email: string; firstName: string | null; lastName: string | null; member: Member | null };
 export type MemberSession = Session & { member: Member };
 
-/** The full members list: the code list plus whatever the admin has added on the site, briefly memoised per instance. */
+/** The members list from the database (the only place it lives), briefly memoised per instance. */
 let memo: { at: number; members: Member[] } | null = null;
 export async function knownMembers(): Promise<Member[]> {
   if (memo && Date.now() - memo.at < 15_000) return memo.members;
-  let fromDb: Member[] = [];
+  let members: Member[] = [];
   if (dbConfigured()) {
-    try {
-      const rows = await listMembers();
-      const byPlayer = new Map<string, Member>();
-      for (const r of rows) { const m = byPlayer.get(r.player) ?? { player: r.player, emails: [] }; m.emails.push(r.email); if (r.admin) m.admin = true; byPlayer.set(r.player, m); }
-      fromDb = [...byPlayer.values()];
-    } catch (err) { console.error("members:", err); }
+    try { members = groupMembers(await listMembers()); }
+    catch (err) { console.error("members:", err); }
   }
-  const members = mergeMembers(allMembers(), fromDb);
   memo = { at: Date.now(), members };
   return members;
 }

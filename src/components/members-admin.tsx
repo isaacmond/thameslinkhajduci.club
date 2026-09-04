@@ -4,9 +4,9 @@ import { ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { addMemberAction, removeMemberAction, type ActionState } from "@/app/actions/admin";
 import { inputClass, Select } from "./controls";
 
-export type MemberRow = { email: string; player: string; admin: boolean; fixed: boolean };
+export type MemberRow = { email: string; player: string; admin: boolean };
 
-/** Who can sign in. Addresses fixed in code cannot be removed here; the rest can. */
+/** Who can sign in. Any address can be removed except your own and the last admin's. */
 export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; roster: string[]; me: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(addMemberAction, null);
   const [player, setPlayer] = useState(roster[0] ?? "");
@@ -25,7 +25,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
               {rows.map((r) => (
                 <li key={r.email} className="chip gap-2">
                   <span className="font-normal normal-case tracking-normal text-cream/90">{r.email}</span>
-                  {r.fixed || r.email.toLowerCase() === me.toLowerCase() ? <span className="text-ash" title={r.fixed ? "Set in the site's code" : "That is you"}>·</span> : <button type="button" onClick={() => remove(r.email)} disabled={busy} aria-label={`Remove ${r.email}`} className="focus-ring text-ash hover:text-[#ff9a9d]"><Trash2 size={12} aria-hidden /></button>}
+                  {r.email.toLowerCase() === me.toLowerCase() ? <span className="text-ash" title="That is you">·</span> : <button type="button" onClick={() => remove(r.email)} disabled={busy} aria-label={`Remove ${r.email}`} className="focus-ring text-ash hover:text-[#ff9a9d]"><Trash2 size={12} aria-hidden /></button>}
                 </li>
               ))}
             </ul>

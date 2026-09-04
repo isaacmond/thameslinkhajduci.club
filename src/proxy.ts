@@ -8,7 +8,7 @@ import { authkit, handleAuthkitHeaders } from "@workos-inc/authkit-nextjs";
  * keeps working without sign-in.
  */
 const enabled = Boolean(process.env.WORKOS_API_KEY && process.env.WORKOS_CLIENT_ID && process.env.WORKOS_COOKIE_PASSWORD);
-const PROTECTED = [/^\/account(\/|$)/];
+const PROTECTED = [/^\/account(\/|$)/, /^\/admin(\/|$)/];
 
 export default async function proxy(request: NextRequest) {
   if (!enabled) return NextResponse.next();
