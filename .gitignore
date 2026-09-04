@@ -42,3 +42,8 @@ next-env.d.ts
 
 # build-time workbook snapshot
 .snapshot/
+
+# Agent skill docs dropped in by `vercel integration add` (vendor reference, not part of the site)
+.agents/
+.claude/skills/
+skills-lock.json
