@@ -48,7 +48,15 @@ See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names it
 - **Payment** (`/submit?type=payment`): who paid, how much, when, and a reference. The form pre-fills what the sheet says they owe and names who to pay (the season's "Paid by"). The message gives the next free row of the `Payments` tab (Date, Player, Amount, Note) and says what will be left to pay. Player pages and the Money page link straight to it.
 - **New player** (`/submit?type=player`): full name (must not already exist), nickname, position(s), shirt number (checked against numbers already worn), optional photo link. The message gives the first free roster row in the current season tab (the goals and assists grids follow the name automatically), plus `All-time` and `Money`, and the Squad-tab row if you have added one. The Squad page links to it.
 
-**Email to the admin (Resend, via the Vercel Marketplace).** Every valid submission is emailed to the address in the `SCORE_TO_EMAIL` env var (already set on the project). One step is yours: accept Resend's marketplace terms at https://vercel.com/isaacs-projects-d16aba6d/~/integrations/accept-terms/resend?source=cli, then run `npx vercel integration add resend --no-claim --scope isaacs-projects-d16aba6d` in the repo (or ask me to). That provisions Resend and sets `RESEND_API_KEY` on the project; the next deploy starts sending. Because your Vercel account is the same Gmail address, Resend's default sender reaches it without any DNS work. To send from `scores@thameslinkhajduci.club` instead, verify the domain in the Resend dashboard (it gives you two DNS records for Squarespace) and set `SCORE_FROM_EMAIL`.
+**Email to the admin (Resend, via the Vercel Marketplace).** Done: Resend is provisioned (resource `resend-email-aquamarine-harbor`, region eu-west-1) and connected to the project, which set `RESEND_API_KEY` and `RESEND_EMAIL_DOMAIN`; every valid submission is emailed to the address in `SCORE_TO_EMAIL`. Until the domain is verified, mail goes out from Resend's default sender (`onboarding@resend.dev`), which only delivers to the Resend account's own address, i.e. yours. To send from `scores@thameslinkhajduci.club` (and to any recipient), add these three records in Squarespace's DNS panel for thameslinkhajduci.club, then set `SCORE_FROM_EMAIL` to `Thameslink Hajduci <scores@thameslinkhajduci.club>` on Vercel (or ask me to):
+
+| Host | Type | Value | Priority |
+| --- | --- | --- | --- |
+| `resend._domainkey` | TXT | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDheGgSb3NH1H1TThjAubYAbWCNMaKY24Uyf6ZFHLFEUmPA4zIF05tbXW4S1OGBxBOAeUd1kqLATw+50c3TrOeH48IbhS7rgE1zS/mqtr8rwiu2nF3cfIVtMnnzK3wtYWT1IPMTP5AXgZknVDRetwfFyidZh52uV75/SOsuLYq4fwIDAQAB` | |
+| `send` | MX | `feedback-smtp.eu-west-1.amazonses.com` | 10 |
+| `send` | TXT | `v=spf1 include:amazonses.com ~all` | |
+
+Resend re-checks automatically (status at https://resend.com/domains, or `vercel integration open resend`). The same three records are already in Vercel's DNS for the domain, so they take effect on their own if you ever switch the nameservers to Vercel.
 
 Optional extra: `SCORE_WEBHOOK_URL` (Slack or Discord incoming webhook) posts each submission there too. Notifications are capped at 20 an hour per server instance so a prankster cannot burn the email quota; over the cap the submitter still gets the message to copy.
 
