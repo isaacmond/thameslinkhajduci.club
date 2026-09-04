@@ -41,9 +41,9 @@ describe("sheet → database → ClubData", () => {
     const { parsed, loaded, counts } = await roundTrip(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer);
     expect(counts.matches).toBe(parsed.matches.length);
     expect(loaded.players.map((p) => [p.name, p.apps, p.goals, p.assists, p.motm, p.wins, p.draws, p.losses])).toEqual(parsed.players.map((p) => [p.name, p.apps, p.goals, p.assists, p.motm, p.wins, p.draws, p.losses]));
-    // The corrected file stores "Cost per player" and the Money tab as formulas without cached values, so the parser sees 0 where the
-    // database computes the split. Compare everything else, then check the split the way the live sheet shows it.
-    const noCost = (d: ReturnType<typeof strip>) => ({ ...d, seasons: d.seasons.map((s) => ({ ...s, matches: s.matches.map((m) => ({ ...m, costPerPlayer: 0, lineup: m.lineup.map((l) => ({ ...l, cost: 0 })) })) })), matches: d.matches.map((m) => ({ ...m, costPerPlayer: 0, lineup: m.lineup.map((l) => ({ ...l, cost: 0 })) })), players: d.players.map((p) => ({ ...p, seasons: p.seasons.map((x) => ({ ...x, cost: 0 })) })), money: null });
+    // The corrected file stores "Cost per player", "Season cost" and the Money tab as formulas without cached values, so the parser
+    // sees 0 where the database computes the figures. Compare everything else, then check the split the way the live sheet shows it.
+    const noCost = (d: ReturnType<typeof strip>) => ({ ...d, allTime: { ...d.allTime, seasonCost: 0 }, seasons: d.seasons.map((s) => ({ ...s, summary: { ...s.summary, seasonCost: 0 }, matches: s.matches.map((m) => ({ ...m, costPerPlayer: 0, lineup: m.lineup.map((l) => ({ ...l, cost: 0 })) })) })), matches: d.matches.map((m) => ({ ...m, costPerPlayer: 0, lineup: m.lineup.map((l) => ({ ...l, cost: 0 })) })), players: d.players.map((p) => ({ ...p, seasons: p.seasons.map((x) => ({ ...x, cost: 0 })) })), money: null });
     expect(round(noCost(strip(loaded)))).toEqual(round(noCost(strip(parsed))));
     const s8 = loaded.seasons.find((s) => s.id === "S8")!;
     const game = s8.matches.find((m) => m.played && m.matchCost > 0)!;
