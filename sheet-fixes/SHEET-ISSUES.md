@@ -5,7 +5,7 @@ The site reads the Google Sheet as-is, so anything odd in the sheet shows up on 
 ## What's in this folder
 
 - `thameslink-hajduci-corrected.xlsx`: the whole workbook with the 29 opponent-name fixes below applied, plus the S1 GW5 score corrected to 2–1 (Isaac, 4 Sep 2026). Nothing else touched. Formulas, dates, column widths and the Payments dropdown are preserved.
-- `changes.csv`: the same 31 cell edits as a flat list.
+- `changes.csv`: the same edits as a flat list (29 opponent names, the S1 GW5 score, the Money Paid formula and header).
 
 ## How to apply
 
@@ -102,6 +102,17 @@ The site no longer shows champagne moments anywhere (Isaac, 4 Sep 2026), so the 
 
 ### 2.7 Opponent recorded as "Forfeit"
 S3 GW1 and S7 GW10 have "Forfeit" in the Opponent cell. Harmless (they are excluded from records anyway) but if you know who forfeited, putting the club name in and leaving "Forfeit" in the Type row keeps the fixture list honest.
+
+## 2.8 Money: the pitch payer was never credited (fixed in the corrected copy)
+The Money tab's **Paid** column only summed the Payments tab, so whoever pays for the pitch (row 2, "Season paid by") was charged their share like everyone else and shown as owing it. The corrected copy changes `Money!F4:F31` to:
+
+```
+=SUMIF(Payments!$B:$B,$A4,Payments!$C:$C)
+ +IF($A4=$B$2,IFERROR(SUMPRODUCT((INDIRECT("'"&B$1&"'!$B$14:$U$14")>0)*INDIRECT("'"&B$1&"'!$B$13:$U$13")),0),0)
+ +IF($A4=$C$2, … same for column C …)+IF($A4=$D$2, … same for column D …)
+```
+
+That is: transfers received **plus** the pitch cost of every played game in any season that player paid for. With one S8 game played, Isaac is now shown as **owed £68.53** (paid £79.95, own share £11.42) and the other six players owe £11.42 each, which adds up. `G3` is relabelled "Balance (+ owes · − is owed)". To apply by hand: paste the formula above into `Money!F4` (one line, no spaces) and fill down to F31, then relabel G3.
 
 ## 3. Optional: a Squad tab
 Photos, shirt numbers and positions currently come from a copy of the old app's data bundled with the site. If you add a tab called **Squad** with columns `Player, Nickname, Position, Shirt, Photo, Bio`, the site will read it live and it overrides the bundled data field by field (Photo can be any public image URL). Nothing to do if you're happy with what's there.

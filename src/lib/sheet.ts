@@ -257,7 +257,7 @@ function parseMoney(grid: Grid): { paidBy: Record<string, string>; rows: MoneyRo
     if (!name || /^total$/i.test(name)) continue;
     const charges: Record<string, number> = {};
     chargeCols.forEach(({ h, i }) => { charges[h.split(" ")[0]] = num(grid[r][i]) ?? 0; });
-    rows.push({ player: canonicalName(name), charges, totalCharged: num(grid[r][cTot]) ?? 0, paid: num(grid[r][cPaid]) ?? 0, balance: num(grid[r][cBal]) ?? 0 });
+    rows.push({ player: canonicalName(name), charges, totalCharged: num(grid[r][cTot]) ?? 0, paid: num(grid[r][cPaid]) ?? 0, balance: num(grid[r][cBal]) ?? 0, pitchCovered: 0 });
   }
   return { paidBy, rows };
 }
@@ -336,6 +336,27 @@ function mergeExtras(fromSheet: Map<string, SquadExtra>): Map<string, SquadExtra
   return merged;
 }
 
+/**
+ * Whoever is named in a season's "Paid by" cell has paid the pitch hire for that season's played games.
+ * The sheet's Paid column may or may not include that (the corrected workbook does); if it doesn't, add it here
+ * so the payer shows as owed money rather than owing their own share.
+ */
+function creditPitchPayers(seasons: Season[], money: { paidBy: Record<string, string>; rows: MoneyRow[] }) {
+  const covered = new Map<string, number>();
+  for (const s of seasons) {
+    const payer = money.paidBy[s.id] ?? (s.summary.paidBy ? canonicalName(s.summary.paidBy) : null);
+    if (!payer) continue;
+    const cost = s.matches.filter((m) => m.played && m.playersInGame > 0).reduce((t, m) => t + m.matchCost, 0);
+    if (cost > 0) covered.set(payer, (covered.get(payer) ?? 0) + cost);
+  }
+  for (const [payer, cost] of covered) {
+    let row = money.rows.find((r) => r.player === payer);
+    if (!row) { row = { player: payer, charges: {}, totalCharged: 0, paid: 0, balance: 0, pitchCovered: 0 }; money.rows.push(row); }
+    row.pitchCovered = cost;
+    if (row.paid + 0.005 < cost) { row.paid += cost; row.balance = row.totalCharged - row.paid; }
+  }
+}
+
 export function parseWorkbook(buf: ArrayBuffer): ClubData {
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
   const seasons: Season[] = [];
@@ -355,6 +376,7 @@ export function parseWorkbook(buf: ArrayBuffer): ClubData {
   if (current) current.isCurrent = true;
   const matches = seasons.flatMap((s) => s.matches).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.seasonNumber - b.seasonNumber || a.gw - b.gw);
   const players = buildPlayers(seasons, mergeExtras(extras));
+  creditPitchPayers(seasons, money);
   const allTime: SeasonSummary = seasons.reduce((acc, s) => ({
     ...acc, played: acc.played + s.summary.played, won: acc.won + s.summary.won, drawn: acc.drawn + s.summary.drawn, lost: acc.lost + s.summary.lost,
     goalsFor: acc.goalsFor + s.summary.goalsFor, goalsAgainst: acc.goalsAgainst + s.summary.goalsAgainst, seasonCost: acc.seasonCost + s.summary.seasonCost,

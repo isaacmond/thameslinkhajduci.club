@@ -14,7 +14,9 @@ export default async function MoneyPage() {
   const paidSeasons = data.seasons.filter((s) => s.matches.some((m) => m.matchCost > 0));
   const rows = data.money.rows.filter((r) => r.totalCharged > 0.001 || r.paid > 0.001 || Math.abs(r.balance) > 0.001).sort((a, b) => b.balance - a.balance || a.player.localeCompare(b.player));
   const owed = rows.reduce((s, r) => s + Math.max(0, r.balance), 0);
-  const charged = rows.reduce((s, r) => s + r.totalCharged, 0), paid = rows.reduce((s, r) => s + r.paid, 0);
+  const creditors = rows.filter((r) => r.balance < -0.01);
+  const owedToPayers = creditors.reduce((s, r) => s - r.balance, 0);
+  const charged = rows.reduce((s, r) => s + r.totalCharged, 0), received = rows.reduce((s, r) => s + Math.max(0, r.paid - r.pitchCovered), 0);
   const byName = new Map(data.players.map((p) => [p.name, p]));
   const games = chronological(paidSeasons.flatMap((s) => s.matches)).filter((m) => m.matchCost > 0);
   const played = games.filter((m) => m.played), future = games.filter((m) => !m.played);
@@ -30,16 +32,16 @@ export default async function MoneyPage() {
       <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">
-        <div className="col-span-2 lg:col-span-1"><Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay` : "Everyone's square"} size="lg" /></div>
-        <Stat label="Charged so far" value={fmtMoney(charged)} sub={`${fmtMoney(paid)} received`} />
-        <Stat label="Pitch spend" value={fmtMoney(spent)} sub={`${played.length} game${played.length === 1 ? "" : "s"} · ${fmtMoney(committed)} committed`} />
+        <div className="col-span-2 lg:col-span-1"><Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay${creditors.length ? ` · owed to ${creditors.map((c) => c.player.split(" ")[0]).join(" & ")}` : ""}` : "Everyone's square"} size="lg" /></div>
+        <Stat label="Charged so far" value={fmtMoney(charged)} sub={`${fmtMoney(received)} received in transfers`} />
+        <Stat label="Pitch spend" value={fmtMoney(spent)} sub={creditors.length ? `paid by ${creditors.map((c) => c.player.split(" ")[0]).join(" & ")} · ${fmtMoney(committed)} committed` : `${played.length} game${played.length === 1 ? "" : "s"} · ${fmtMoney(committed)} committed`} />
         <div className="hidden sm:block"><Stat label="Cost per goal" value={goals ? fmtMoney(spent / goals) : "–"} sub={goals ? `${goals} goal${goals === 1 ? "" : "s"} bought` : "No goals to amortise"} /></div>
         <div className="hidden sm:block"><Stat label="Cost per win" value={wins ? fmtMoney(spent / wins) : spent ? "∞" : "–"} tone={wins ? "default" : "loss"} sub={wins ? `${wins} win${wins === 1 ? "" : "s"}` : "Priceless, in the worst way"} /></div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
         <div className="card overflow-hidden lg:col-span-3">
-          <div className="p-5 pb-2"><SectionTitle sub="Live from the Money tab. Balances update when the treasurer does.">Who owes what</SectionTitle></div>
+          <div className="p-5 pb-2"><SectionTitle sub={creditors.length ? `${creditors.map((c) => c.player).join(" and ")} paid for the pitch and ${creditors.length === 1 ? "is" : "are"} owed ${fmtMoney(owedToPayers)}. Everyone else pays them their share.` : "Live from the Money tab. Balances update when the treasurer does."}>Who owes what</SectionTitle></div>
           {rows.length ? (
             <div className="scroll-x overflow-x-auto">
               <table className="stats w-full">
@@ -50,8 +52,8 @@ export default async function MoneyPage() {
                       <td><PlayerLink name={r.player} player={byName.get(r.player)} avatar /></td>
                       {paidSeasons.map((s) => <td key={s.id} className="num hidden text-ash sm:table-cell">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
                       <td className="num hidden sm:table-cell">{fmtMoney(r.totalCharged)}</td>
-                      <td className="num text-mint-soft">{fmtMoney(r.paid)}</td>
-                      <td className={clsx("num display text-2xl", r.balance > 0.01 ? "text-[#ff9a9d]" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? `${fmtMoney(-r.balance)} credit` : fmtMoney(r.balance)}</td>
+                      <td className="num text-mint-soft" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch hire paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-ash">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
+                      <td className={clsx("num display text-2xl", r.balance > 0.01 ? "text-[#ff9a9d]" : r.balance < -0.01 ? "text-mint-soft" : "text-ash")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block text-[10px] font-sans tracking-wider text-mint-soft/80">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block text-[10px] font-sans tracking-wider text-[#ff9a9d]/80">owes</span></> : "£0.00"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -66,7 +68,7 @@ export default async function MoneyPage() {
               <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-center gap-2"><Receipt size={14} className="text-mint-soft" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} /><span className="ml-auto tabular text-cream">{fmtMoney(p.amount)}</span><span className="text-xs text-ash">{fmtDate(p.date)}</span></li>)}</ul>
             ) : <p className="text-sm text-ash">No transfers logged yet. The treasurer remains optimistic.</p>}
           </div>
-          <Callout icon={<Coins size={18} />}>Charges are simply pitch cost ÷ players who played, per game. Pay the person who booked the pitch, then the sheet gets updated and this page follows within a minute. <Link href="/data" className="link">Export the money table</Link> if you want to argue about it in a spreadsheet of your own.</Callout>
+          <Callout icon={<Coins size={18} />}>Charges are simply pitch cost ÷ players who played, per game. Whoever paid for the pitch is credited the full cost, so their balance goes negative: that is money owed to them. Pay them, the treasurer logs it on the Payments tab, and this page follows within a minute. <Link href="/data" className="link">Export the money table</Link> if you want to argue about it in a spreadsheet of your own.</Callout>
         </div>
       </section>
 

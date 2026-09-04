@@ -107,8 +107,12 @@ export interface MoneyRow {
   player: string;
   charges: Record<string, number>;
   totalCharged: number;
+  /** transfers logged plus pitch costs covered (see pitchCovered) */
   paid: number;
+  /** positive: owes the club; negative: the club owes them */
   balance: number;
+  /** pitch hire this player paid for (played games in seasons where they are the "Paid by" name) */
+  pitchCovered: number;
 }
 
 export interface Payment {

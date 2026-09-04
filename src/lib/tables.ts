@@ -13,7 +13,7 @@ export const TABLE_INFO: Record<TableName, string> = {
   goals: "Long format: one row per player per match where they scored.",
   assists: "Long format: one row per player per match where they assisted.",
   opponents: "Head-to-head record against every opponent.",
-  money: "Season 8 onwards: charges, payments and balance per player.",
+  money: "Season 8 onwards: charges, payments and balance per player. Negative balance means the club owes them.",
   payments: "Every transfer logged on the Payments tab.",
 };
 
@@ -55,7 +55,7 @@ export function buildTable(data: ClubData, table: TableName, opts: { season?: st
       return { columns: Object.keys(rows[0] ?? {}), rows };
     }
     case "money": {
-      const rows: Row[] = data.money.rows.map((r) => ({ player: r.player, ...Object.fromEntries(Object.entries(r.charges).map(([k, v]) => [`${k}_charges`, +v.toFixed(2)])), total_charged: +r.totalCharged.toFixed(2), paid: +r.paid.toFixed(2), balance_owed: +r.balance.toFixed(2) }));
+      const rows: Row[] = data.money.rows.map((r) => ({ player: r.player, ...Object.fromEntries(Object.entries(r.charges).map(([k, v]) => [`${k}_charges`, +v.toFixed(2)])), total_charged: +r.totalCharged.toFixed(2), pitch_paid_for: +r.pitchCovered.toFixed(2), paid: +r.paid.toFixed(2), balance: +r.balance.toFixed(2), status: r.balance > 0.01 ? "owes" : r.balance < -0.01 ? "is owed" : "settled" }));
       return { columns: Object.keys(rows[0] ?? {}), rows };
     }
     case "payments": {
