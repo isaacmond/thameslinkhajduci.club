@@ -19,7 +19,7 @@ export function RefreshButton({ className }: { className?: string }) {
       setState("done"); setTimeout(() => setState("idle"), 4000);
     } catch { setState("error"); setTimeout(() => setState("idle"), 4000); }
   };
-  const label = busy ? "Re-reading the sheet…" : state === "done" ? "Refreshed from the sheet" : state === "error" ? "Sheet unreachable, try again" : "Force refresh from sheet";
+  const label = busy ? "Refreshing…" : state === "done" ? "Refreshed" : state === "error" ? "Couldn't refresh, try again" : "Force refresh";
   return (
     <button type="button" onClick={go} aria-disabled={busy} className={clsx("focus-ring inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-cream transition-colors hover:bg-white/10 aria-disabled:opacity-60", className)}>
       <RefreshCw size={16} className={busy ? "animate-spin" : ""} aria-hidden />

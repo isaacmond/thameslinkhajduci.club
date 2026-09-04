@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { Crown, Medal, Sparkles, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
-import { chemistry, chronological, fmtDate, fmtMoney, impact, leaderboard, type LeaderKey, scoreline } from "@/lib/stats";
+import { chemistry, chronological, fmtDate, fmtMoney, impact, leaderboard, type LeaderKey, scoreline, seasonHref } from "@/lib/stats";
 import { Avatar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
@@ -134,7 +134,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                   <td className={clsx("num", l.goals > 0 && "font-semibold text-mint-soft")}>{l.goals || ""}</td>
                   <td className="num">{l.assists || ""}</td>
                   <td className="text-ash">{fmtDate(m.date)}</td>
-                  <td className="text-ash"><Link href={`/seasons/${m.seasonId.toLowerCase()}`} className="link">{m.seasonId}</Link> GW{m.gw}</td>
+                  <td className="text-ash"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : m.seasonId}</Link> {m.seasonId === "FR" ? `#${m.gw}` : `GW${m.gw}`}</td>
                   <td className="text-xs text-ash">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} aria-hidden />MOTM</span>}{!l.played && "Scored without an appearance mark"}</td>
                 </tr>); })}
             </tbody>

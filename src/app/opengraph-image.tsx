@@ -19,7 +19,7 @@ export default async function Image() {
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 22, letterSpacing: 6, textTransform: "uppercase", color: "#a7b8ab" }}>Est. 2024 · East London</div>
           <div style={{ display: "flex", flexDirection: "column", fontSize: 148, lineHeight: 0.9, marginTop: 12, fontFamily: display(font), letterSpacing: 1 }}><div>Thameslink</div><div>Hajduci</div></div>
-          <div style={{ fontSize: 30, marginTop: 20, color: "#7fe0a3" }}>Forza Hajduci. Live from the spreadsheet.</div>
+          <div style={{ fontSize: 30, marginTop: 20, color: "#7fe0a3" }}>Forza Hajduci. East London, since 2024.</div>
         </div>
       </div>
     ),

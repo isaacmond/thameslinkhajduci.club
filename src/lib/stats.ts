@@ -8,6 +8,9 @@ export const scoreline = (m: Match) => (m.played ? `${m.ourGoals}–${m.theirGoa
 export const ppg = (s: { won: number; drawn: number; played: number }) => (s.played ? +((s.won * 3 + s.drawn) / s.played).toFixed(2) : 0);
 export const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 export const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
+/** "GW3" for league games, "Friendly 3" for the friendlies tab. */
+export const gwLabel = (m: { seasonId: string; gw: number }) => (m.seasonId === "FR" ? `Friendly ${m.gw}` : `GW${m.gw}`);
+export const seasonHref = (seasonId: string) => (seasonId === "FR" ? "/seasons/friendlies" : `/seasons/${seasonId.toLowerCase()}`);
 
 export function playedMatches(matches: Match[]) {
   return matches.filter((m) => m.countsForRecords && m.played);

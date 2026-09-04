@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui";
 import { SquadGrid, type SquadCard } from "@/components/squad-grid";
 import { PageTransition } from "@/components/page-transition";
 
-export const metadata: Metadata = { title: "Squad", description: "Every player who has pulled on the Thameslink Hajduci shirt, with career numbers straight from the spreadsheet." };
+export const metadata: Metadata = { title: "Squad", description: "Every player who has pulled on the Thameslink Hajduci shirt, with career numbers, photos and positions." };
 
 export default async function SquadPage() {
   const data = await getData();

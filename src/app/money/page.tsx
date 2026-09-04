@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Money", description: "Who owes what 
 
 export default async function MoneyPage() {
   const data = await getData();
-  const paidSeasons = data.seasons.filter((s) => s.matches.some((m) => m.matchCost > 0));
+  const paidSeasons = [...data.seasons, ...(data.friendlies ? [data.friendlies] : [])].filter((s) => s.matches.some((m) => m.matchCost > 0));
   const rows = data.money.rows.filter((r) => r.totalCharged > 0.001 || r.paid > 0.001 || Math.abs(r.balance) > 0.001).sort((a, b) => b.balance - a.balance || a.player.localeCompare(b.player));
   const owed = rows.reduce((s, r) => s + Math.max(0, r.balance), 0);
   const creditors = rows.filter((r) => r.balance < -0.01);
@@ -41,7 +41,7 @@ export default async function MoneyPage() {
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
         <div className="card overflow-hidden lg:col-span-3">
-          <div className="p-5 pb-2"><SectionTitle sub={creditors.length ? `${creditors.map((c) => c.player).join(" and ")} paid for the pitch and ${creditors.length === 1 ? "is" : "are"} owed ${fmtMoney(owedToPayers)}. Everyone else pays them their share.` : "Live from the Money tab. Balances update when the treasurer does."}>Who owes what</SectionTitle></div>
+          <div className="p-5 pb-2"><SectionTitle sub={creditors.length ? `${creditors.map((c) => c.player).join(" and ")} paid for the pitch and ${creditors.length === 1 ? "is" : "are"} owed ${fmtMoney(owedToPayers)}. Everyone else pays them their share.` : "Balances update when the treasurer does."}>Who owes what</SectionTitle></div>
           {rows.length ? (
             <div className="scroll-x overflow-x-auto">
               <table className="stats w-full">
@@ -63,12 +63,12 @@ export default async function MoneyPage() {
         </div>
         <div className="space-y-6 lg:col-span-2">
           <div className="card p-5">
-            <SectionTitle sub="Every transfer logged on the Payments tab">Payments received</SectionTitle>
+            <SectionTitle sub="Every transfer the treasurer has logged">Payments received</SectionTitle>
             {data.money.payments.length ? (
               <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-center gap-2"><Receipt size={14} className="text-mint-soft" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} /><span className="ml-auto tabular text-cream">{fmtMoney(p.amount)}</span><span className="text-xs text-ash">{fmtDate(p.date)}</span></li>)}</ul>
             ) : <p className="text-sm text-ash">No transfers logged yet. The treasurer remains optimistic.</p>}
           </div>
-          <Callout icon={<Coins size={18} />}>Charges are simply pitch cost ÷ players who played, per game. Whoever paid for the pitch is credited the full cost, so their balance goes negative: that is money owed to them. Pay them, the treasurer logs it on the Payments tab, and this page follows within a minute. <Link href="/data" className="link">Export the money table</Link> if you want to argue about it in a spreadsheet of your own.</Callout>
+          <Callout icon={<Coins size={18} />}>Charges are simply pitch cost ÷ players who played, per game. Whoever paid for the pitch is credited the full cost, so their balance goes negative: that is money owed to them. Pay them, the treasurer logs it, and this page follows within a minute. <Link href="/data" className="link">Export the money table</Link> if you want to argue about it in a spreadsheet of your own.</Callout>
         </div>
       </section>
 

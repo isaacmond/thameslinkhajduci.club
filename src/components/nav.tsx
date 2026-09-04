@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
-import { CalendarDays, Coins, Database, Medal, Menu, Target, TrainFront, Trophy, Users, X } from "lucide-react";
+import { CalendarDays, ClipboardPen, Coins, Database, Medal, Menu, Target, TrainFront, Trophy, Users, X } from "lucide-react";
 import { usePath } from "./use-path";
 
 const LINKS = [
   { href: "/", label: "Home" }, { href: "/squad", label: "Squad" }, { href: "/matches", label: "Matches" }, { href: "/seasons", label: "Seasons" },
-  { href: "/stats", label: "Stats" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/data", label: "Data" },
+  { href: "/stats", label: "Stats" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/data", label: "Data" }, { href: "/submit", label: "Submit" },
 ];
 const TABS = [{ href: "/", label: "Home", Icon: TrainFront }, { href: "/matches", label: "Matches", Icon: CalendarDays }, { href: "/squad", label: "Squad", Icon: Users }, { href: "/stats", label: "Stats", Icon: Target }];
-const MORE = [{ href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data & API", Icon: Database }];
+const MORE = [{ href: "/submit", label: "Submit a score", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data & API", Icon: Database }];
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
 export function Nav() {

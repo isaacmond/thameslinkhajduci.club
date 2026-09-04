@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
 import { getData } from "@/lib/data";
-import { assistersFor, chronological, fmtDate, fmtMoney, headToHead, opponentKey, playedMatches, scorersFor, scoreline } from "@/lib/stats";
+import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, opponentKey, playedMatches, scorersFor, scoreline, seasonHref } from "@/lib/stats";
 import { londonEpoch } from "@/lib/time";
 import { matchVerdict, serviceStatus } from "@/lib/captions";
 import { PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const m = data.matches.find((x) => x.id === id);
   if (!m) notFound();
   const title = m.played ? `Hajduci ${m.ourGoals}–${m.theirGoals} ${m.opponent}` : `Hajduci vs ${m.opponent}`;
-  return { title, description: `${m.seasonId} GW${m.gw} · ${fmtDate(m.date)}${m.motm ? ` · MOTM ${m.motm}` : ""}` };
+  return { title, description: `${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} GW${m.gw}`} · ${fmtDate(m.date)}${m.motm ? ` · MOTM ${m.motm}` : ""}` };
 }
 
 const statusText = { ok: "text-mint-soft", late: "text-[#ffe27a]", bad: "text-[#ff9a9d]", muted: "text-ash" } as const;
@@ -33,7 +33,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const data = await getData();
   const m = data.matches.find((x) => x.id === id);
   if (!m) notFound();
-  const season = data.seasons.find((s) => s.id === m.seasonId)!;
+  const season = (m.seasonId === "FR" ? data.friendlies : data.seasons.find((s) => s.id === m.seasonId))!;
   const all = chronological(data.matches);
   const idx = all.findIndex((x) => x.id === m.id);
   const prev = idx > 0 ? all[idx - 1] : null, next = idx < all.length - 1 ? all[idx + 1] : null;
@@ -55,13 +55,13 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   return (
     <PageTransition>
     <div className="space-y-8">
-      <nav className="flex flex-wrap items-center gap-2 text-xs text-ash" aria-label="Breadcrumb"><Link href="/matches" className="link">Matches</Link> / <Link href={`/seasons/${season.id.toLowerCase()}`} className="link">Season {season.number}</Link> / Gameweek {m.gw}</nav>
+      <nav className="flex flex-wrap items-center gap-2 text-xs text-ash" aria-label="Breadcrumb"><Link href="/matches" className="link">Matches</Link> / <Link href={seasonHref(season.id)} className="link">{season.id === "FR" ? "Friendlies" : `Season ${season.number}`}</Link> / {gwLabel(m)}</nav>
 
       <section className="card-solid pitch relative overflow-hidden p-5 animate-rise sm:p-10">
         <div className={clsx("pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full blur-3xl", m.result === "W" ? "bg-mint/25" : m.result === "L" ? "bg-loss/15" : "bg-gold/15")} aria-hidden />
         <div className="relative">
           <p className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ash">
-            <span className="eyebrow">{season.id} · GW{m.gw}</span>
+            <span className="eyebrow">{season.id === "FR" ? "Friendly" : `${season.id} · GW${m.gw}`}</span>
             <span>{fmtDate(m.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}</span>
             <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden />{season.venue}</span>
             {m.played && <ResultPill result={m.result} size="sm" />}
@@ -83,6 +83,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)} · {fmtMoney(m.costPerPlayer)} each</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
             <ShareButton title={shareText} text={shareText} />
+            <Link href={`/submit?match=${m.id}`} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-mint/40 bg-mint/10 px-3 py-1.5 text-xs font-semibold text-mint-soft transition-colors hover:bg-mint/20">{m.played ? "Correct this score" : "Submit the score"}</Link>
           </div>
         </div>
       </section>

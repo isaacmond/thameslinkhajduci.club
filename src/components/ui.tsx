@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
 import type { Match, Player, Result, SeasonSummary } from "@/lib/types";
-import { fmtDate, initials, ppg, scoreline, signed } from "@/lib/stats";
+import { fmtDate, gwLabel, initials, ppg, scoreline, signed } from "@/lib/stats";
 import { slugify } from "@/lib/slug";
 import { CountUp } from "./count-up";
 
@@ -115,14 +115,14 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match; showSeaso
   const rel = m.played ? null : relDay(m.date, today);
   return (
     <Link href={`/matches/${m.id}`} className="focus-ring group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-white/5 px-3 py-3 transition-colors hover:border-white/15 hover:bg-white/[0.04]">
-      {m.played ? <ResultPill result={m.result} size="lg" /> : <span className="chip h-9 w-9 justify-center !p-0 text-[10px] text-ash" aria-label={`Gameweek ${m.gw}`}>GW{m.gw}</span>}
+      {m.played ? <ResultPill result={m.result} size="lg" /> : <span className="chip h-9 w-9 justify-center !p-0 text-[10px] text-ash" aria-label={gwLabel(m)}>{m.seasonId === "FR" ? "F" : "GW"}{m.gw}</span>}
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-2">
           <span className="truncate font-semibold text-cream">{m.opponent}</span>
           {m.type && <span className="chip text-ash">{m.type}</span>}
         </div>
         <div className="truncate text-xs text-ash">
-          {showSeason && <span className="text-mint-soft">{m.seasonId} · </span>}GW{m.gw} · {fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}
+          {showSeason && <span className="text-mint-soft">{m.seasonId === "FR" ? "Friendly" : m.seasonId} · </span>}{gwLabel(m)} · {fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}
           {scorers.length > 0 && <span className="hidden sm:inline"> · ⚽ {scorers.map((s) => `${s.player.split(" ")[0]}${s.goals > 1 ? ` ×${s.goals}` : ""}`).join(", ")}</span>}
           {m.motm && <span className="hidden text-gold sm:inline"> · ★ {m.motm}</span>}
         </div>

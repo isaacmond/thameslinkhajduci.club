@@ -143,6 +143,9 @@ Isaac, 4 Sep 2026: **Robin** is Robin Watson and **Eddie Ringer** is Eddie McLau
 | Money | A11 | Eddie Ringer | Eddie McLaughlin |
 | Money | A23 | Robin | Robin Watson |
 
+## 2.10 Friendlies outside a season (new tab in the corrected copy)
+Friendlies played *during* a season already work: put the game in the season tab and write `Friendly` in the Type row. For one-offs that belong to no season, the corrected copy adds a **Friendlies** tab, a copy of the season template with `Friendly` pre-filled in the Type row for every column and the columns labelled Game 1–20. Fill it in exactly like a season tab (date, kick-off, opponent, goals, appearances, scorers, assists, MOTM, comments, match cost, paid by). The site lists these on `/matches` under "Friendlies", on `/seasons/friendlies`, and on the players' match logs, but they never touch W/D/L, form, records or player totals. If you add the tab by hand instead: duplicate `Season template`, rename it `Friendlies`, and type `Friendly` into row 16 across B–U.
+
 ## 3. Optional: a Squad tab
 Photos, shirt numbers and positions currently come from a copy of the old app's data bundled with the site. If you add a tab called **Squad** with columns `Player, Nickname, Position, Shirt, Photo, Bio`, the site will read it live and it overrides the bundled data field by field (Photo can be any public image URL). Nothing to do if you're happy with what's there.
 

@@ -40,6 +40,16 @@ npx vercel deploy --prod --scope isaacs-projects-d16aba6d
 
 See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names itself, so nothing is broken; this is about making the sheet match. The S1 GW5 score is already corrected to 2–1 in that copy; three S4 scores remain unknown (the legacy workbook has `??` for them too).
 
+## Score submissions
+
+`/submit` lets anyone report a result, scorers, assists, line-up and MOTM. **Nothing is written by the site.** The request is validated (real fixture, real roster names, scorers can't exceed the score) and turned into a message with the exact cells to change in the sheet (tab, cell, value). The submitter can send it to the group chat (WhatsApp share), copy it, or, if they're an admin, open the sheet. You apply it in seconds; the site follows within a minute.
+
+Optional: set a `SCORE_WEBHOOK_URL` environment variable on the Vercel project (Slack or Discord incoming webhook URL) and every submission is also posted there for approval. Add it under Project → Settings → Environment Variables, then redeploy. Without it the button reads "Prepare the request" instead of "Submit for approval".
+
+## Friendlies
+
+Friendlies inside a season: enter the game in the season tab and write `Friendly` in the Type row. Friendlies outside any season: fill in the **Friendlies** tab (in the corrected workbook; or duplicate `Season template`, rename it `Friendlies`, and put `Friendly` in row 16 across B–U). They appear on `/matches`, `/seasons/friendlies` and player match logs, and never count towards records.
+
 ## Operating the site
 
 - **Update anything:** edit the Google Sheet. The site re-reads it within 60 seconds. For instant, hit "Force refresh from sheet" on `/data` (or `POST /api/revalidate`).

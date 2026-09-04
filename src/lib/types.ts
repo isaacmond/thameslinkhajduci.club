@@ -128,6 +128,8 @@ export interface ClubData {
   stale?: boolean;
   sheetUrl: string;
   seasons: Season[];
+  /** One-off games outside the league seasons (a "Friendlies" tab). Never counts for records. */
+  friendlies: Season | null;
   matches: Match[];
   players: Player[];
   money: { paidBy: Record<string, string>; rows: MoneyRow[]; payments: Payment[] };

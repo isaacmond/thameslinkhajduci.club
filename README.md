@@ -8,12 +8,12 @@ The website of Thameslink Hajduci, a six-a-side football club from East London t
 
 - **Source of truth:** the [club spreadsheet](https://docs.google.com/spreadsheets/d/1nCwz2uInlh3gePYORxvW3_0SlpFS8KgRxCCoccvw9zA/edit). One tab per season (`S1`, `S2`, …) plus `Money` and `Payments`. The site downloads the workbook as `.xlsx` and parses it in `src/lib/sheet.ts`.
 - **Caching:** the fetch is cached for 60 seconds (Next.js data cache, tag `sheet`). `POST /api/revalidate` forces a re-read; the Data page has a button for it.
-- **Rules:** friendlies and forfeits (the `Type` row) are shown but excluded from W/D/L, goals and player totals. The sheet's champagne-moment row is ignored. Goals-per-game only counts games where scorers were logged; assists-per-game only counts games where assists were logged. Opponent names are normalised so head-to-head records line up.
+- **Rules:** friendlies and forfeits (the `Type` row, or anything in a `Friendlies` tab) are shown but excluded from W/D/L, goals and player totals. The sheet's champagne-moment row is ignored. Whoever is named in a season's "Paid by" cell is credited the pitch cost of played games. Goals-per-game only counts games where scorers were logged; assists-per-game only counts games where assists were logged. Opponent names are normalised so head-to-head records line up.
 - **Profile extras:** photos, shirt numbers and positions come from `src/lib/squad-extras.json` (carried over from the old team app). A tab called `Squad` in the sheet (`Player, Nickname, Position, Shirt, Photo, Bio`) overrides it field by field.
 
 ## Pages
 
-`/` home · `/squad` and `/squad/[player]` · `/matches` and `/matches/[id]` · `/seasons` and `/seasons/[id]` · `/stats` · `/records` · `/money` · `/data`
+`/` home · `/squad` and `/squad/[player]` · `/matches` and `/matches/[id]` · `/seasons`, `/seasons/[id]` and `/seasons/friendlies` · `/stats` · `/records` · `/money` · `/data` · `/submit` (score submissions, validated and handed to the admin for approval; optional `SCORE_WEBHOOK_URL` posts them to Slack/Discord)
 
 ## API
 
@@ -35,7 +35,7 @@ npm run build      # production build (fetches the sheet at build time)
 npm run lint
 ```
 
-Environment variables (all optional): `SHEET_ID` to point at a different spreadsheet, `NEXT_PUBLIC_SITE_URL` for absolute URLs in metadata and the API docs.
+Environment variables (all optional): `SHEET_ID` to point at a different spreadsheet, `NEXT_PUBLIC_SITE_URL` for absolute URLs in metadata and the API docs, `SCORE_WEBHOOK_URL` to forward score submissions to a Slack/Discord webhook.
 
 ## Stack
 

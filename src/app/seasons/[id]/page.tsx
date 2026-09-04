@@ -12,21 +12,49 @@ import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
   const data = await getData();
-  return data.seasons.map((s) => ({ id: s.id.toLowerCase() }));
+  return [...data.seasons.map((s) => ({ id: s.id.toLowerCase() })), ...(data.friendlies ? [{ id: "friendlies" }] : [])];
 }
+type Data = Awaited<ReturnType<typeof getData>>;
+const findSeason = (data: Data, id: string) => (/^(friendlies|fr)$/i.test(id) ? data.friendlies : data.seasons.find((x) => x.id === id.toUpperCase())) ?? null;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const data = await getData();
-  const s = data.seasons.find((x) => x.id === id.toUpperCase());
+  const s = findSeason(data, id);
   if (!s) notFound();
+  if (s.id === "FR") return { title: "Friendlies", description: "One-off games outside the league seasons. Bragging rights only." };
   return { title: `Season ${s.number}`, description: `${s.title}: W${s.summary.won} D${s.summary.drawn} L${s.summary.lost}.` };
+}
+
+function FriendliesPage({ s }: { s: NonNullable<Data["friendlies"]> }) {
+  const today = londonToday();
+  const fixtures = chronological(s.matches);
+  const played = fixtures.filter((m) => m.played);
+  const w = played.filter((m) => m.result === "W").length, d = played.filter((m) => m.result === "D").length, l = played.filter((m) => m.result === "L").length;
+  return (
+    <PageTransition>
+    <div className="space-y-8">
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title="Friendlies" sub={<><span className="mb-2 block"><Tag tone="gold">Bragging rights only</Tag></span>One-off games outside the league seasons. Nothing here counts towards records, form or player stats; it is all still on the record, obviously.</>} right={<nav className="flex gap-2" aria-label="Seasons"><Link href="/seasons" className="focus-ring chip text-ash hover:text-cream"><ChevronLeft size={14} aria-hidden />Seasons</Link></nav>} />
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Friendlies summary">
+        <Stat label="Played" value={played.length} />
+        <Stat label="Won" value={w} tone="win" />
+        <Stat label="Drawn" value={d} tone="draw" />
+        <Stat label="Lost" value={l} tone="loss" />
+      </section>
+      <section>
+        <SectionTitle sub="Oldest first. Scorers and line-ups live on each match page.">Games</SectionTitle>
+        {fixtures.length ? <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="card px-4 py-8 text-center text-sm text-ash">No friendlies logged yet.</p>}
+      </section>
+    </div>
+    </PageTransition>
+  );
 }
 
 export default async function SeasonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const data = await getData();
-  const s = data.seasons.find((x) => x.id === id.toUpperCase());
+  const s = findSeason(data, id);
   if (!s) notFound();
+  if (s.id === "FR") return <FriendliesPage s={s} />;
   const i = data.seasons.indexOf(s);
   const prev = data.seasons[i - 1], next = data.seasons[i + 1];
   const players = seasonPlayers(data, s.id);

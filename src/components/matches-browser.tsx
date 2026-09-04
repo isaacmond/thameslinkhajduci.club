@@ -32,7 +32,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
       <div className="card mb-6 flex flex-col gap-3 p-4">
         <div className="scrollbar-none -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Season">
           <Chip active={season === "all"} onClick={() => setSeason("all")}>All seasons</Chip>
-          {[...seasons].reverse().map((s) => <Chip key={s.id} active={season === s.id} onClick={() => setSeason(s.id)}>{s.id}</Chip>)}
+          {[...seasons].reverse().map((s) => <Chip key={s.id} active={season === s.id} onClick={() => setSeason(s.id)}>{s.id === "FR" ? "Friendlies" : s.id}</Chip>)}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-1.5" role="group" aria-label="Result">
@@ -52,7 +52,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
         return (
           <details key={sid} open={open} className="group/season mb-4 rounded-2xl border border-white/5 open:border-white/10">
             <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl px-3 py-3 hover:bg-white/[0.03]">
-              <h2 className="display text-2xl text-cream"><span className="whitespace-nowrap">{s ? `Season ${s.number}` : sid}</span></h2>
+              <h2 className="display text-2xl text-cream"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h2>
               <span className="text-xs text-ash">{s?.title.split("·")[1]?.trim()}</span>
               <span className="ml-auto text-xs text-ash">{ms.length} game{ms.length === 1 ? "" : "s"} · <span className="text-mint-soft">W{cw}</span> <span className="text-[#ffe27a]">D{cd}</span> <span className="text-[#ff9a9d]">L{cl}</span></span>
               <span className="text-ash transition-transform group-open/season:rotate-180" aria-hidden>▾</span>

@@ -46,6 +46,18 @@ export default async function SeasonsPage() {
           );
         })}
       </ol>
+      {data.friendlies && (
+        <article className="card mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <span className="display flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06] text-2xl text-cream">FR</span>
+            <div>
+              <h2 className="display text-2xl leading-none text-cream"><Link href="/seasons/friendlies" className="focus-ring rounded hover:text-mint-soft">Friendlies</Link></h2>
+              <p className="mt-1 text-xs text-ash">{data.friendlies.matches.length} game{data.friendlies.matches.length === 1 ? "" : "s"} outside the league. Bragging rights only: nothing here counts towards records.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3"><FormStrip matches={[...data.friendlies.matches].filter((m) => m.played).slice(-8)} size="sm" /><Link href="/seasons/friendlies" className="focus-ring chip text-ash hover:text-cream">View <ArrowRight size={14} aria-hidden /></Link></div>
+        </article>
+      )}
     </>
     </PageTransition>
   );

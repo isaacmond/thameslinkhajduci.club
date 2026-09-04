@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SHEET_URL } from "@/lib/config";
 import { HideOnHome } from "./hide-on-home";
 
 export const SPONSORS = [
@@ -70,7 +69,6 @@ export function Footer() {
             <span className="hidden sm:inline">· Whitechapel, London · Tuesdays, allegedly</span>
           </div>
           <div className="flex flex-wrap gap-4">
-            <a className="link" href={SHEET_URL} target="_blank" rel="noopener noreferrer">Source spreadsheet ↗</a>
             <Link className="link" href="/data">Data &amp; API</Link>
             <a className="link" href="https://github.com/isaacmond/thameslinkhajduci.club" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
           </div>

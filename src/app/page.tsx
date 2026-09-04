@@ -39,8 +39,8 @@ export default async function Home() {
         <div className="relative grid items-center gap-6 lg:grid-cols-[1fr_auto]">
           <div>
             <p className="mb-3 flex flex-wrap items-center gap-2 text-xs sm:mb-4">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/40 bg-mint/10 px-2.5 py-1 font-medium text-mint-soft"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-soft" aria-hidden />Live from the spreadsheet · read {readAt}</span>
-              {data.stale && <Tag tone="gold">Sheet unreachable, showing last good read</Tag>}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/40 bg-mint/10 px-2.5 py-1 font-medium text-mint-soft"><span className="h-1.5 w-1.5 rounded-full bg-mint animate-pulse-soft" aria-hidden />Live · updated {readAt}</span>
+              {data.stale && <Tag tone="gold">Showing last good data</Tag>}
               {current && <span className="eyebrow hidden sm:inline">{current.venue}</span>}
             </p>
             <div className="flex items-center gap-4">
@@ -64,7 +64,7 @@ export default async function Home() {
         <article className="card overflow-hidden">
           <header className="flex items-center justify-between bg-pine px-5 py-3"><h2 className="display text-2xl text-cream">All-time</h2><Tag>{data.seasons.length} seasons · since {fmtDate(data.matches.find((m) => m.date)?.date ?? null, { month: "short", year: "numeric" })}</Tag></header>
           <RecordStrip s={data.allTime} animate />
-          <div className="grid gap-5 p-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <div><SectionTitle right={<Link href="/stats" className="link py-1 text-xs">View all</Link>}><span className="text-xl">Season ticket holders</span></SectionTitle><LeaderList items={topApps} color="bg-cream" /></div>
             <div><SectionTitle right={<Link href="/stats" className="link py-1 text-xs">View all</Link>}><span className="text-xl">Golden boot</span></SectionTitle><LeaderList items={topScorers} /></div>
           </div>
@@ -73,7 +73,7 @@ export default async function Home() {
           <article className="card overflow-hidden">
             <header className="flex items-center justify-between bg-mint px-5 py-3 text-night"><h2 className="display text-2xl">Season {current.number}</h2><Link href={`/seasons/${current.id.toLowerCase()}`} className="focus-ring inline-flex items-center gap-1 rounded py-1 text-xs font-semibold uppercase tracking-wider hover:underline">{current.period} <ArrowRight size={14} aria-hidden /></Link></header>
             <RecordStrip s={current.summary} animate />
-            <div className="grid gap-5 p-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div><SectionTitle right={<Link href={`/seasons/${current.id.toLowerCase()}`} className="link py-1 text-xs">Season</Link>}><span className="text-xl">Turned up</span></SectionTitle><LeaderList items={sApps} color="bg-cream" emptyText="Season hasn't kicked off yet" /></div>
               <div><SectionTitle right={<Link href={`/seasons/${current.id.toLowerCase()}`} className="link py-1 text-xs">Season</Link>}><span className="text-xl">Scored</span></SectionTitle><LeaderList items={sScorers} emptyText="No goals yet. Plenty of time." /></div>
             </div>
@@ -91,8 +91,8 @@ export default async function Home() {
           {streak && <p className="mt-4 text-sm italic text-cream/80">{streak.type === "L" ? `That's ${streak.length} in a row now. The board is monitoring the situation.` : streak.type === "W" ? `${streak.length} straight win${streak.length > 1 ? "s" : ""}. Nobody panic.` : "A draw. Everyone slightly confused."}</p>}
         </div>
         <div className="card p-5 lg:col-span-2">
-          <SectionTitle right={<Link href="/matches" className="link py-1 text-xs">All fixtures</Link>} sub={current ? `${current.venue} · kick-offs vary, arrivals vary more` : undefined}>Coming up</SectionTitle>
-          {upcoming.length ? <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="text-sm text-ash">No fixtures scheduled. The committee is in talks. The committee is also in the pub.</p>}
+          <SectionTitle right={<span className="flex gap-3"><Link href="/submit" className="link py-1 text-xs">Submit a score</Link><Link href="/matches" className="link py-1 text-xs">All fixtures</Link></span>} sub={current ? `${current.venue} · kick-offs vary, arrivals vary more` : undefined}>Coming up</SectionTitle>
+          {upcoming.length ? <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="text-sm text-ash">No fixtures scheduled. The committee is in talks. The committee is also in the pub.</p>}
         </div>
       </section>
 

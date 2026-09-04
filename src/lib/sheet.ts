@@ -118,14 +118,14 @@ function parsePlayerGrid(grid: Grid, headerRow: number, gwCols: number[]): Map<s
   return out;
 }
 
-function parseSeasonTab(id: string, grid: Grid): Season | null {
+function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } = {}): Season | null {
   const title = str(grid[0]?.[0]) ?? id;
-  const number = Number(id.slice(1));
+  const number = opts.friendlies ? 0 : Number(id.slice(1));
   const matchRow = findRow(grid, "Match");
   if (matchRow < 0) return null;
   const header = grid[matchRow];
   const gwCols: number[] = [];
-  header.forEach((c, i) => { if (typeof c === "string" && /^GW\d+$/i.test(c.trim())) gwCols.push(i); });
+  header.forEach((c, i) => { if (typeof c === "string" && /^(GW|Game|G|F|Friendly)\s*\d+$/i.test(c.trim())) gwCols.push(i); });
   const summaryCol = header.findIndex((c) => typeof c === "string" && /season summary/i.test(c));
 
   const row = (label: string) => { const r = findRow(grid, label, matchRow); return r >= 0 ? grid[r] : []; };
@@ -151,7 +151,7 @@ function parseSeasonTab(id: string, grid: Grid): Season | null {
     const rr = str(results[col]);
     if (rr && /^[WDL]$/i.test(rr)) result = rr.toUpperCase() as Result;
     else if (played) result = og! > tg! ? "W" : og! < tg! ? "L" : "D";
-    const type = str(types[col]);
+    const type = str(types[col]) ?? (opts.friendlies ? "Friendly" : null);
     const lineup: PlayerMatchLine[] = [];
     for (const p of roster) {
       const pl = (apps.get(p)?.[gi] ?? 0) > 0;
@@ -170,7 +170,7 @@ function parseSeasonTab(id: string, grid: Grid): Season | null {
       motm: str(motms[col]) ? canonicalName(str(motms[col])!) : null,
       comment: str(comments[col]),
       type,
-      countsForRecords: !type,
+      countsForRecords: !type && !opts.friendlies,
       scorersRecorded: og === 0 || goalsLogged > 0,
       assistsRecorded: og === 0 || assistsLogged > 0,
       matchCost: num(costs[col]) ?? 0,
@@ -361,12 +361,14 @@ function creditPitchPayers(seasons: Season[], money: { paidBy: Record<string, st
 export function parseWorkbook(buf: ArrayBuffer): ClubData {
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
   const seasons: Season[] = [];
+  let friendlies: Season | null = null;
   let extras = new Map<string, SquadExtra>();
   let money: { paidBy: Record<string, string>; rows: MoneyRow[] } = { paidBy: {}, rows: [] };
   let payments: Payment[] = [];
   for (const name of wb.SheetNames) {
     const grid = sheetToGrid(wb.Sheets[name]);
     if (/^S\d+$/i.test(name.trim())) { const s = parseSeasonTab(name.trim().toUpperCase(), grid); if (s && s.matches.length) seasons.push(s); }
+    else if (/^friendl(y|ies)$/i.test(name.trim())) { const f = parseSeasonTab("FR", grid, { friendlies: true }); if (f && f.matches.length) { f.venue = f.venue || "Various venues"; f.period = f.period || "Whenever we fancy"; friendlies = f; } }
     else if (/^(squad|players|profiles)$/i.test(name.trim())) extras = parseSquadTab(grid);
     else if (/^money$/i.test(name.trim())) money = parseMoney(grid);
     else if (/^payments$/i.test(name.trim())) payments = parsePayments(grid);
@@ -375,27 +377,64 @@ export function parseWorkbook(buf: ArrayBuffer): ClubData {
   // current season = latest season that isn't complete, else the latest season
   const current = [...seasons].reverse().find((s) => !s.isComplete) ?? seasons[seasons.length - 1];
   if (current) current.isCurrent = true;
-  const matches = seasons.flatMap((s) => s.matches).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.seasonNumber - b.seasonNumber || a.gw - b.gw);
+  const matches = [...seasons, ...(friendlies ? [friendlies] : [])].flatMap((s) => s.matches).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.seasonNumber - b.seasonNumber || a.gw - b.gw);
   const players = buildPlayers(seasons, mergeExtras(extras));
-  creditPitchPayers(seasons, money);
+  creditPitchPayers([...seasons, ...(friendlies ? [friendlies] : [])], money);
   const allTime: SeasonSummary = seasons.reduce((acc, s) => ({
     ...acc, played: acc.played + s.summary.played, won: acc.won + s.summary.won, drawn: acc.drawn + s.summary.drawn, lost: acc.lost + s.summary.lost,
     goalsFor: acc.goalsFor + s.summary.goalsFor, goalsAgainst: acc.goalsAgainst + s.summary.goalsAgainst, seasonCost: acc.seasonCost + s.summary.seasonCost,
   }), { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, topScorer: null, mostApps: null, seasonCost: 0, paidBy: null } as SeasonSummary);
   allTime.topScorer = players.length ? `${[...players].sort((a, b) => b.goals - a.goals)[0].name}` : null;
   allTime.mostApps = players.length ? players[0].name : null;
-  return { fetchedAt: new Date().toISOString(), sheetUrl: SHEET_URL, seasons, matches, players, money: { ...money, payments }, allTime };
+  return { fetchedAt: new Date().toISOString(), sheetUrl: SHEET_URL, seasons, friendlies, matches, players, money: { ...money, payments }, allTime };
 }
 
 export const REVALIDATE_SECONDS = 60;
 
 /** Live fetch of the whole workbook. Cached by Next's data cache for REVALIDATE_SECONDS. */
+/** The single cached download of the workbook (Next data cache, tag "sheet"). */
+export async function fetchWorkbook(): Promise<ArrayBuffer> {
+  const res = await fetch(EXPORT_URL, { next: { revalidate: REVALIDATE_SECONDS, tags: ["sheet"] }, headers: { "user-agent": "thameslinkhajduci.club/1.0" } });
+  if (!res.ok) throw new Error(`Sheet export failed: ${res.status}`);
+  return res.arrayBuffer();
+}
+
+const colLetter = (i: number) => { let s = ""; let n = i + 1; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+
+export interface SheetLayout {
+  tab: string;
+  /** A1 column letter for a gameweek (1-based) */
+  gwCol: (gw: number) => string | null;
+  rows: { ourGoals: number; theirGoals: number; motm: number; comments: number; type: number };
+  /** 1-based row numbers of a player's line in each grid */
+  playerRows: (name: string) => { apps: number; goals: number; assists: number } | null;
+}
+
+/** Where things live in a season tab, so a score submission can be turned into exact cell edits. */
+export async function getSheetLayout(seasonId: string): Promise<SheetLayout | null> {
+  const wb = XLSX.read(await fetchWorkbook(), { type: "array", cellDates: true });
+  const tab = wb.SheetNames.find((n) => (seasonId === "FR" ? /^friendl(y|ies)$/i.test(n.trim()) : n.trim().toUpperCase() === seasonId));
+  if (!tab) return null;
+  const grid = sheetToGrid(wb.Sheets[tab]);
+  const matchRow = findRow(grid, "Match");
+  if (matchRow < 0) return null;
+  const gwCols: number[] = [];
+  grid[matchRow].forEach((c, i) => { if (typeof c === "string" && /^(GW|Game|G|F|Friendly)\s*\d+$/i.test(c.trim())) gwCols.push(i); });
+  const r = (label: string | RegExp) => findRow(grid, label, matchRow) + 1;
+  const appsHdr = findRow(grid, "APPEARANCES"), goalsHdr = findRow(grid, /^GOALS/), assistsHdr = findRow(grid, /^ASSISTS/);
+  const rosterIndex = (name: string) => { for (let i = appsHdr + 1; i < grid.length; i++) { const v = str(grid[i]?.[0]); if (v && v.toLowerCase() === "total") break; if (v && canonicalName(v) === name) return i - appsHdr; } return null; };
+  return {
+    tab,
+    gwCol: (gw) => (gwCols[gw - 1] !== undefined ? colLetter(gwCols[gw - 1]) : null),
+    rows: { ourGoals: r("Our goals"), theirGoals: r("Their goals"), motm: r("MOTM"), comments: r("Comments"), type: r("Type") },
+    playerRows: (name) => { const k = rosterIndex(name); return k === null ? null : { apps: appsHdr + 1 + k, goals: goalsHdr + 1 + k, assists: assistsHdr + 1 + k }; },
+  };
+}
+
 let lastGood: ClubData | null = null;
 export async function getClubData(): Promise<ClubData> {
   try {
-    const res = await fetch(EXPORT_URL, { next: { revalidate: REVALIDATE_SECONDS, tags: ["sheet"] }, headers: { "user-agent": "thameslinkhajduci.club/1.0" } });
-    if (!res.ok) throw new Error(`Sheet export failed: ${res.status}`);
-    const data = parseWorkbook(await res.arrayBuffer());
+    const data = parseWorkbook(await fetchWorkbook());
     lastGood = data;
     return data;
   } catch (err) {

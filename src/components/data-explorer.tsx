@@ -47,7 +47,7 @@ export function DataExplorer({ tables, seasons, siteUrl }: { tables: { name: str
         {copied === "failed" && <span className="self-center text-xs text-[#ff9a9d]">Clipboard blocked</span>}
       </div>
       <div className="scroll-x max-h-[520px] overflow-auto">
-        {loading && !preview && <p className="px-4 py-8 text-center text-sm text-ash">Reading the spreadsheet…</p>}
+        {loading && !preview && <p className="px-4 py-8 text-center text-sm text-ash">Loading…</p>}
         {preview && (
           <table className="stats text-sm">
             <thead><tr>{preview.columns.map((c) => <th key={c} className={clsx(typeof preview.rows[0]?.[c] === "number" && "num")}>{c}</th>)}</tr></thead>
