@@ -15,7 +15,7 @@ The website of Thameslink Hajduci, a six-a-side football club from East London t
 
 ## Pages
 
-`/` home (departures board, talking points, milestone watch) · `/squad` and `/squad/[player]` (form, streaks, attendance, insights) · `/matches` and `/matches/[id]` (match report, or a pre-match forecast for fixtures) · `/opponents` and `/opponents/[slug]` (head-to-head history with generated roundels) · `/compare?a=&b=` (two players side by side) · `/seasons`, `/seasons/[id]` (tube-line season diagram, golden-boot race, points race) and `/seasons/friendlies` · `/stats` · `/records` · `/money` · `/data` (exports, records health) · `/submit` (score submissions, validated and handed to the admin for approval; optional `SCORE_WEBHOOK_URL` posts them to Slack/Discord)
+`/` home (departures board, talking points, milestone watch) · `/squad` and `/squad/[player]` (form, streaks, attendance, insights) · `/matches` and `/matches/[id]` (match report, or a pre-match forecast for fixtures) · `/opponents` and `/opponents/[slug]` (head-to-head history with generated roundels) · `/compare?a=&b=` (two players side by side) · `/seasons`, `/seasons/[id]` (tube-line season diagram, golden-boot race, points race) and `/seasons/friendlies` · `/stats` · `/records` · `/money` · `/data` (exports, records health) · `/submit` (score submissions, validated and handed to the admin for approval; optional `SCORE_WEBHOOK_URL` posts them to Slack/Discord) Three kinds: match result, payment, new player. Each becomes an approval request (email + group-chat text) with the exact sheet cells to change; the site never writes to the sheet.
 
 ## API
 

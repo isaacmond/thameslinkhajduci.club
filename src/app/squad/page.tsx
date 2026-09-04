@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getData } from "@/lib/data";
 import { PageHeader } from "@/components/ui";
 import { SquadGrid, type SquadCard } from "@/components/squad-grid";
@@ -19,7 +20,7 @@ export default async function SquadPage() {
   return (
     <PageTransition>
     <>
-      <PageHeader eyebrow="Темзлинк Хайдуки · the squad" title="Squad" sub={<>{cards.length} have pulled on the shirt.{current && active > 0 && <> {active} still do, so far this season.</>} Tap anyone for the full file.</>} />
+      <PageHeader eyebrow="Темзлинк Хайдуки · the squad" title="Squad" sub={<>{cards.length} have pulled on the shirt.{current && active > 0 && <> {active} still do, so far this season.</>} Tap anyone for the full file. New signing? <Link href="/submit?type=player" className="link">Add a player →</Link></>} />
       <SquadGrid players={cards} currentSeason={current?.id ?? null} />
     </>
     </PageTransition>

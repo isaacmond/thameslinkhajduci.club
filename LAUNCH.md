@@ -40,13 +40,17 @@ npx vercel deploy --prod --scope isaacs-projects-d16aba6d
 
 See `sheet-fixes/SHEET-ISSUES.md`. The site already normalises opponent names itself, so nothing is broken; this is about making the sheet match. The S1 GW5 score is already corrected to 2–1 in that copy; three S4 scores remain unknown (the legacy workbook has `??` for them too).
 
-## Score submissions
+## Submissions (scores, payments, new players)
 
-`/submit` lets anyone report a result, scorers, assists, line-up and MOTM. **Nothing is written by the site.** The request is validated (real fixture, real roster names, scorers can't exceed the score) and turned into a message with the exact cells to change in the sheet (tab, cell, value). The submitter can send it to the group chat (WhatsApp share), copy it, or, if they're an admin, open the sheet. You apply it in seconds; the site follows within a minute.
+`/submit` has three tabs. **Nothing is written by the site.** Each request is validated, turned into a message with the exact cells to change in the sheet, emailed to you (once Resend is switched on, below) and handed back to the submitter to post in the group chat. You apply it in seconds; the site follows within a minute.
+
+- **Match result** (`/submit`): result, scorers, assists, line-up and MOTM for a real fixture. Scorers can't exceed the score, names must be on the roster, six submissions a minute per address. The message lists the season-tab cells (e.g. `F5=3, F6=1, F22=1`).
+- **Payment** (`/submit?type=payment`): who paid, how much, when, and a reference. The form pre-fills what the sheet says they owe and names who to pay (the season's "Paid by"). The message gives the next free row of the `Payments` tab (Date, Player, Amount, Note) and says what will be left to pay. Player pages and the Money page link straight to it.
+- **New player** (`/submit?type=player`): full name (must not already exist), nickname, position(s), shirt number (checked against numbers already worn), optional photo link. The message gives the first free roster row in the current season tab (the goals and assists grids follow the name automatically), plus `All-time` and `Money`, and the Squad-tab row if you have added one. The Squad page links to it.
 
 **Email to the admin (Resend, via the Vercel Marketplace).** Every valid submission is emailed to the address in the `SCORE_TO_EMAIL` env var (already set on the project). One step is yours: accept Resend's marketplace terms at https://vercel.com/isaacs-projects-d16aba6d/~/integrations/accept-terms/resend?source=cli, then run `npx vercel integration add resend --no-claim --scope isaacs-projects-d16aba6d` in the repo (or ask me to). That provisions Resend and sets `RESEND_API_KEY` on the project; the next deploy starts sending. Because your Vercel account is the same Gmail address, Resend's default sender reaches it without any DNS work. To send from `scores@thameslinkhajduci.club` instead, verify the domain in the Resend dashboard (it gives you two DNS records for Squarespace) and set `SCORE_FROM_EMAIL`.
 
-Optional extra: `SCORE_WEBHOOK_URL` (Slack or Discord incoming webhook) posts each submission there too.
+Optional extra: `SCORE_WEBHOOK_URL` (Slack or Discord incoming webhook) posts each submission there too. Notifications are capped at 20 an hour per server instance so a prankster cannot burn the email quota; over the cap the submitter still gets the message to copy.
 
 ## Friendlies
 

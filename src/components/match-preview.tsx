@@ -41,7 +41,7 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
           return (
             <li key={o.key}>
               <div className="flex items-baseline justify-between gap-2">
-                <span className="eyebrow">{o.label} <span className="normal-case tracking-normal text-ash/60">· {o.hint}</span></span>
+                <span className="eyebrow">{o.label} <span className="normal-case tracking-normal">· {o.hint}</span></span>
                 <span className={clsx("display tabular text-2xl leading-none", o.text)}>{v}%</span>
               </div>
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-white/[0.06]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={v} aria-label={`${o.hint}: ${v}%`}>

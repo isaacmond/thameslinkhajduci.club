@@ -203,16 +203,18 @@ export function goalContext(data: ClubData, name: string): GoalContext {
   return c;
 }
 
-/** Appearances as a share of the counted games played while the player was on a season's roster. */
+/** Appearances as a share of the counted games between the player's debut and last game (or to date, while they are still turning out this season). Season tabs list the whole squad, so the roster says nothing about who was around. */
 export function attendance(data: ClubData, name: string): { possible: number; apps: number; pct: number } {
-  let possible = 0, apps = 0;
-  for (const s of data.seasons) {
-    if (!s.players.includes(name)) continue;
-    possible += s.summary.played;
-    apps += playedMatches(s.matches).filter((m) => m.lineup.some((l) => l.player === name && l.played)).length;
-  }
-  return { possible, apps, pct: possible ? Math.round((apps / possible) * 100) : 0 };
+  const p = data.players.find((x) => x.name === name);
+  if (!p?.debut || !p.lastPlayed) return { possible: 0, apps: 0, pct: 0 };
+  const debut = p.debut, lastPlayed = p.lastPlayed, cur = data.seasons.find((s) => s.isCurrent);
+  const active = !!cur && p.seasons.some((x) => x.seasonId === cur.id && x.apps > 0);
+  const games = playedMatches(data.matches).filter((m) => m.date && m.date >= debut && (active || m.date <= lastPlayed));
+  const apps = games.filter((m) => m.lineup.some((l) => l.player === name && l.played)).length;
+  return { possible: games.length, apps, pct: pct(apps, games.length) };
 }
+/** Players who have turned out within the last `days` (London time): the ones club-level, present-tense lines should be about. Player pages stay unfiltered. */
+export const recentPlayers = (data: ClubData, days = 150) => { const cutoff = new Date(Date.parse(`${londonToday()}T12:00:00Z`) - days * 86_400_000).toISOString().slice(0, 10); return data.players.filter((p) => p.lastPlayed !== null && p.lastPlayed >= cutoff); };
 
 /** Cumulative points after each counted game, per season, for the points-race chart. */
 export function pointsProgression(data: ClubData): { seasonId: string; number: number; pts: number[] }[] {

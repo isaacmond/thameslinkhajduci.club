@@ -2,7 +2,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { ArrowRight, Database, Flame, Skull, Trophy } from "lucide-react";
 import { getData } from "@/lib/data";
-import { chronological, currentStreak, fmtDate, form, lastResult, leaderboard, type MilestoneKind, nextFixture, records, scoreline, seasonPlayers, upcomingMilestones } from "@/lib/stats";
+import { chronological, currentStreak, fmtDate, form, lastResult, leaderboard, type MilestoneKind, nextFixture, recentPlayers, records, scoreline, seasonPlayers, upcomingMilestones } from "@/lib/stats";
 import { insights, pickInsights } from "@/lib/insights";
 import { londonToday } from "@/lib/time";
 import { serviceStatus } from "@/lib/captions";
@@ -27,7 +27,7 @@ export default async function Home() {
   const upcoming = current ? chronological(current.matches).filter((m) => !m.played && m.date && m.date >= today).slice(0, 4) : [];
   const recent = form(data.matches, 8);
   const talking = pickInsights(insights(data), 4);
-  const milestones = upcomingMilestones(data.players, 3).slice(0, 4);
+  const milestones = upcomingMilestones(recentPlayers(data), 3).slice(0, 4);
   const readAt = new Date(data.fetchedAt).toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" });
 
   const rows: BoardRow[] = [];

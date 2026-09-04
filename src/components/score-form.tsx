@@ -2,20 +2,20 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Check, Copy, ExternalLink, Minus, Plus, Send } from "lucide-react";
+import { Check, Minus, Plus, Send } from "lucide-react";
 import { Select } from "./controls";
 import { BoardPreview } from "./board-preview";
+import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { serviceStatus } from "@/lib/captions";
 
 export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null };
-type Result = { ok: boolean; error?: string; sent?: boolean; summary?: string; text?: string; edits?: { cell: string; value: string | number; what: string }[]; tab?: string | null; sheetUrl?: string };
 
 function Counter({ value, onChange, max = 30, label }: { value: number; onChange: (v: number) => void; max?: number; label: string }) {
   return (
-    <span className="inline-flex w-full max-w-[9rem] items-center justify-between rounded-lg border border-white/15 bg-white/5">
-      <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className="focus-ring rounded-l-lg px-3 py-2.5 text-ash hover:text-cream"><Minus size={16} aria-hidden /></button>
+    <span className="flex h-[38px] w-full max-w-[9rem] items-center justify-between rounded-lg border border-white/15 bg-white/5">
+      <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className="focus-ring flex h-full items-center rounded-l-lg px-3 text-ash hover:text-cream"><Minus size={16} aria-hidden /></button>
       <span className="display tabular w-8 text-center text-2xl text-cream" aria-live="polite">{value}</span>
-      <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(max, value + 1))} className="focus-ring rounded-r-lg px-3 py-2.5 text-ash hover:text-cream"><Plus size={16} aria-hidden /></button>
+      <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(max, value + 1))} className="focus-ring flex h-full items-center rounded-r-lg px-3 text-ash hover:text-cream"><Plus size={16} aria-hidden /></button>
     </span>
   );
 }
@@ -37,8 +37,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
   const [note, setNote] = useState("");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [result, setResult] = useState<SubmitResult | null>(null);
 
   const pick = (id: string) => { const f = fixtures.find((x) => x.id === id); setMatchId(id); setResult(null); if (f) { setOurs(f.ourGoals ?? 0); setTheirs(f.theirGoals ?? 0); setPlayed(new Set(f.lineup)); setScorers(f.scorers); setAssists(f.assists); setMotm(f.motm ?? ""); } };
   const goalsLogged = useMemo(() => Object.values(scorers).reduce((a, b) => a + b, 0), [scorers]);
@@ -57,30 +56,19 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
     setBusy(true); setResult(null);
     try {
       const r = await fetch("/api/submit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ match: fx.id, ours, theirs, scorers, assists, played: [...played], motm: motm || null, submittedBy: who, note, website }) });
-      setResult((await r.json()) as Result);
+      setResult((await r.json()) as SubmitResult);
     } catch { setResult({ ok: false, error: "Couldn't reach the server. Try again." }); }
     setBusy(false);
   };
-  const copy = async () => { if (!result?.text) return; try { await navigator.clipboard.writeText(result.text); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* clipboard blocked */ } };
   const playedList = roster.filter((n) => played.has(n));
 
   if (result?.ok) {
     return (
-      <div className="card p-5 sm:p-6">
-        <p className="eyebrow">{result.sent ? "Sent for approval" : "Ready to send"}</p>
-        <h2 className="display mt-1 text-3xl text-cream">{result.summary}</h2>
-        <p className="mt-2 text-sm text-ash">{result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
+      <SubmissionResult result={result} onEdit={() => setResult(null)}>
         {fx && (() => { const st = serviceStatus(ours > theirs ? "W" : ours === theirs ? "D" : "L"); return (
-          <BoardPreview className="mt-4" time={boardDate(fx.date)} label={fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} destination={`Hajduci ${ours}–${theirs} ${fx.opponent}`} status={st.word} tone={st.tone} caption={result.sent ? "Awaiting approval" : "Not yet official"} />
+          <BoardPreview className="mt-4" time={boardDate(fx.date)} label={fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} destination={`Hajduci ${ours}–${theirs} ${fx.opponent}`} status={st.word} tone={st.tone} caption="Pending the admin's tick" />
         ); })()}
-        <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-4 py-2.5 font-semibold text-night hover:bg-mint-soft"><Send size={16} aria-hidden />Send to the group chat</a>
-          <button type="button" onClick={copy} className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 font-semibold text-cream hover:bg-white/10">{copied ? <Check size={16} className="text-mint-soft" aria-hidden /> : <Copy size={16} aria-hidden />}{copied ? "Copied" : "Copy request"}</button>
-          {result.sheetUrl && <a href={result.sheetUrl} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 font-semibold text-cream hover:bg-white/10"><ExternalLink size={16} aria-hidden />Admin: open the records{result.tab ? ` (tab ${result.tab})` : ""}</a>}
-          <button type="button" onClick={() => setResult(null)} className="focus-ring inline-flex items-center rounded-lg px-4 py-2.5 text-sm text-ash hover:text-cream">Edit</button>
-        </div>
-      </div>
+      </SubmissionResult>
     );
   }
 
@@ -90,7 +78,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook }: { fixture
         <Select label="Fixture" value={matchId} onChange={pick} options={fixtures.map((f) => ({ value: f.id, label: f.label }))} className="min-w-0" />
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 sm:gap-4">
           <div className="min-w-0"><p className="eyebrow mb-1 truncate">Hajduci</p><Counter value={ours} onChange={setOurs} label="Hajduci goals" /></div>
-          <span className="display pb-2 text-3xl text-ash">–</span>
+          <span className="display flex h-[38px] items-center text-3xl text-ash">–</span>
           <div className="min-w-0"><p className="eyebrow mb-1 truncate" title={fx?.opponent}>{fx?.opponent ?? "Them"}</p><Counter value={theirs} onChange={setTheirs} label="opponent goals" /></div>
         </div>
         {fx?.played && <p className="text-xs text-gold lg:col-span-2">This game already has a score ({fx.ourGoals}–{fx.theirGoals}). You&apos;re submitting a correction.</p>}

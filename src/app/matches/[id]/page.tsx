@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, opponentKey, playedMatches, scorersFor, scoreline, seasonHref } from "@/lib/stats";
-import { londonEpoch } from "@/lib/time";
+import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, serviceStatus } from "@/lib/captions";
 import { PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/board";
@@ -51,7 +51,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const firstWin = m.result === "W" && !seasonCounted.some((x) => x.result === "W" && (x.date ?? "") < (m.date ?? "") && x.id !== m.id);
   const verdict = matchVerdict(m, scorers[0]?.goals ?? 0, scorers[0]?.player ?? null, firstWin);
   const sponsor = sponsorFor(m.id);
-  const showPreview = !m.played && !isForfeit;
+  // A forecast only makes sense before kick-off: an old fixture that never got a score would otherwise be "predicted" from games played after it.
+  const showPreview = !m.played && !isForfeit && (!m.date || m.date >= londonToday());
   const shareText = m.played ? `Thameslink Hajduci ${m.ourGoals}–${m.theirGoals} ${opponentLabel} · ${status.word}${m.motm ? ` · MOTM ${m.motm}` : ""}` : `Thameslink Hajduci vs ${m.opponent} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} ${m.kickOff ?? ""}`;
 
   return (

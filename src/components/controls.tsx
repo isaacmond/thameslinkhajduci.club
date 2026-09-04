@@ -2,6 +2,8 @@
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
 
+export const inputClass = "control focus-ring w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-cream placeholder:text-ash/60";
+
 export function Switch({ checked, onChange, label, className }: { checked: boolean; onChange: (v: boolean) => void; label: React.ReactNode; className?: string }) {
   return (
     <label className={clsx("inline-flex cursor-pointer select-none items-center gap-2.5 text-xs text-ash", className)}>

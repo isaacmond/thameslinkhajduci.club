@@ -121,7 +121,9 @@ table.stats th:first-child { z-index: 2; }
 .board-glow { text-shadow: 0 0 6px currentColor; }
 .scanlines::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px); }
 .marquee { display: flex; width: max-content; animation: marquee 70s linear infinite; will-change: transform; }
-.marquee:hover { animation-play-state: paused; }
+.marquee:hover, .marquee:focus-within { animation-play-state: paused; }
+/* reduced motion: no marquee at all. The strip becomes a plain sideways-scrollable line and the looping duplicate is dropped. */
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none; } .ticker-viewport { overflow-x: auto; scrollbar-width: thin; } .marquee > [aria-hidden="true"] { display: none; } }
 .card-fame { border-color: rgba(50, 195, 100, 0.3); background: linear-gradient(180deg, rgba(50, 195, 100, 0.07), rgba(255, 255, 255, 0.02)); }
 .card-shame { border-color: rgba(229, 72, 77, 0.3); background: linear-gradient(180deg, rgba(229, 72, 77, 0.07), rgba(255, 255, 255, 0.02)); }
 select.control { appearance: none; -webkit-appearance: none; background-image: none; padding-right: 2rem; }

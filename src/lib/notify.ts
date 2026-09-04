@@ -10,7 +10,7 @@ export async function emailScoreSubmission(input: { subject: string; text: strin
   if (!key || !to) return false;
   const from = process.env.SCORE_FROM_EMAIL ?? "Thameslink Hajduci <onboarding@resend.dev>";
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
-  const rows = input.edits.map((e) => `<tr><td style="padding:4px 10px;font-family:ui-monospace,Menlo,monospace;color:#f4c81b">${esc(e.cell)}</td><td style="padding:4px 10px;font-family:ui-monospace,Menlo,monospace">${esc(String(e.value))}</td><td style="padding:4px 10px;color:#a7b8ab">${esc(e.what)}</td></tr>`).join("");
+  const rows = input.edits.map((e) => `<tr><td style="padding:4px 10px;font-family:ui-monospace,Menlo,monospace;color:#f4c81b">${esc(e.cell)}</td><td style="padding:4px 10px;font-family:ui-monospace,Menlo,monospace">${typeof e.value === "string" ? `"${esc(e.value)}"` : esc(String(e.value))}</td><td style="padding:4px 10px;color:#a7b8ab">${esc(e.what)}</td></tr>`).join("");
   const html = `<!doctype html><html><body style="margin:0;background:#06140c;color:#f6f1e6;font-family:Inter,system-ui,sans-serif">
   <div style="max-width:640px;margin:0 auto;padding:28px 20px">
     <p style="margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a7b8ab">Score submission · Thameslink Hajduci</p>

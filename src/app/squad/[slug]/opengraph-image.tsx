@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { resolve, sep } from "node:path";
 import { getData } from "@/lib/data";
 import { bebasNeue, display, ogFonts } from "@/lib/og-font";
 
@@ -10,15 +10,33 @@ export async function generateStaticParams() { const d = await getData(); return
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const PUBLIC_DIR = resolve(process.cwd(), "public");
+const dataUrl = (mime: string, b: Buffer) => `data:${mime};base64,${b.toString("base64")}`;
+/** Trust the bytes, not the extension: the sheet picks the path, the file decides the type. */
+function imageMime(b: Buffer): string | null {
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b.length >= 4 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "image/png";
+  if (b.length >= 12 && b.toString("latin1", 0, 4) === "RIFF" && b.toString("latin1", 8, 12) === "WEBP") return "image/webp";
+  return null;
+}
+/** Only files under public/ are embedded; https photos are not fetched on Satori's behalf and fall back to the shirt. Anything odd means no photo, never an error. */
+async function localPhoto(photo: string | undefined): Promise<string | null> {
+  if (!photo?.startsWith("/")) return null;
+  try {
+    const abs = resolve(PUBLIC_DIR, "." + photo);
+    if (!abs.startsWith(PUBLIC_DIR + sep)) return null;
+    const b = await readFile(abs);
+    const mime = imageMime(b);
+    return mime ? dataUrl(mime, b) : null;
+  } catch { return null; }
+}
+
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const data = await getData();
   const p = data.players.find((x) => x.slug === slug);
-  let photo: string | null = null;
-  if (p?.extra.photo?.startsWith("/")) {
-    try { photo = `data:image/jpeg;base64,${(await readFile(join(process.cwd(), "public", p.extra.photo))).toString("base64")}`; } catch { photo = null; }
-  } else if (p?.extra.photo) photo = p.extra.photo;
-  const crest = `data:image/png;base64,${(await readFile(join(process.cwd(), "public/crest.png"))).toString("base64")}`;
+  const photo = await localPhoto(p?.extra.photo);
+  const crest = await readFile(resolve(PUBLIC_DIR, "crest.png")).then((b) => dataUrl("image/png", b)).catch(() => null);
   const font = await bebasNeue();
   const stats: [string, string][] = p ? [["Apps", String(p.apps)], ["Goals", String(p.goals)], ["Assists", String(p.assists)], ["Win %", String(Math.round(p.winRate))]] : [];
   return new ImageResponse(
@@ -29,7 +47,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         </div>
         <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: 56, justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 22, letterSpacing: 6, color: "#a7b8ab", textTransform: "uppercase" }}>
-            <img src={crest} alt="" width={56} height={56} />
+            {crest && <img src={crest} alt="" width={56} height={56} />}
             <div>{`Thameslink Hajduci · ${p?.extra.positions?.join(" / ") || "Squad"}`}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>

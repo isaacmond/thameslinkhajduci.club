@@ -10,7 +10,7 @@ import { chronological, fmtDate, gwLabel, headToHead, opponentKey, scoreline, se
 import { londonToday } from "@/lib/time";
 import { slugify } from "@/lib/slug";
 import { LeaderList, MatchRow, RecordStrip, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
-import { GoalDiffTimeline } from "@/components/charts";
+import { GoalDiffBars } from "@/components/goal-diff-bars";
 import { Roundel, opponentVerdict, roundelColor } from "@/components/roundel";
 import { PageTransition } from "@/components/page-transition";
 
@@ -40,14 +40,17 @@ function headline(o: OpponentRecord): string {
   if (won > lost) return "More wins than defeats. Against this lot, anyway.";
   if (won === lost) return "Honours even. Nobody is satisfied.";
   if (won === 1) return `${words(played)} meetings, one win. It is spoken of often.`;
-  return "They usually win. Usually.";
+  if (lost > played / 2) return "They usually win. Usually.";
+  // More defeats than wins, but not a majority: the draws are carrying the fixture.
+  if (drawn >= lost) return `${words(drawn)} draws in ${words(played).toLowerCase()} meetings. More draws than anyone wanted.`;
+  return "They have the edge, narrowly. The draws did a lot of the work.";
 }
 
 type Tone = "fame" | "shame";
 function RecordCard({ icon, label, m, tone, empty }: { icon: React.ReactNode; label: string; m: Match | null; tone: Tone; empty: string }) {
   const body = (
     <>
-      <span className={clsx("flex items-center justify-between", !m ? "text-ash" : tone === "fame" ? "text-mint-soft" : "text-[#ff9a9d]")}>{icon}<span className={clsx("text-[9px] font-bold uppercase tracking-[0.2em]", !m ? "text-ash/60" : tone === "fame" ? "text-mint-soft/70" : "text-[#ff9a9d]/70")}>{m ? tone : "pending"}</span></span>
+      <span className={clsx("flex items-center justify-between", !m ? "text-ash" : tone === "fame" ? "text-mint-soft" : "text-[#ff9a9d]")}>{icon}<span className={clsx("text-[11px] font-bold uppercase tracking-[0.2em]", !m ? "text-ash/90" : tone === "fame" ? "text-mint-soft/80" : "text-[#ff9a9d]/80")}>{m ? tone : "pending"}</span></span>
       <span className="eyebrow mt-3 block">{label}</span>
       <span className="display mt-1 block text-4xl leading-none text-cream">{m ? scoreline(m) : "—"}</span>
     </>
@@ -95,7 +98,6 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
   const heaviest = defeats.length ? [...defeats].sort((a, b) => margin(a) - margin(b) || b.theirGoals! - a.theirGoals!)[0] : null;
   const cleanSheets = counted.filter((m) => m.theirGoals === 0).length;
   const summary: SeasonSummary = { played: o.played, won: o.won, drawn: o.drawn, lost: o.lost, goalsFor: o.gf, goalsAgainst: o.ga, topScorer: scorers[0]?.player.name ?? null, mostApps: regulars[0]?.player.name ?? null, seasonCost: 0, paidBy: null };
-  const gd = counted.map((m) => ({ label: `${m.seasonId} GW${m.gw}`, gd: margin(m), opponent: m.opponent, score: scoreline(m) }));
   const v = opponentVerdict(o);
   const per = (n: number) => (o.played ? (n / o.played).toFixed(1) : "0.0");
 
@@ -133,7 +135,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
       </section>
 
       {counted.length >= 2 ? (
-        <section className="card p-5"><SectionTitle sub="Goal difference in every game that counted. Green is us winning, which explains the amount of red.">Meeting by meeting</SectionTitle><GoalDiffTimeline data={gd} /></section>
+        <section className="card p-5"><SectionTitle sub="Goal difference in every game that counted. Green is us winning, which explains the amount of red.">Meeting by meeting</SectionTitle><GoalDiffBars matches={counted} opponent={o.opponent} /></section>
       ) : (
         <section className="card flex flex-col items-center gap-2 p-6 text-center sm:flex-row sm:justify-between sm:text-left">
           <div><p className="eyebrow">The rivalry so far</p><p className="display text-3xl text-cream">One meeting. Hardly a rivalry.</p></div>

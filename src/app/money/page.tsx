@@ -29,7 +29,7 @@ export default async function MoneyPage() {
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} />
+      <PageHeader eyebrow="The treasury" title="Money" sub={<>Pitch hire, split between whoever turned up. Tracked from Season 8 onwards; everything before that is settled, forgiven or forgotten.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} paid up front by ${who}`).join("; ")}.</>}</>} right={<Link href="/submit?type=payment" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-mint/40 bg-mint/10 px-4 py-2.5 text-sm font-semibold text-cream transition-colors hover:bg-mint/20"><Coins size={16} aria-hidden />Log a payment</Link>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">
         <div className="col-span-2 lg:col-span-1"><Stat label="Outstanding" value={fmtMoney(owed)} tone={owed > 0.01 ? "loss" : "win"} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay${creditors.length ? ` · owed to ${creditors.map((c) => c.player.split(" ")[0]).join(" & ")}` : ""}` : "Everyone's square"} size="lg" /></div>

@@ -231,6 +231,20 @@ function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } =
   };
 }
 
+/** A photo is a bundled file under public/players or an https link. The OG image reads local photos from disk, so nothing else the sheet says may reach it. */
+export function photoAllowed(s: string) {
+  if (/^\/players\/[a-z0-9-]+\.(jpe?g|png|webp)$/.test(s)) return true;
+  try { return new URL(s).protocol === "https:"; } catch { return false; }
+}
+/** Photo values dropped by photoAllowed() on the last parse, by player, so the health report can point the admin at them. */
+export const rejectedPhotos = new Map<string, string>();
+function safePhoto(name: string, v: string | null | undefined): string | undefined {
+  if (!v) return undefined;
+  if (photoAllowed(v)) return v;
+  rejectedPhotos.set(name, v);
+  return undefined;
+}
+
 function parseSquadTab(grid: Grid): Map<string, SquadExtra> {
   const out = new Map<string, SquadExtra>();
   const hdrRow = grid.findIndex((r) => r.some((c) => typeof c === "string" && /^(player|name)$/i.test(c.trim())));
@@ -241,11 +255,12 @@ function parseSquadTab(grid: Grid): Map<string, SquadExtra> {
   for (let r = hdrRow + 1; r < grid.length; r++) {
     const name = str(grid[r]?.[cName]);
     if (!name) continue;
-    out.set(canonicalName(name), {
+    const who = canonicalName(name);
+    out.set(who, {
       nickname: cNick >= 0 ? str(grid[r][cNick]) ?? undefined : undefined,
       positions: cPos >= 0 ? (str(grid[r][cPos]) ?? "").split(/[\/,\s]+/).filter(Boolean).map((p) => p.toUpperCase()) : undefined,
       shirt: cShirt >= 0 ? num(grid[r][cShirt]) : null,
-      photo: cPhoto >= 0 ? str(grid[r][cPhoto]) ?? undefined : undefined,
+      photo: cPhoto >= 0 ? safePhoto(who, str(grid[r][cPhoto])) : undefined,
       bio: cBio >= 0 ? str(grid[r][cBio]) ?? undefined : undefined,
     });
   }
@@ -338,10 +353,10 @@ const STATIC_EXTRAS: Record<string, { shirt: number | null; positions: string[];
 /** Bundled profile extras (from the old team app) as a baseline; a "Squad" tab in the sheet overrides field by field. */
 function mergeExtras(fromSheet: Map<string, SquadExtra>): Map<string, SquadExtra> {
   const merged = new Map<string, SquadExtra>();
-  for (const [name, e] of Object.entries(STATIC_EXTRAS)) merged.set(canonicalName(name), { shirt: e.shirt, positions: e.positions, photo: e.photo ?? undefined });
+  for (const [name, e] of Object.entries(STATIC_EXTRAS)) { const who = canonicalName(name); merged.set(who, { shirt: e.shirt, positions: e.positions, photo: safePhoto(who, e.photo) }); }
   for (const [name, e] of fromSheet) {
     const base = merged.get(name) ?? {};
-    const clean = Object.fromEntries(Object.entries(e).filter(([, v]) => v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0)));
+    const clean = Object.fromEntries(Object.entries({ ...e, photo: safePhoto(name, e.photo) }).filter(([, v]) => v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0)));
     merged.set(name, { ...base, ...clean });
   }
   return merged;
@@ -369,14 +384,14 @@ function creditPitchPayers(seasons: Season[], money: { paidBy: Record<string, st
 }
 
 export function parseWorkbook(buf: ArrayBuffer): ClubData {
-  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const wb = readWorkbookCached(buf);
   const seasons: Season[] = [];
   let friendlies: Season | null = null;
   let extras = new Map<string, SquadExtra>();
   let money: { paidBy: Record<string, string>; rows: MoneyRow[] } = { paidBy: {}, rows: [] };
   let payments: Payment[] = [];
   // First pass: optional "Aliases" and "Opponents" tabs let the admin fix names without a deploy.
-  sheetAliases = {}; sheetOpponents = {};
+  sheetAliases = {}; sheetOpponents = {}; rejectedPhotos.clear();
   for (const name of wb.SheetNames) {
     if (/^aliases$/i.test(name.trim())) sheetAliases = parseAliasTab(sheetToGrid(wb.Sheets[name]));
     if (/^opponents$/i.test(name.trim())) { const m = parseAliasTab(sheetToGrid(wb.Sheets[name])); for (const [k, v] of Object.entries(m)) sheetOpponents[k.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim()] = v; }
@@ -417,17 +432,20 @@ export async function fetchWorkbook(): Promise<ArrayBuffer> {
   // During `next build` every prerender worker would download the workbook; use the copy the prebuild step just fetched instead (one request, no 429s).
   if (process.env.NEXT_PHASE === "phase-production-build") { const snap = await snapshotWorkbook(); if (snap) return snap; }
   let lastErr: unknown;
+  let rateLimited = false;
   for (let attempt = 0; attempt < 3; attempt++) {
     const t0 = Date.now();
     try {
       const res = await fetch(EXPORT_URL, { next: { revalidate: REVALIDATE_SECONDS, tags: ["sheet"] }, headers: { "user-agent": "thameslinkhajduci.club/1.0" } });
+      if (res.status === 429) rateLimited = true;
       if (!res.ok) throw new Error(`Sheet export failed: ${res.status}`);
       const buf = await res.arrayBuffer();
       if (attempt > 0) log("sheet.fetch.recovered", { attempt, ms: Date.now() - t0 });
       return buf;
     } catch (err) {
       lastErr = err;
-      log("sheet.fetch.failed", { attempt, ms: Date.now() - t0, error: String(err) });
+      log("sheet.fetch.failed", { attempt, ms: Date.now() - t0, error: String(err), rateLimited });
+      if (rateLimited) throw err; // Google is asking us to back off; retrying digs the hole deeper. getClubData serves lastGood or the snapshot instead.
       await new Promise((r) => setTimeout(r, 400 * (attempt + 1))); // Google occasionally hiccups under the build's parallel prerender workers
     }
   }
@@ -452,7 +470,7 @@ export interface SheetLayout {
 
 /** Where things live in a season tab, so a score submission can be turned into exact cell edits. */
 export async function getSheetLayout(seasonId: string): Promise<SheetLayout | null> {
-  const wb = XLSX.read(await fetchWorkbook(), { type: "array", cellDates: true });
+  const wb = readWorkbookCached(await fetchWorkbook());
   const tab = wb.SheetNames.find((n) => (seasonId === "FR" ? /^friendl(y|ies)$/i.test(n.trim()) : n.trim().toUpperCase() === seasonId));
   if (!tab) return null;
   const grid = sheetToGrid(wb.Sheets[tab]);
@@ -471,10 +489,59 @@ export async function getSheetLayout(seasonId: string): Promise<SheetLayout | nu
   };
 }
 
+/** Where a new Payments row and a new roster name would go. Rows are 1-based sheet rows; null means "no free row before Total, insert one". */
+export type AdminLayout = {
+  payments: { tab: string; row: number; cols: { date: string; player: string; amount: string; note: string } } | null;
+  roster: { seasonTab: string | null; seasonRow: number | null; allTimeTab: string | null; allTimeRow: number | null; moneyTab: string | null; moneyRow: number | null; squadTab: string | null; squadRow: number | null; squadCols: Record<string, string> };
+};
+export async function getAdminLayout(seasonId: string | null): Promise<AdminLayout> {
+  const wb = readWorkbookCached(await fetchWorkbook());
+  const tabNamed = (re: RegExp) => wb.SheetNames.find((n) => re.test(n.trim())) ?? null;
+  const grid = (tab: string | null) => (tab ? sheetToGrid(wb.Sheets[tab]) : null);
+  const headerCols = (row: Cell[] | undefined) => { const m: Record<string, string> = {}; row?.forEach((c, i) => { const v = str(c); if (v) m[v.toLowerCase().replace(/\s*\(.*$/, "").trim()] = colLetter(i); }); return m; };
+  /** First row after `hdr` whose first `width` cells are all blank, stopping at a "Total" row. */
+  const freeRow = (g: Grid | null, hdr: number, width = 1): number | null => {
+    if (!g || hdr < 0) return null;
+    for (let i = hdr + 1; i < Math.max(g.length, hdr + 2) + 40; i++) {
+      const first = str(g[i]?.[0]);
+      if (first && first.toLowerCase() === "total") return null;
+      if (Array.from({ length: width }, (_, k) => str(g[i]?.[k])).every((v) => v === null)) return i + 1;
+    }
+    return null;
+  };
+  const payTab = tabNamed(/^payments$/i), payGrid = grid(payTab);
+  const payHdr = payGrid ? findRow(payGrid, /^date$/i) : -1;
+  const payCols = headerCols(payGrid?.[payHdr]);
+  const payRow = freeRow(payGrid, payHdr, 3);
+  const seasonTab = seasonId ? wb.SheetNames.find((n) => n.trim().toUpperCase() === seasonId) ?? null : null, seasonGrid = grid(seasonTab);
+  const allTimeTab = tabNamed(/^all-?time$/i), allGrid = grid(allTimeTab);
+  const moneyTab = tabNamed(/^money$/i), moneyGrid = grid(moneyTab);
+  const squadTab = tabNamed(/^squad$/i), squadGrid = grid(squadTab);
+  const squadHdr = squadGrid ? findRow(squadGrid, /^player$/i) : -1;
+  return {
+    payments: payTab && payHdr >= 0 && payRow ? { tab: payTab, row: payRow, cols: { date: payCols.date ?? "A", player: payCols.player ?? "B", amount: payCols.amount ?? "C", note: payCols.note ?? "D" } } : null,
+    roster: {
+      seasonTab, seasonRow: freeRow(seasonGrid, seasonGrid ? findRow(seasonGrid, "APPEARANCES") : -1),
+      allTimeTab, allTimeRow: freeRow(allGrid, allGrid ? findRow(allGrid, /^player$/i) : -1),
+      moneyTab, moneyRow: freeRow(moneyGrid, moneyGrid ? findRow(moneyGrid, /^player$/i) : -1),
+      squadTab, squadRow: freeRow(squadGrid, squadHdr), squadCols: headerCols(squadGrid?.[squadHdr]),
+    },
+  };
+}
+
 let lastGood: ClubData | null = null;
 let parsed: { key: string; data: ClubData } | null = null;
 /** Cheap content hash so the same download is parsed once per instance, not once per page render. */
 const bufKey = (b: ArrayBuffer) => { const u = new Uint8Array(b); let h = 2166136261; for (let i = 0; i < u.length; i += 97) h = Math.imul(h ^ u[i], 16777619); return `${u.length}:${h >>> 0}`; };
+let workbook: { key: string; wb: XLSX.WorkBook } | null = null;
+/** XLSX.read is the slow step and every reader of the same bytes (parseWorkbook, the two layouts) wants the same workbook: parse once per instance. */
+export function readWorkbookCached(buf: ArrayBuffer): XLSX.WorkBook {
+  const key = bufKey(buf);
+  if (workbook && workbook.key === key) return workbook.wb;
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  workbook = { key, wb };
+  return wb;
+}
 export function parseWorkbookCached(buf: ArrayBuffer): ClubData {
   const key = bufKey(buf);
   if (parsed && parsed.key === key) return { ...parsed.data, fetchedAt: parsed.data.fetchedAt };

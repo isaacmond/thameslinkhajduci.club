@@ -2,6 +2,7 @@ import type { ClubData, Match, Season } from "./types";
 import { fmtDate, gwLabel, opponentKey, seasonHref } from "./stats";
 import { londonToday } from "./time";
 import { slugify } from "./slug";
+import { rejectedPhotos } from "./sheet";
 
 /**
  * Sanity checks over the parsed records, for the admin. Pure: nothing here talks to Google.
@@ -84,6 +85,8 @@ export function sheetHealth(data: ClubData, today: string = londonToday()): Heal
   for (const r of data.money.rows) {
     if (!everyone.has(r.player)) push("medium", `money-unknown:${slugify(r.player)}`, `Money tab: "${r.player}" is not on any season roster. A typo, or someone who never kicked a ball.`, "/money");
   }
+  // Photo cells the parser refused (see photoAllowed in sheet.ts): the OG image reads local photos from disk, so only /players/… files and https links get through.
+  for (const [name, value] of rejectedPhotos) push("low", `photo-rejected:${slugify(name)}`, `Squad tab: the photo for ${name} is "${value}", which is neither a /players/… file bundled with the site nor an https link, so it is ignored.`, `/squad/${slugify(name)}`);
 
   issues.sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };

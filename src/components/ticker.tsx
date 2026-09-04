@@ -8,7 +8,7 @@ import { insights, pickInsights } from "@/lib/insights";
 type Item = { text: string; href?: string; tone?: "ok" | "late" | "bad" | "muted" };
 const toneClass = { ok: "text-mint-soft", late: "text-gold", bad: "text-[#ff9a9d]", muted: "text-cream/80" } as const;
 
-/** A single-line service-update marquee under the header. Server-rendered from live data; pauses on hover; honours reduced motion via the global rule. */
+/** A single-line service-update marquee under the header. Server-rendered from live data; pauses on hover and keyboard focus; under reduced motion the .ticker-viewport rules in globals.css stop it and make it scroll sideways instead, dropping the aria-hidden duplicate strip. */
 export async function ServiceTicker() {
   const items: Item[] = [];
   try {
@@ -39,7 +39,7 @@ export async function ServiceTicker() {
     </span>
   );
   return (
-    <div aria-label="Service updates" className="overflow-hidden border-b border-white/10 bg-[#07130b] py-1.5 font-mono text-[11px] uppercase tracking-wider">
+    <div role="marquee" aria-label="Service updates" className="ticker-viewport overflow-hidden border-b border-white/10 bg-[#07130b] py-1.5 font-mono text-[11px] uppercase tracking-wider">
       <div className="marquee board-glow">{strip(false)}{strip(true)}</div>
     </div>
   );

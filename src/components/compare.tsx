@@ -71,8 +71,9 @@ function verdict(a: ComparePlayer, b: ComparePlayer, t: Tally): string {
   if (a.motm >= 3 && b.motm === 0 && b.apps >= 10) return `${A} has ${a.motm} man-of-the-match awards. ${B} has a participation certificate.`;
   if (b.motm >= 3 && a.motm === 0 && a.apps >= 10) return `${B} has ${b.motm} man-of-the-match awards. ${A} has a participation certificate.`;
   if (decidedA >= 10 && decidedB >= 10 && Math.abs(a.winRate - b.winRate) >= 15) { const w = a.winRate > b.winRate ? A : B; return `Hajduci win ${Math.round(Math.abs(a.winRate - b.winRate))} points more often with ${w} on the pitch. Correlation, causation, whatever.`; }
-  if (a.gpgGames >= 10 && b.gpgGames >= 10 && a.goalsPerGame >= b.goalsPerGame * 2 && b.attendancePossible >= 10 && a.attendancePossible >= 10 && b.attendancePct > a.attendancePct) return `${A} scores twice as often; ${B} turns up more often. Different jobs.`;
-  if (a.gpgGames >= 10 && b.gpgGames >= 10 && b.goalsPerGame >= a.goalsPerGame * 2 && a.attendancePossible >= 10 && b.attendancePossible >= 10 && a.attendancePct > b.attendancePct) return `${B} scores twice as often; ${A} turns up more often. Different jobs.`;
+  // Attendance must be strictly higher (level attendance falls through) and the scorer must actually score: 0 >= 0 * 2 would otherwise pass for two defenders.
+  if (a.gpgGames >= 10 && b.gpgGames >= 10 && a.goalsPerGame > 0 && a.goalsPerGame >= b.goalsPerGame * 2 && b.attendancePossible >= 10 && a.attendancePossible >= 10 && b.attendancePct > a.attendancePct) return `${A} scores twice as often; ${B} turns up more often. Different jobs.`;
+  if (a.gpgGames >= 10 && b.gpgGames >= 10 && b.goalsPerGame > 0 && b.goalsPerGame >= a.goalsPerGame * 2 && a.attendancePossible >= 10 && b.attendancePossible >= 10 && a.attendancePct > b.attendancePct) return `${B} scores twice as often; ${A} turns up more often. Different jobs.`;
   if (t.total === 0) return "Not enough on record to separate them. Check back after a few Tuesdays.";
   if (t.a >= 7) return `${A} takes ${t.a} of ${t.total} categories. Not a lot to argue about.`;
   if (t.b >= 7) return `${B} takes ${t.b} of ${t.total} categories. Not a lot to argue about.`;
@@ -120,21 +121,23 @@ function Bars({ a, b, m }: { a: ComparePlayer; b: ComparePlayer; m: Metric }) {
   const w = (v: number | null) => (v === null || max === 0 ? 0 : Math.max(v > 0 ? 3 : 0, (v / max) * 100));
   const aBetter = va !== null && (vb === null || va > vb), bBetter = vb !== null && (va === null || vb > va);
   const level = va !== null && vb !== null && va === vb;
-  const val = (v: number | null, better: boolean) => <span className={clsx("display tabular text-2xl leading-none sm:text-3xl", better ? "text-mint-soft" : v === null ? "text-ash" : "text-cream")}>{v === null ? "–" : m.fmt(v)}</span>;
+  const nA = short(a, b), nB = short(b, a);
+  // Mint is colour-only, so each number is prefixed with whose it is and the better one says so, for screen readers.
+  const val = (v: number | null, better: boolean, name: string) => <span className={clsx("display tabular text-2xl leading-none sm:text-3xl", better ? "text-mint-soft" : v === null ? "text-ash" : "text-cream")}><span className="sr-only">{name}: </span>{v === null ? "–" : m.fmt(v)}{better && <span className="sr-only"> (leads)</span>}</span>;
   const bar = (better: boolean) => clsx("h-full rounded-full transition-[width] duration-500", better ? "bg-mint" : level ? "bg-cream/40" : "bg-white/25");
   const subA = m.sub?.(a), subB = m.sub?.(b);
   return (
     <li className="py-3">
       <div className="flex items-end justify-between gap-2">
-        {val(va, aBetter)}
-        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-ash/70">(level)</span>}</span>
-        {val(vb, bBetter)}
+        {val(va, aBetter, nA)}
+        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-ash/90">(level)</span>}</span>
+        {val(vb, bBetter, nB)}
       </div>
       <div className="mt-1.5 grid grid-cols-2 gap-1" aria-hidden>
         <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-white/[0.06]"><span className={bar(aBetter)} style={{ width: `${w(va)}%` }} /></div>
         <div className="flex h-2 overflow-hidden rounded-r-full bg-white/[0.06]"><span className={bar(bBetter)} style={{ width: `${w(vb)}%` }} /></div>
       </div>
-      {(subA || subB) && <div className="mt-1 flex justify-between gap-3 text-[11px] text-ash"><span className="min-w-0 truncate">{subA}</span><span className="min-w-0 truncate text-right">{subB}</span></div>}
+      {(subA || subB) && <div className="mt-1 flex justify-between gap-3 text-[11px] text-ash"><span className="min-w-0 truncate">{subA && <><span className="sr-only">{nA}: </span>{subA}</>}</span><span className="min-w-0 truncate text-right">{subB && <><span className="sr-only">{nB}: </span>{subB}</>}</span></div>}
     </li>
   );
 }

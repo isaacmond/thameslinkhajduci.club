@@ -6,7 +6,8 @@ import { C } from "./charts";
 /**
  * Golden-boot race hues in fixed order, leader first. Adjacent pairs clear the CVD separation check against the dark surface
  * (validate_palette --mode dark); gold and sage sit outside the strict lightness/chroma band, so identity never rests on hue alone:
- * the leader is the only thick line and the only end label, every line gets an end dot with a surface ring, and the legend + tooltip name the rest.
+ * the leader (or everyone sharing the lead) gets the thick line, a single end label names the leader(s) with the top total, every line
+ * gets an end dot with a surface ring, and the legend carries each player's final total so no total needs a hover; the tooltip names the rest.
  */
 const RACE_HUES = [C.green, C.blue, C.gold, C.amber, C.sage];
 
@@ -51,10 +52,10 @@ const numeric = (v: unknown): v is number => typeof v === "number" && Number.isF
 
 function RaceTip({ active, payload, label }: TipProps) {
   if (!active || !payload?.length) return null;
-  const rows = payload
-    .filter((p) => numeric(p.value))
-    .sort((a, b) => (b.value as number) - (a.value as number))
-    .map((p, i) => ({ label: String(p.name ?? ""), value: String(p.value), color: p.color ?? p.fill, strong: i === 0 }));
+  const sorted = payload.filter((p) => numeric(p.value)).sort((a, b) => (b.value as number) - (a.value as number));
+  const top = sorted[0]?.value;
+  // Everyone tied on the top value is the leader at that gameweek (nobody is, before anyone has scored).
+  const rows = sorted.map((p) => ({ label: String(p.name ?? ""), value: String(p.value), color: p.color ?? p.fill, strong: numeric(top) && top > 0 && p.value === top }));
   return <TipBox title={String(label ?? "")} rows={rows} />;
 }
 
@@ -63,24 +64,30 @@ export function GoalRaceChart({ rows, players }: { rows: Record<string, number |
   const last = rows[rows.length - 1];
   const hue = (i: number) => RACE_HUES[Math.min(i, RACE_HUES.length - 1)];
   const first = (n: string) => n.split(" ")[0];
-  // Draw the leader last so it sits on top; the legend keeps leader-first order via its own payload.
+  const final = (p: string) => { const v = last?.[p]; return numeric(v) ? v : 0; };
+  // A shared lead is a shared lead: everyone on the top total gets the thick line and big dot, and one label names them all.
+  const top = Math.max(0, ...players.map(final));
+  const leaders = players.filter((p) => final(p) === top);
+  const lead = (p: string) => leaders.includes(p);
+  // Draw the leader last so it sits on top; the legend keeps leader-first order via its own payload, with final totals so nothing needs a hover.
   const drawOrder = players.map((p, i) => ({ p, i })).reverse();
-  const key = players.map((p, i) => ({ label: p, color: hue(i) }));
+  const key = players.map((p, i) => ({ label: `${p} · ${final(p)}`, color: hue(i) }));
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <LineChart data={rows} margin={{ top: 12, right: 72, left: -20, bottom: 0 }}>
+      <LineChart data={rows} margin={{ top: 12, right: leaders.length > 1 ? 96 : 72, left: -20, bottom: 0 }}>
         <CartesianGrid vertical={false} stroke={C.grid} />
         <XAxis dataKey="label" {...axis} interval="preserveStartEnd" />
         <YAxis {...axis} allowDecimals={false} />
         <Tooltip content={<RaceTip />} cursor={crosshair} />
         <Legend {...legend} content={<Key items={key} />} />
         {drawOrder.map(({ p, i }) => (
-          <Line key={p} type="monotone" dataKey={p} name={p} stroke={hue(i)} strokeWidth={i === 0 ? 2.5 : 1.5} strokeOpacity={i === 0 ? 1 : 0.85} dot={false} activeDot={{ r: 5, fill: hue(i), stroke: C.surface, strokeWidth: 2 }} isAnimationActive={false} />
+          <Line key={p} type="monotone" dataKey={p} name={p} stroke={hue(i)} strokeWidth={lead(p) ? 2.5 : 1.5} strokeOpacity={lead(p) ? 1 : 0.85} dot={false} activeDot={{ r: 5, fill: hue(i), stroke: C.surface, strokeWidth: 2 }} isAnimationActive={false} />
         ))}
         {last && drawOrder.map(({ p, i }) => {
           const v = last[p];
           if (!numeric(v)) return null;
-          return <ReferenceDot key={`end-${p}`} x={String(last.label)} y={v} r={i === 0 ? 5 : 4} fill={hue(i)} stroke={C.surface} strokeWidth={2} label={i === 0 ? endLabel(`${first(p)} ${v}`) : undefined} />;
+          // leaders[0] is the highest-ranked leader, i.e. the last one drawn, so the label sits on the topmost line.
+          return <ReferenceDot key={`end-${p}`} x={String(last.label)} y={v} r={lead(p) ? 5 : 4} fill={hue(i)} stroke={C.surface} strokeWidth={2} label={p === leaders[0] ? endLabel(`${leaders.map(first).join(" & ")} ${top}`) : undefined} />;
         })}
       </LineChart>
     </ResponsiveContainer>

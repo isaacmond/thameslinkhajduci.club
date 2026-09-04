@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { currentStreak, form, headToHead, lastResult, leaderboard, playedMatches, preview, records } from "@/lib/stats";
-import { club, line, match, player } from "./helpers";
+import { attendance, currentStreak, form, headToHead, lastResult, leaderboard, playedMatches, preview, recentPlayers, records } from "@/lib/stats";
+import { playerInsights } from "@/lib/insights";
+import { parseWorkbook } from "@/lib/sheet";
+import { club, fixtureWorkbook, line, match, player } from "./helpers";
 
 describe("leaderboard", () => {
   const seb = player({ name: "Seb Burgess", apps: 20, gpgGames: 4, goals: 8, goalsPerGame: 2, apgGames: 4, assists: 2, assistsPerGame: 0.5 });
@@ -108,5 +110,63 @@ describe("preview", () => {
     expect(p.win + p.draw + p.loss).toBeLessThanOrEqual(101);
     expect(p.sample).toBe(0);
     expect(p.h2h).toBeNull();
+  });
+});
+
+describe("attendance", () => {
+  // Every season tab lists the whole squad, so the roster cannot be the denominator: the window between debut and last game is.
+  const data = parseWorkbook(fixtureWorkbook());
+  const counted = playedMatches(data.matches).length;
+  const by = (name: string) => data.players.find((p) => p.name === name)!;
+
+  it("only counts the games between a one-season player's debut and last appearance", () => {
+    const ahmed = by("Ahmed");
+    expect(ahmed.seasons.filter((s) => s.apps > 0).map((s) => s.seasonId)).toEqual(["S7"]);
+    const s7 = data.seasons.find((s) => s.id === "S7")!;
+    const span = playedMatches(s7.matches).filter((m) => m.date! >= ahmed.debut! && m.date! <= ahmed.lastPlayed!);
+    const a = attendance(data, "Ahmed");
+    expect(a).toEqual({ possible: span.length, apps: 3, pct: Math.round((3 / span.length) * 100) });
+    expect(a.possible).toBeGreaterThanOrEqual(3);
+    expect(a.possible).toBeLessThan(counted);
+    expect(attendance(data, "Jake Harrison")).toEqual({ possible: 1, apps: 1, pct: 100 });
+  });
+
+  it("runs to date for someone still turning out this season", () => {
+    const phil = by("Phil Knott"), cur = data.seasons.find((s) => s.isCurrent)!;
+    expect(phil.seasons.some((s) => s.seasonId === cur.id && s.apps > 0)).toBe(true);
+    expect(phil.debut).toBe(playedMatches(data.matches).map((m) => m.date).sort()[0]);
+    expect(attendance(data, "Phil Knott")).toMatchObject({ possible: counted, apps: phil.apps });
+  });
+
+  it("has nothing to say about a name that never played", () => {
+    expect(attendance(data, "Nobody")).toEqual({ possible: 0, apps: 0, pct: 0 });
+  });
+});
+
+describe("recentPlayers", () => {
+  const iso = (daysAgo: number) => new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10);
+  const here = player({ name: "Here", lastPlayed: iso(10) }), gone = player({ name: "Gone", lastPlayed: iso(400) }), never = player({ name: "Never" });
+
+  it("keeps whoever has played inside the window and drops the departed", () => {
+    expect(recentPlayers(club([], [here, gone, never])).map((p) => p.name)).toEqual(["Here"]);
+    expect(recentPlayers(club([], [here, gone, never]), 500).map((p) => p.name)).toEqual(["Here", "Gone"]);
+  });
+});
+
+describe("playerInsights", () => {
+  const defeat = (i: number, name: string) => match({ date: `2026-04-${String(i).padStart(2, "0")}`, gw: i, ourGoals: 0, theirGoals: 3, lineup: [line(name)] });
+
+  it("does not claim a last win for someone who has never won", () => {
+    const p = player({ name: "Sad Sack", apps: 9, losses: 9, debut: "2026-04-01", lastPlayed: "2026-04-09" });
+    const out = playerInsights(club(Array.from({ length: 9 }, (_, i) => defeat(i + 1, p.name)), [p]), p);
+    expect(out.join(" ")).not.toContain("last won");
+    expect(out).toContain("9 appearances and still waiting for a first win.");
+  });
+
+  it("names the last win when there was one", () => {
+    const p = player({ name: "Sad Sack", apps: 9, wins: 1, losses: 8, debut: "2026-04-01", lastPlayed: "2026-04-09" });
+    const win = match({ date: "2026-04-01", gw: 1, ourGoals: 2, theirGoals: 1, opponent: "Spudos", lineup: [line(p.name, 1)] });
+    const out = playerInsights(club([win, ...Array.from({ length: 8 }, (_, i) => defeat(i + 2, p.name))], [p]), p);
+    expect(out).toContain("8 appearances since Sad last won (2–1 vs Spudos, Apr 2026).");
   });
 });

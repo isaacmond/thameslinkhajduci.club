@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 export const viewport: Viewport = { themeColor: "#0d2b19" };
+/** ISR for every page: prerendered HTML is re-rendered at most once a minute. A literal, because Next reads it statically (REVALIDATE_SECONDS in lib/sheet.ts matches). */
+export const revalidate = 60;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

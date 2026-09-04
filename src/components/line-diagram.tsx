@@ -2,6 +2,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import type { Match, Season } from "@/lib/types";
 import { chronological, fmtDate, gwLabel, scoreline } from "@/lib/stats";
+import { ScrollToStop } from "./scroll-to-stop";
 
 /* Result colours match C.win / C.draw / C.loss in charts.tsx. That file is a client module, so the values are repeated here rather than imported into a server component. */
 const FILL = { W: "#22a852", D: "#c4871a", L: "#d9484e", none: "#a7b8ab" } as const;
@@ -40,7 +41,8 @@ export function LineDiagram({ season, today }: { season: Season; today: string }
 
   return (
     <div>
-      <div className="scroll-x overflow-x-auto">
+      <div className="scroll-x focus-ring overflow-x-auto" tabIndex={0} role="region" aria-label="Line map, scrolls sideways">
+        {hereIdx >= 0 && <ScrollToStop x={xs[hereIdx]} />}
         <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} className="mx-auto block" style={{ minWidth: width }} aria-label={`${season.id === "FR" ? "Friendlies" : `Season ${season.number}`} line map: ${fixtures.length} stops`}>
           {fixtures.length > 1 && hasPast && <line x1={xs[0]} y1={MID} x2={splitX} y2={MID} stroke={MINT} strokeWidth={8} strokeLinecap="round" />}
           {fixtures.length > 1 && hasFuture && <line x1={splitX} y1={MID} x2={xs[xs.length - 1]} y2={MID} stroke={MINT} strokeOpacity={0.35} strokeWidth={8} strokeLinecap="round" />}
