@@ -99,17 +99,31 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         <section className="card p-5"><SectionTitle sub="Goal difference per game. Green is good. There is not a lot of green.">The season, game by game</SectionTitle><GoalDiffTimeline data={gd} /></section>
       ))}
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-        <div className="lg:col-span-3">
-          <SectionTitle sub="Everything on the fixture list, including the ones we'd rather forget">Fixtures &amp; results</SectionTitle>
-          <div className="grid grid-cols-1 gap-1.5 xl:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
-        </div>
-        <div className="space-y-6 lg:col-span-2 lg:sticky lg:top-24">
-          <div className="card p-5"><SectionTitle>Golden boot</SectionTitle><LeaderList items={leaderboard(players, "goals").slice(0, 5)} emptyText="No goals yet this season." /></div>
-          {!small && <div className="card p-5"><SectionTitle>Season ticket holders</SectionTitle><LeaderList items={leaderboard(players, "apps").slice(0, 5)} color="bg-cream" emptyText="Nobody has turned up yet." /></div>}
-          {leaderboard(players, "motm").length > 0 && <div className="card p-5"><SectionTitle>MOTM awards</SectionTitle><LeaderList items={leaderboard(players, "motm").slice(0, 5)} color="bg-gold" /></div>}
-        </div>
-      </section>
+      {(() => {
+        const cards = [
+          <div key="boot" className="card p-5"><SectionTitle>Golden boot</SectionTitle><LeaderList items={leaderboard(players, "goals").slice(0, 5)} emptyText="No goals yet this season." /></div>,
+          !small && <div key="apps" className="card p-5"><SectionTitle>Season ticket holders</SectionTitle><LeaderList items={leaderboard(players, "apps").slice(0, 5)} color="bg-cream" emptyText="Nobody has turned up yet." /></div>,
+          leaderboard(players, "motm").length > 0 && <div key="motm" className="card p-5"><SectionTitle>MOTM awards</SectionTitle><LeaderList items={leaderboard(players, "motm").slice(0, 5)} color="bg-gold" /></div>,
+        ].filter(Boolean);
+        const fixturesBlock = (
+          <div>
+            <SectionTitle sub="Everything on the fixture list, including the ones we'd rather forget">Fixtures &amp; results</SectionTitle>
+            <div className={clsx("grid grid-cols-1 gap-1.5", small ? "md:grid-cols-2" : "xl:grid-cols-2")}>{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
+          </div>
+        );
+        // Early in a season the sidebar would be one short card next to a long fixture list, so it goes on top instead.
+        return small ? (
+          <>
+            <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{cards}</section>
+            <section>{fixturesBlock}</section>
+          </>
+        ) : (
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
+            <div className="lg:col-span-3">{fixturesBlock}</div>
+            <div className="space-y-6 lg:col-span-2 lg:sticky lg:top-24">{cards}</div>
+          </section>
+        );
+      })()}
 
       <section className="card overflow-hidden">
         <div className="p-5 pb-3"><SectionTitle sub={`${players.length} players used${hasMoney ? " · cost is each player's share of pitch hire" : ""}`}>Squad stats</SectionTitle></div>
