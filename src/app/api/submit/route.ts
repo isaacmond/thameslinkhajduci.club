@@ -103,8 +103,11 @@ async function buildPayment(body: Body, data: ClubData): Promise<Built | Rejecte
       { cell: `${cols.date}${r}`, value: cellSafe(v.value.date), what: "Date" },
       { cell: `${cols.player}${r}`, value: cellSafe(v.value.player), what: "Player" },
       { cell: `${cols.amount}${r}`, value: v.value.amount, what: "Amount (£)" },
-      { cell: `${cols.note}${r}`, value: cellSafe([v.value.note, `via the site, submitted by ${v.value.submittedBy}`].filter(Boolean).join(" · ")), what: "Note" },
     );
+    const to = v.value.to ?? payer;
+    if (cols.to && to) edits.push({ cell: `${cols.to}${r}`, value: cellSafe(to), what: "Paid to" });
+    // No "Paid to" column on the sheet yet: keep the recipient in the note so it is not lost.
+    edits.push({ cell: `${cols.note}${r}`, value: cellSafe([v.value.note, !cols.to && to ? `paid to ${to}` : "", `via the site, submitted by ${v.value.submittedBy}`].filter(Boolean).join(" · ")), what: "Note" });
   }
   return buildPaymentMessage(v.value, { payer, balance: row ? row.balance : null, edits, tab: layout.payments?.tab ?? null, sheetUrl: SHEET_URL });
 }

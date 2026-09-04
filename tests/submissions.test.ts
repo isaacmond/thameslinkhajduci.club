@@ -8,7 +8,11 @@ describe("payments", () => {
   it("accepts a sensible payment and normalises the amount", () => {
     const r = validatePayment({ player: "phil knott", amount: "11.42", date: "2026-09-03", submittedBy: "Phil", note: "Monzo ref 123" }, roster, today);
     expect(r.ok).toBe(true);
-    if (r.ok) { expect(r.value.player).toBe("Phil Knott"); expect(r.value.amount).toBe(11.42); expect(r.value.note).toBe("Monzo ref 123"); }
+    if (r.ok) { expect(r.value.player).toBe("Phil Knott"); expect(r.value.amount).toBe(11.42); expect(r.value.note).toBe("Monzo ref 123"); expect(r.value.to).toBeNull(); }
+  });
+  it("records who was paid, matched against the roster", () => {
+    const r = validatePayment({ player: "Phil Knott", to: "isaac mond", amount: 5, date: today, submittedBy: "Phil" }, roster, today);
+    expect(r.ok && r.value.to).toBe("Isaac Mond");
   });
   it("rounds to pennies and strips pound signs", () => {
     const r = validatePayment({ player: "Phil Knott", amount: "£ 12.345", date: today, submittedBy: "Phil" }, roster, today);
@@ -23,22 +27,35 @@ describe("payments", () => {
     [{ player: "Phil Knott", amount: 5, date: "2025-01-01", submittedBy: "Me" }, /more than a year/],
     [{ player: "Phil Knott", amount: 5, date: "2026-02-30", submittedBy: "Me" }, /date you paid/],
     [{ player: "Phil Knott", amount: 5, date: today, submittedBy: "X" }, /who you are/],
+    [{ player: "Phil Knott", to: "Nobody", amount: 5, date: today, submittedBy: "Me" }, /who was paid/],
+    [{ player: "Phil Knott", to: "Phil Knott", amount: 5, date: today, submittedBy: "Me" }, /yourself/],
   ])("rejects %j", (body, msg) => {
     const r = validatePayment(body as Record<string, unknown>, roster, today);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error).toMatch(msg);
   });
   it("builds a message that says what was owed and what is left", () => {
-    const v = { player: "Phil Knott", amount: 10, date: "2026-09-03", note: "", submittedBy: "Phil" };
+    const v = { player: "Phil Knott", to: null, amount: 10, date: "2026-09-03", note: "", submittedBy: "Phil" };
     const edits = [{ cell: "A3", value: "2026-09-03", what: "Date" }, { cell: "C3", value: 10, what: "Amount (£)" }];
     const m = buildPaymentMessage(v, { payer: "Isaac Mond", balance: 11.42, edits, tab: "Payments", sheetUrl: "https://sheet" });
     expect(m.summary).toBe("Phil Knott paid £10.00 to Isaac Mond · Thu, 3 Sept 2026");
     expect(m.text).toContain("Owed before this: £11.42 → £1.42 still to pay");
     expect(m.text).toContain('Sheet edits (tab Payments): A3="2026-09-03", C3=10');
     expect(m.subject).toMatch(/^Payment: /);
+    expect(m.text).toContain("From Phil Knott to Isaac Mond");
+  });
+  it("names the recipient and flags one who is not the season's pitch payer", () => {
+    const base = { player: "Phil Knott", amount: 10, date: today, note: "", submittedBy: "Phil" };
+    const ctx = { payer: "Isaac Mond", balance: null, edits: [], tab: null, sheetUrl: "u" };
+    const same = buildPaymentMessage({ ...base, to: "Isaac Mond" }, ctx);
+    expect(same.summary).toContain("paid £10.00 to Isaac Mond");
+    expect(same.text).not.toContain("pitch payer");
+    const other = buildPaymentMessage({ ...base, to: "Seb Burgess" }, ctx);
+    expect(other.summary).toContain("paid £10.00 to Seb Burgess");
+    expect(other.text).toContain("From Phil Knott to Seb Burgess (not Isaac Mond, who is down as this season's pitch payer; check who should be credited)");
   });
   it("flags a payment from someone who owed nothing", () => {
-    const m = buildPaymentMessage({ player: "Seb Burgess", amount: 5, date: today, note: "", submittedBy: "Seb" }, { payer: null, balance: -3, edits: [], tab: null, sheetUrl: "u" });
+    const m = buildPaymentMessage({ player: "Seb Burgess", to: null, amount: 5, date: today, note: "", submittedBy: "Seb" }, { payer: null, balance: -3, edits: [], tab: null, sheetUrl: "u" });
     expect(m.text).toContain("Nothing was outstanding for Seb Burgess (already £3.00 in credit). Check this one.");
     expect(m.text).toContain("could not map cells");
   });

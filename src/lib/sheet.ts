@@ -291,12 +291,14 @@ function parseMoney(grid: Grid): { paidBy: Record<string, string>; rows: MoneyRo
 function parsePayments(grid: Grid): Payment[] {
   const hdrRow = findRow(grid, "Date");
   if (hdrRow < 0) return [];
+  const toCol = (grid[hdrRow] ?? []).findIndex((c) => /^(paid )?to$|^recipient$/i.test(str(c) ?? ""));
   const out: Payment[] = [];
   for (let r = hdrRow + 1; r < grid.length; r++) {
     const row = grid[r]; if (!row) continue;
     const player = str(row[1]); const amount = num(row[2]);
     if (!player || amount === null) continue;
-    out.push({ date: isoDate(row[0]), player: canonicalName(player), amount, note: str(row[3]) });
+    const to = toCol >= 0 ? str(row[toCol]) : null;
+    out.push({ date: isoDate(row[0]), player: canonicalName(player), amount, to: to ? canonicalName(to) : null, note: str(row[3]) });
   }
   return out;
 }
@@ -491,7 +493,7 @@ export async function getSheetLayout(seasonId: string): Promise<SheetLayout | nu
 
 /** Where a new Payments row and a new roster name would go. Rows are 1-based sheet rows; null means "no free row before Total, insert one". */
 export type AdminLayout = {
-  payments: { tab: string; row: number; cols: { date: string; player: string; amount: string; note: string } } | null;
+  payments: { tab: string; row: number; cols: { date: string; player: string; amount: string; note: string; to: string | null } } | null;
   roster: { seasonTab: string | null; seasonRow: number | null; allTimeTab: string | null; allTimeRow: number | null; moneyTab: string | null; moneyRow: number | null; squadTab: string | null; squadRow: number | null; squadCols: Record<string, string> };
 };
 export async function getAdminLayout(seasonId: string | null): Promise<AdminLayout> {
@@ -519,7 +521,7 @@ export async function getAdminLayout(seasonId: string | null): Promise<AdminLayo
   const squadTab = tabNamed(/^squad$/i), squadGrid = grid(squadTab);
   const squadHdr = squadGrid ? findRow(squadGrid, /^player$/i) : -1;
   return {
-    payments: payTab && payHdr >= 0 && payRow ? { tab: payTab, row: payRow, cols: { date: payCols.date ?? "A", player: payCols.player ?? "B", amount: payCols.amount ?? "C", note: payCols.note ?? "D" } } : null,
+    payments: payTab && payHdr >= 0 && payRow ? { tab: payTab, row: payRow, cols: { date: payCols.date ?? "A", player: payCols.player ?? "B", amount: payCols.amount ?? "C", note: payCols.note ?? "D", to: payCols["paid to"] ?? payCols.to ?? payCols.recipient ?? null } } : null,
     roster: {
       seasonTab, seasonRow: freeRow(seasonGrid, seasonGrid ? findRow(seasonGrid, "APPEARANCES") : -1),
       allTimeTab, allTimeRow: freeRow(allGrid, allGrid ? findRow(allGrid, /^player$/i) : -1),

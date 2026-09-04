@@ -119,6 +119,8 @@ export interface Payment {
   date: string | null;
   player: string;
   amount: number;
+  /** Who received the money (the Payments tab's optional "Paid to" column); null when the sheet has no such column. */
+  to: string | null;
   note: string | null;
 }
 

@@ -45,10 +45,14 @@ export function originAllowed(h: { get(name: string): string | null }): boolean 
 }
 
 /* ------------------------------------------------------------------ payments */
-export type PaymentValue = { player: string; amount: number; date: string; note: string; submittedBy: string };
+/** `to` is who received the money; null when the form did not say (the message then falls back to the season's pitch payer). */
+export type PaymentValue = { player: string; to: string | null; amount: number; date: string; note: string; submittedBy: string };
 export function validatePayment(body: Record<string, unknown>, roster: Iterable<string>, today: string): { ok: true; value: PaymentValue } | { ok: false; error: string } {
   const player = rosterName(body.player, roster);
   if (!player) return { ok: false, error: "Pick a player from the list." };
+  const to = body.to === undefined || body.to === null || body.to === "" ? null : rosterName(body.to, roster);
+  if (to === null && body.to) return { ok: false, error: "Pick who was paid from the list." };
+  if (to && to === player) return { ok: false, error: "Paying yourself does not count, sadly." };
   const raw = typeof body.amount === "string" ? Number(body.amount.replace(/[£,\s]/g, "")) : body.amount;
   if (typeof raw !== "number" || !Number.isFinite(raw)) return { ok: false, error: "Enter an amount in pounds." };
   const amount = Math.round(raw * 100) / 100;
@@ -60,15 +64,17 @@ export function validatePayment(body: Record<string, unknown>, roster: Iterable<
   if (daysBetween(date, today) > 400) return { ok: false, error: "That payment is more than a year old. Ask the admin directly." };
   const submittedBy = clean(body.submittedBy, 40);
   if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
-  return { ok: true, value: { player, amount, date, note: clean(body.note, 120), submittedBy } };
+  return { ok: true, value: { player, to, amount, date, note: clean(body.note, 120), submittedBy } };
 }
 export type PaymentContext = { payer: string | null; balance: number | null; edits: Edit[]; tab: string | null; sheetUrl: string };
 export function buildPaymentMessage(v: PaymentValue, ctx: PaymentContext): Built {
-  const summary = `${v.player} paid ${pounds(v.amount)}${ctx.payer ? ` to ${ctx.payer}` : ""} · ${fmtDay(v.date)}`;
+  const to = v.to ?? ctx.payer;
+  const summary = `${v.player} paid ${pounds(v.amount)}${to ? ` to ${to}` : ""} · ${fmtDay(v.date)}`;
   const after = ctx.balance === null ? null : Math.round((ctx.balance - v.amount) * 100) / 100;
   const lines = [
     "PAYMENT SUBMISSION",
     summary,
+    to ? `From ${v.player} to ${to}${ctx.payer && to !== ctx.payer ? ` (not ${ctx.payer}, who is down as this season's pitch payer; check who should be credited)` : ""}` : `Recipient not given${ctx.payer ? "" : " and no pitch payer is named for this season"}.`,
     ctx.balance === null ? null : ctx.balance > 0.01 ? `Owed before this: ${pounds(ctx.balance)}${after !== null ? ` → ${after > 0.01 ? `${pounds(after)} still to pay` : after < -0.01 ? `${pounds(-after)} overpaid` : "settled"}` : ""}` : `Nothing was outstanding for ${v.player}${ctx.balance < -0.01 ? ` (already ${pounds(-ctx.balance)} in credit)` : ""}. Check this one.`,
     v.note ? `Reference: ${v.note}` : null,
     `Submitted by ${v.submittedBy}`,

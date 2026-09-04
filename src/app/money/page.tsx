@@ -65,7 +65,7 @@ export default async function MoneyPage() {
           <div className="card p-5">
             <SectionTitle sub="Every transfer the treasurer has logged">Payments received</SectionTitle>
             {data.money.payments.length ? (
-              <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-center gap-2"><Receipt size={14} className="text-mint-soft" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} /><span className="ml-auto tabular text-cream">{fmtMoney(p.amount)}</span><span className="text-xs text-ash">{fmtDate(p.date)}</span></li>)}</ul>
+              <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-center gap-2"><Receipt size={14} className="text-mint-soft" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} />{p.to && <span className="truncate text-xs text-ash">→ <PlayerLink name={p.to} player={byName.get(p.to)} /></span>}<span className="ml-auto tabular text-cream">{fmtMoney(p.amount)}</span><span className="text-xs text-ash">{fmtDate(p.date)}</span></li>)}</ul>
             ) : <p className="text-sm text-ash">No transfers logged yet. The treasurer remains optimistic.</p>}
           </div>
           <Callout icon={<Coins size={18} />}>Charges are simply pitch cost ÷ players who played, per game. Whoever paid for the pitch is credited the full cost, so their balance goes negative: that is money owed to them. Pay them, the treasurer logs it, and this page follows within a minute. <Link href="/data" className="link">Export the money table</Link> if you want to argue about it in a spreadsheet of your own.</Callout>

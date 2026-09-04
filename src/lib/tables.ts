@@ -59,8 +59,8 @@ export function buildTable(data: ClubData, table: TableName, opts: { season?: st
       return { columns: Object.keys(rows[0] ?? {}), rows };
     }
     case "payments": {
-      const rows: Row[] = data.money.payments.map((p) => ({ date: p.date, player: p.player, amount: p.amount, note: p.note }));
-      return { columns: ["date", "player", "amount", "note"], rows };
+      const rows: Row[] = data.money.payments.map((p) => ({ date: p.date, player: p.player, paid_to: p.to, amount: p.amount, note: p.note }));
+      return { columns: ["date", "player", "paid_to", "amount", "note"], rows };
     }
   }
   return { columns: [], rows: [] };

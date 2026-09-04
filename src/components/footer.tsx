@@ -65,8 +65,10 @@ export function Footer() {
         <div className="flex flex-col gap-4 text-sm text-ash sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Image src="/crest.png" alt="" width={28} height={28} />
-            <span className="display text-lg text-cream">Forza Hajduci</span>
-            <span className="hidden sm:inline">· Whitechapel, London · Tuesdays, allegedly</span>
+            <span className="flex items-baseline gap-3">
+              <span className="display text-lg leading-none text-cream">Forza Hajduci</span>
+              <span className="hidden sm:inline">· Whitechapel, London · Tuesdays, allegedly</span>
+            </span>
           </div>
           <div className="flex flex-wrap gap-4">
             <Link className="link" href="/data">Data &amp; API</Link>
