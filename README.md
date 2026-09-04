@@ -37,15 +37,15 @@ npm run build      # production build (fetches the sheet at build time)
 npm run lint
 ```
 
-Environment variables (all optional): `SHEET_ID` to point at a different spreadsheet, `NEXT_PUBLIC_SITE_URL` for absolute URLs in metadata and the API docs, `SCORE_TO_EMAIL` + `RESEND_API_KEY` (Resend via the Vercel Marketplace) to email score submissions to the admin, `SCORE_FROM_EMAIL` to send from a verified domain, `SCORE_WEBHOOK_URL` to also post them to a Slack/Discord webhook.
+Environment variables: `DATABASE_URL` (Neon, set by the Vercel Marketplace integration; without it the site falls back to reading the old workbook), `WORKOS_API_KEY` + `WORKOS_CLIENT_ID` + `WORKOS_COOKIE_PASSWORD` + `NEXT_PUBLIC_WORKOS_REDIRECT_URI` (sign-in), `BLOB_READ_WRITE_TOKEN` (profile photos), `RESEND_API_KEY` + `SCORE_TO_EMAIL` + `SCORE_FROM_EMAIL` (email), `CRON_SECRET` (the daily reminder cron), and optionally `SCORE_WEBHOOK_URL` (Slack/Discord) and `NEXT_PUBLIC_SITE_URL`.
 
 ## Stack
 
 Next.js 16 (App Router, ISR), React 19, Tailwind CSS 4, Recharts, SheetJS for the workbook parsing, Bebas Neue + Inter. Hosted on Vercel.
 
-## Spreadsheet audit
+## Spreadsheet audit (historical)
 
-`sheet-fixes/` holds an audit of the sheet's data quality, a corrected copy of the workbook, and the list of cell edits it contains.
+`sheet-fixes/` holds the audit of the old Google Sheet's data quality, the corrected copy of the workbook that seeded the database, and the list of cell edits it contained. It is kept as the record of where the numbers came from; the tests still parse it.
 
 ## Sponsors
 
