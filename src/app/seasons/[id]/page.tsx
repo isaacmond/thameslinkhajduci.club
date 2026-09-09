@@ -141,7 +141,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         // Early in a season the sidebar would be one short card next to a long fixture list, so it goes on top instead.
         return small ? (
           <>
-            <section className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">{cards}</section>
+            <section className={clsx("grid grid-cols-1 gap-6", "md:grid-cols-2", cards.length >= 3 && "lg:grid-cols-3")}>{cards}</section>
             <section>{fixturesBlock}</section>
           </>
         ) : (

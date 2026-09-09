@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
 import { inputClass, Select } from "./controls";
+import { btn } from "./button";
 import { BoardPreview } from "./board-preview";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
@@ -85,7 +86,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? "Sending…" : "Log the payment"}</button>
+        <button type="submit" disabled={!canSubmit} className={btn("primary", "md")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Log the payment"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
         {result && !result.ok && <p className="text-xs text-loss-soft" role="alert">{result.error}</p>}
         <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/money" className="link">See the balances →</Link></p>

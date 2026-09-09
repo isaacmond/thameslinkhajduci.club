@@ -85,7 +85,7 @@ export function FormStrip({ matches, size = "md" }: { matches: (Match | MatchLit
 
 export function Avatar({ name, photo, size = 40, shirt, priority = false }: { name: string; photo?: string; size?: number; shirt?: number | null; priority?: boolean }) {
   return (
-    <span className="relative inline-block shrink-0" style={{ width: size, height: size }}>
+    <span className="relative inline-flex shrink-0 align-middle" style={{ width: size, height: size }}>
       {photo ? (
         <Image src={photo} alt="" width={size} height={size} className="h-full w-full rounded-full object-cover ring-1 ring-white/15" unoptimized={photo.startsWith("http")} priority={priority} />
       ) : (

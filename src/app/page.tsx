@@ -10,6 +10,7 @@ import { Avatar, Crest, FormStrip, LeaderList, MatchRow, PlayerLink, RecordStrip
 import { DepartureBoard, type BoardRow } from "@/components/board";
 import { Sponsors } from "@/components/footer";
 import { PageTransition } from "@/components/page-transition";
+import { btn } from "@/components/button";
 
 const DOT = { ok: "bg-mint", late: "bg-gold", bad: "bg-loss-soft", muted: "bg-ash" } as const;
 const KIND: Record<MilestoneKind, [string, string]> = { apps: ["app", "apps"], goals: ["goal", "goals"], assists: ["assist", "assists"], motm: ["MOTM award", "MOTM awards"] };
@@ -57,9 +58,9 @@ export default async function Home() {
             </div>
             <p className="mt-3 max-w-xl text-sm text-ash sm:mt-4 sm:text-lg">Six-a-side football club. Established 2024 in East London.<span className="hidden sm:inline"> Running approximately twelve minutes behind schedule ever since.</span></p>
             <div className="mt-5 grid grid-cols-2 gap-2 sm:mt-6 sm:flex sm:flex-wrap sm:gap-3">
-              <Link href="/squad" className="focus-ring inline-flex items-center justify-center rounded-lg bg-mint px-4 py-2.5 text-center font-semibold text-night transition-colors hover:bg-mint-soft">Meet the squad</Link>
-              <Link href="/matches" className="focus-ring inline-flex items-center justify-center rounded-lg border border-white/15 px-4 py-2.5 text-center font-semibold text-cream transition-colors hover:bg-white/10">Fixtures &amp; results</Link>
-              <Link href="/data" className="focus-ring hidden items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 font-semibold text-cream transition-colors hover:bg-white/10 sm:inline-flex"><Database size={16} aria-hidden />Data &amp; API</Link>
+              <Link href="/squad" className={btn("primary")}>Meet the squad</Link>
+              <Link href="/matches" className={btn("secondary")}>Fixtures &amp; results</Link>
+              <Link href="/data" className={btn("secondary", "sm", "hidden sm:inline-flex")}><Database size={16} aria-hidden />Data &amp; API</Link>
             </div>
           </div>
           <Crest size={230} className="mx-auto hidden lg:mx-0 lg:block" />

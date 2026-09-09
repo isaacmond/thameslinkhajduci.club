@@ -3,6 +3,7 @@ import { useActionState, useState } from "react";
 import { Camera, Check, Save } from "lucide-react";
 import { saveProfile, type ProfileState } from "@/app/actions/profile";
 import { inputClass } from "./controls";
+import { btn } from "./button";
 import { Avatar } from "./ui";
 
 export type ProfileInitial = { player: string; email: string; firstName: string; lastName: string; nickname: string; positions: string[]; shirt: number | null; bio: string; photo: string | null; takenShirts: Record<string, string> };
@@ -23,7 +24,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
       <div className="card grid grid-cols-1 gap-5 p-5 sm:grid-cols-[auto_1fr] sm:p-6">
         <div className="flex flex-col items-center gap-3 sm:w-40">
           <Avatar name={initial.player} photo={removePhoto ? undefined : shown ?? undefined} size={128} shirt={shirt ? Number(shirt) : null} />
-          <label className="focus-ring inline-flex cursor-pointer items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-cream hover:bg-white/10">
+          <label className={btn("secondary", "sm", "cursor-pointer")}>
             <Camera size={16} aria-hidden />{shown ? "Change photo" : "Add a photo"}
             <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setPreview(URL.createObjectURL(f)); setRemovePhoto(false); } }} />
           </label>
@@ -54,7 +55,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending || Boolean(clash)} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Save size={16} aria-hidden />{pending ? "Saving…" : "Save changes"}</button>
+        <button type="submit" disabled={pending || Boolean(clash)} className={btn("primary", "md")}><Save size={16} aria-hidden />{pending ? "Saving…" : "Save changes"}</button>
         {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
       </div>
     </form>

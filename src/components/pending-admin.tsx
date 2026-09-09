@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { Check, Inbox, X } from "lucide-react";
 import { approveSubmissionAction, rejectSubmissionAction, type ActionState } from "@/app/actions/admin";
+import { btn } from "./button";
 
 export type PendingItem = { id: number; kind: string; summary: string; submittedBy: string; createdAt: string; details: string[] };
 
@@ -24,8 +25,8 @@ export function PendingAdmin({ items }: { items: PendingItem[] }) {
               {it.details.length > 0 && <ul className="mt-1 text-xs text-ash">{it.details.map((d) => <li key={d}>{d}</li>)}</ul>}
             </div>
             <div className="flex shrink-0 gap-2">
-              <button type="button" disabled={pending} onClick={() => run(it.id, approveSubmissionAction)} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-transparent bg-mint px-3 py-2 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><Check size={16} aria-hidden />{busy === it.id ? "Recording…" : "Record it"}</button>
-              <button type="button" disabled={pending} onClick={() => run(it.id, rejectSubmissionAction)} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-cream hover:bg-white/10 disabled:opacity-50"><X size={16} aria-hidden />Reject</button>
+              <button type="button" disabled={pending} onClick={() => run(it.id, approveSubmissionAction)} className={btn("primary")}><Check size={16} aria-hidden />{busy === it.id ? "Recording…" : "Record it"}</button>
+              <button type="button" disabled={pending} onClick={() => run(it.id, rejectSubmissionAction)} className={btn("secondary")}><X size={16} aria-hidden />Reject</button>
             </div>
           </li>
         ))}

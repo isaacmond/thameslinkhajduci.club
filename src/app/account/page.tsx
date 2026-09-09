@@ -11,12 +11,13 @@ import { signOutAction } from "@/app/actions/auth";
 import { PageHeader } from "@/components/ui";
 import { ProfileForm } from "@/components/profile-form";
 import { PageTransition } from "@/components/page-transition";
+import { btn } from "@/components/button";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 
 function SignOut() {
-  return <form action={signOutAction}><button type="submit" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 text-sm font-semibold text-cream hover:bg-white/10"><LogOut size={16} aria-hidden />Sign out</button></form>;
+  return <form action={signOutAction}><button type="submit" className={btn("secondary")}><LogOut size={16} aria-hidden />Sign out</button></form>;
 }
 
 export default async function AccountPage() {
@@ -50,7 +51,7 @@ export default async function AccountPage() {
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="Your account" title={member.player} sub={<>Your details as the site shows them. Submissions you make while signed in go straight into the records{live ? "" : " once the database is connected"}.</>} right={<div className="flex flex-wrap items-center gap-2">{member.admin && live && <Link href="/admin" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-gold/40 px-4 py-2.5 text-sm font-semibold text-gold hover:bg-gold/10"><ShieldCheck size={16} aria-hidden />Admin</Link>}<Link href={`/squad/${slug}`} className="focus-ring inline-flex items-center rounded-lg border border-transparent bg-mint px-4 py-2.5 text-sm font-semibold text-night hover:bg-mint-soft">Your player page →</Link><SignOut /></div>} />
+      <PageHeader eyebrow="Your account" title={member.player} sub={<>Your details as the site shows them. Submissions you make while signed in go straight into the records{live ? "" : " once the database is connected"}.</>} right={<div className="flex flex-wrap items-center gap-2">{member.admin && live && <Link href="/admin" className={btn("gold")}><ShieldCheck size={16} aria-hidden />Admin</Link>}<Link href={`/squad/${slug}`} className={btn("primary")}>Your player page →</Link><SignOut /></div>} />
       {!live && <p className="card border-gold/40 p-4 text-sm text-ash">Saving is not switched on yet: the records database is not connected. You can look, but the save button will tell you the same.</p>}
       <ProfileForm initial={initial} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

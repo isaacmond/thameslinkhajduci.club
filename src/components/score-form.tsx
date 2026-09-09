@@ -2,14 +2,20 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Check, Minus, Plus, Send } from "lucide-react";
+import { Check, ClipboardList, Minus, Plus, Send } from "lucide-react";
 import { inputClass, Select } from "./controls";
+import { btn } from "./button";
 import { BoardPreview } from "./board-preview";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { serviceStatus } from "@/lib/captions";
 
-export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null };
+/** `lineup` is who the records say played; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet. */
+export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; expected: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null };
+
+/** The recorded line-up when there is one, otherwise the team sheet: the best guess at who played. */
+const startingLineup = (f: SubmitFixture | undefined) => (f ? (f.lineup.length ? f.lineup : f.expected) : []);
+const sameSet = (a: Set<string>, b: string[]) => a.size === b.length && b.every((n) => a.has(n));
 
 function Counter({ value, onChange, max = 30, label }: { value: number; onChange: (v: number) => void; max?: number; label: string }) {
   return (
@@ -30,7 +36,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
   const fx = fixtures.find((f) => f.id === matchId);
   const [ours, setOurs] = useState(first?.ourGoals ?? 0);
   const [theirs, setTheirs] = useState(first?.theirGoals ?? 0);
-  const [played, setPlayed] = useState<Set<string>>(new Set(first?.lineup ?? []));
+  const [played, setPlayed] = useState<Set<string>>(new Set(startingLineup(first)));
   const [scorers, setScorers] = useState<Record<string, number>>(first?.scorers ?? {});
   const [assists, setAssists] = useState<Record<string, number>>(first?.assists ?? {});
   const [motm, setMotm] = useState(first?.motm ?? "");
@@ -40,7 +46,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
 
-  const pick = (id: string) => { const f = fixtures.find((x) => x.id === id); setMatchId(id); setResult(null); if (f) { setOurs(f.ourGoals ?? 0); setTheirs(f.theirGoals ?? 0); setPlayed(new Set(f.lineup)); setScorers(f.scorers); setAssists(f.assists); setMotm(f.motm ?? ""); } };
+  const pick = (id: string) => { const f = fixtures.find((x) => x.id === id); setMatchId(id); setResult(null); if (f) { setOurs(f.ourGoals ?? 0); setTheirs(f.theirGoals ?? 0); setPlayed(new Set(startingLineup(f))); setScorers(f.scorers); setAssists(f.assists); setMotm(f.motm ?? ""); } };
   const goalsLogged = useMemo(() => Object.values(scorers).reduce((a, b) => a + b, 0), [scorers]);
   const assistsLogged = useMemo(() => Object.values(assists).reduce((a, b) => a + b, 0), [assists]);
   const togglePlayed = (n: string) => setPlayed((s) => { const next = new Set(s); if (next.has(n)) { next.delete(n); setScorers((sc) => { const c = { ...sc }; delete c[n]; return c; }); setAssists((as) => { const c = { ...as }; delete c[n]; return c; }); } else next.add(n); return next; });
@@ -62,6 +68,9 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
     setBusy(false);
   };
   const playedList = roster.filter((n) => played.has(n));
+  // The team sheet is a proposal: say where the ticks came from, and offer the way back once the reporter has changed them.
+  const fromSheet = Boolean(fx && !fx.lineup.length && fx.expected.length);
+  const matchesSheet = fromSheet && sameSet(played, fx!.expected);
 
   if (result?.ok) {
     return (
@@ -86,7 +95,14 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
       </div>
 
       <div className="card p-5 sm:p-6">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="display text-2xl text-cream">Who played, who scored</h2><p className="text-xs text-ash">Tap a name to mark them as played, then add goals and assists. {goalsLogged}/{ours} goals accounted for.</p></div>
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="display text-2xl leading-none text-cream">Who played, who scored</h2><p className="text-xs text-ash">Tap a name to mark them as played, then add goals and assists. {goalsLogged}/{ours} goals accounted for.</p></div>
+        {fromSheet && (
+          <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-mint/25 bg-mint/[0.06] px-3 py-2 text-xs text-cream/90" role="status">
+            <ClipboardList size={14} className="shrink-0 text-mint-soft" aria-hidden />
+            <span>{matchesSheet ? <>Ticked from the team sheet: <span className="text-cream">{fx!.expected.length} expected</span>. Untick anyone who didn&apos;t make it and add anyone who did.</> : <>Started from the team sheet ({fx!.expected.length} expected), since edited.</>}</span>
+            {!matchesSheet && <button type="button" onClick={() => { setPlayed(new Set(fx!.expected)); setScorers({}); setAssists({}); setMotm(""); }} className="focus-ring link ml-auto text-xs">Back to the team sheet</button>}
+          </p>
+        )}
         <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
           {roster.map((n) => { const on = played.has(n); return (
             <li key={n} className={clsx("flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors", on ? "border-mint/40 bg-mint/[0.08]" : "border-white/10")}>
@@ -104,7 +120,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={!canSubmit} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-5 py-3 font-semibold text-night transition-colors hover:bg-mint-soft disabled:cursor-not-allowed disabled:opacity-50"><Send size={16} aria-hidden />{busy ? (signedIn?.direct ? "Recording…" : "Preparing…") : signedIn?.direct ? "Record the result" : webhook ? "Submit for approval" : "Prepare the request"}</button>
+        <button type="submit" disabled={!canSubmit} className={btn("primary", "md")}><Send size={16} aria-hidden />{busy ? (signedIn?.direct ? "Recording…" : "Preparing…") : signedIn?.direct ? "Record the result" : webhook ? "Submit for approval" : "Prepare the request"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
         {result && !result.ok && <p className="text-xs text-loss-soft" role="alert">{result.error}</p>}
         <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/data" className="link">How the records work →</Link></p>

@@ -3,6 +3,7 @@ import { useActionState, useState, useTransition } from "react";
 import { ClipboardList, Eye, MailWarning, Send } from "lucide-react";
 import { previewReminderAction, saveSquadAction, sendRemindersAction, type ActionState } from "@/app/actions/admin";
 import { inputClass, Select } from "./controls";
+import { btn } from "./button";
 
 export type SquadFixture = { id: string; label: string; date: string | null };
 export type SquadPlayer = { name: string; shirt: number | null; hasEmail: boolean };
@@ -46,9 +47,9 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
       </fieldset>
       <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Note for the squad (optional)</span><textarea name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={400} rows={2} placeholder="Anything beyond the usual: a different pitch, a later meet, who has the ball." className={`${inputClass} min-h-[3.5rem] resize-y`} /></label>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={pending} className="focus-ring inline-flex h-[2.375rem] items-center gap-2 rounded-lg bg-mint px-4 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><ClipboardList size={16} aria-hidden />{pending ? "Saving…" : "Save team sheet"}</button>
-        <button type="button" disabled={busy || !saved?.players.length} onClick={() => start(async () => setSent(await sendRemindersAction(matchId)))} title={saved?.players.length ? "Email everyone on the saved team sheet now" : "Save the team sheet first"} className="focus-ring inline-flex h-[2.375rem] items-center gap-2 rounded-lg border border-white/15 px-4 text-sm font-semibold text-cream hover:bg-white/10 disabled:opacity-50"><Send size={16} aria-hidden />{busy ? "Sending…" : "Send reminder now"}</button>
-        <button type="button" disabled={busy} onClick={() => start(async () => setSent(await previewReminderAction(matchId)))} title="Email a copy to yourself only, nothing saved" className="focus-ring inline-flex h-[2.375rem] items-center gap-2 rounded-lg px-3 text-sm text-ash hover:text-cream disabled:opacity-50"><Eye size={16} aria-hidden />Email me a preview</button>
+        <button type="submit" disabled={pending} className={btn("primary")}><ClipboardList size={16} aria-hidden />{pending ? "Saving…" : "Save team sheet"}</button>
+        <button type="button" disabled={busy || !saved?.players.length} onClick={() => start(async () => setSent(await sendRemindersAction(matchId)))} title={saved?.players.length ? "Email everyone on the saved team sheet now" : "Save the team sheet first"} className={btn("secondary")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Send reminder now"}</button>
+        <button type="button" disabled={busy} onClick={() => start(async () => setSent(await previewReminderAction(matchId)))} title="Email a copy to yourself only, nothing saved" className={btn("ghost", "sm", "font-medium")}><Eye size={16} aria-hidden />Email me a preview</button>
         {missing.length > 0 && <span className="text-xs text-gold">{missing.length} picked without an email</span>}
       </div>
       {(sent ?? state) && <p role="status" className={`text-sm ${(sent ?? state)!.ok ? "text-mint-soft" : "text-loss-soft"}`}>{(sent ?? state)!.message}</p>}

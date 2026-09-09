@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
-import clsx from "clsx";
+import { btn } from "./button";
 
 export function RefreshButton({ className }: { className?: string }) {
   const router = useRouter();
@@ -21,7 +21,7 @@ export function RefreshButton({ className }: { className?: string }) {
   };
   const label = busy ? "Refreshing…" : state === "done" ? "Refreshed" : state === "error" ? "Couldn't refresh, try again" : "Force refresh";
   return (
-    <button type="button" onClick={go} aria-disabled={busy} className={clsx("focus-ring inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-cream transition-colors hover:bg-white/10 aria-disabled:opacity-60", className)}>
+    <button type="button" onClick={go} aria-disabled={busy} className={btn("secondary", "sm", className)}>
       <RefreshCw size={16} className={busy ? "animate-spin" : ""} aria-hidden />
       <span role="status" aria-live="polite">{label}</span>
     </button>

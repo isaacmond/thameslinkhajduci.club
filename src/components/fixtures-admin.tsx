@@ -3,6 +3,7 @@ import { useActionState, useState, useTransition } from "react";
 import { CalendarPlus, Save, Trash2 } from "lucide-react";
 import { deleteFixtureAction, saveFixtureAction, saveSeasonAction, type ActionState } from "@/app/actions/admin";
 import { inputClass, Select } from "./controls";
+import { btn } from "./button";
 
 export type AdminSeason = { id: string; number: number; title: string; venue: string; venueUrl: string | null; period: string; pitchCost: number | null; paidBy: string | null; seasonCost: number; fixtures: number; isCurrent: boolean };
 export type AdminFixture = { id: string; seasonId: string; gw: number; date: string | null; kickOff: string | null; opponent: string; type: string | null; matchCost: number; played: boolean };
@@ -27,9 +28,9 @@ function FixtureRow({ f, seasonId, nextGw }: { f?: AdminFixture; seasonId: strin
       <label className={field}><span className="eyebrow">Type</span><select name="type" defaultValue={f?.type ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-cream">{TYPES.map((t) => <option key={t.value} value={t.value} className="bg-pine">{t.label}</option>)}</select></label>
       <label className={field}><span className="eyebrow">Pitch £</span><input name="matchCost" defaultValue={f ? f.matchCost.toFixed(2) : ""} inputMode="decimal" placeholder="default" className={`${inputClass} tabular`} /></label>
       <div className="col-span-2 flex h-[2.375rem] items-center gap-2 sm:col-span-1">
-        <button type="submit" disabled={pending} className="focus-ring inline-flex h-full w-[5.25rem] items-center justify-center gap-1.5 rounded-lg bg-mint text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50">{f ? <Save size={14} aria-hidden /> : <CalendarPlus size={14} aria-hidden />}{pending ? "…" : f ? "Save" : "Add"}</button>
+        <button type="submit" disabled={pending} className={btn("primary", "sm", "w-[5.25rem] gap-1.5 px-0")}>{f ? <Save size={14} aria-hidden /> : <CalendarPlus size={14} aria-hidden />}{pending ? "…" : f ? "Save" : "Add"}</button>
         {f && !f.played ? (
-          <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className="focus-ring inline-flex h-full w-[2.5rem] items-center justify-center rounded-lg border border-white/15 text-ash hover:text-loss-soft"><Trash2 size={14} aria-hidden /></button>
+          <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className={btn("secondary", "sm", "w-[2.5rem] px-0 text-ash hover:text-loss-soft")}><Trash2 size={14} aria-hidden /></button>
         ) : <span className="w-[2.5rem]" aria-hidden />}
       </div>
       {note && <p role="status" className={`col-span-full text-xs ${note.ok ? "text-mint-soft" : "text-loss-soft"}`}>{note.message}</p>}
@@ -50,7 +51,7 @@ function SeasonForm({ s, roster }: { s?: AdminSeason; roster: string[] }) {
       <label className={field}><span className="eyebrow">Pitch paid by</span><select name="paidBy" defaultValue={s?.paidBy ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-cream"><option value="" className="bg-pine">Nobody yet</option>{roster.map((r) => <option key={r} value={r} className="bg-pine">{r}</option>)}</select><span className="min-h-[1.25rem] text-[11px] text-ash" /></label>
       <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-cream tabular">{s ? `£${s.seasonCost.toFixed(2)}` : "—"} <span className="ml-2 text-xs text-ash">{s ? `${s.fixtures} game${s.fixtures === 1 ? "" : "s"} × pitch` : "price per game × games"}</span></p><span className="min-h-[1.25rem] text-[11px] text-ash" /></div>
       <div className="flex items-end gap-3 pb-[1.25rem] sm:col-span-2">
-        <button type="submit" disabled={pending} className="focus-ring inline-flex items-center gap-2 rounded-lg bg-mint px-4 py-2 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><Save size={16} aria-hidden />{pending ? "Saving…" : s ? "Save season" : "Create season"}</button>
+        <button type="submit" disabled={pending} className={btn("primary")}><Save size={16} aria-hidden />{pending ? "Saving…" : s ? "Save season" : "Create season"}</button>
         {state && <span role="status" className={`text-xs ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.message}</span>}
       </div>
     </form>
@@ -68,7 +69,7 @@ export function FixturesAdmin({ seasons, fixtures, roster }: { seasons: AdminSea
     <div className="space-y-6">
       <div className="flex flex-wrap items-end gap-3">
         <Select label="Season" value={seasonId} onChange={setSeasonId} options={seasons.map((s) => ({ value: s.id, label: `${s.id}${s.isCurrent ? " · current" : ""}` }))} className="w-48" />
-        <button type="button" onClick={() => setCreating((c) => !c)} className="focus-ring rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-cream hover:bg-white/10">{creating ? "Cancel new season" : "New season"}</button>
+        <button type="button" onClick={() => setCreating((c) => !c)} className={btn("secondary")}>{creating ? "Cancel new season" : "New season"}</button>
       </div>
       {creating && <div className="card p-4"><p className="eyebrow mb-3">New season</p><SeasonForm roster={roster} /></div>}
       {season && <div className="card p-4"><p className="eyebrow mb-3">{season.id} details</p><SeasonForm s={season} roster={roster} /></div>}

@@ -10,6 +10,7 @@ import { SubmitTabs, type SubmitKind } from "@/components/submit-tabs";
 import { PageTransition } from "@/components/page-transition";
 import { currentMember } from "@/lib/auth";
 import { dbConfigured } from "@/lib/db";
+import { listSquads } from "@/lib/writes";
 import type { SignedIn } from "@/components/signed-in-note";
 
 /** Reads the session, so this page renders per request (the data underneath is still the cached records). */
@@ -57,10 +58,15 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
     const pool = chronological([...(current ? current.matches : []), ...(data.friendlies ? data.friendlies.matches : [])]);
     // Most recent past fixture first: that's the one someone has just played.
     const past = pool.filter((m) => !m.date || m.date <= today).reverse(), future = pool.filter((m) => m.date && m.date > today);
+    // The admin's team sheets: a fixture without a recorded line-up starts from the expected squad, so the reporter only has to untick who didn't show.
+    const rosterSet = new Set(roster);
+    const squads = dbConfigured() ? await listSquads().catch(() => []) : [];
+    const expected = new Map(squads.map((s) => [s.matchId, s.players.filter((p) => rosterSet.has(p))]));
     const toFixture = (m: (typeof pool)[number]): SubmitFixture => ({
       id: m.id, seasonId: m.seasonId, gw: m.gw, opponent: m.opponent, date: m.date, played: m.played, ourGoals: m.ourGoals, theirGoals: m.theirGoals,
       label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} vs ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
       lineup: m.lineup.filter((l) => l.played).map((l) => l.player),
+      expected: expected.get(m.id) ?? [],
       scorers: Object.fromEntries(m.lineup.filter((l) => l.goals > 0).map((l) => [l.player, l.goals])),
       assists: Object.fromEntries(m.lineup.filter((l) => l.assists > 0).map((l) => [l.player, l.assists])),
       motm: m.motm,

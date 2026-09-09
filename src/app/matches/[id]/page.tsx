@@ -6,10 +6,10 @@ import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
 import { getSquad } from "@/lib/writes";
-import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, opponentKey, playedMatches, scorersFor, scoreline, seasonHref } from "@/lib/stats";
+import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, leaderboard, opponentKey, playedMatches, scorersFor, scoreline, seasonHref, seasonPlayers } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, serviceStatus } from "@/lib/captions";
-import { PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { LeaderList, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/board";
 import { sponsorFor } from "@/components/footer";
 import { ShareButton } from "@/components/share-button";
@@ -94,31 +94,66 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-        <div className={clsx("card overflow-hidden", m.played || showPreview || (h2h && !isForfeit && h2h.matches.some((x) => x.id !== m.id)) ? "lg:col-span-3" : "lg:col-span-5")}>
-          <div className="p-5 pb-2"><SectionTitle sub={m.played ? (lineup.length ? "Who turned up, and what they did about it" : "No appearance marks recorded for this one") : "Squad TBC. As is our attendance."}>Line-up</SectionTitle></div>
-          {lineup.length > 0 && (
-            <div className="scroll-x overflow-x-auto">
-              <table className="stats">
-                <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="whitespace-nowrap text-right">Award</th></tr></thead>
-                <tbody>
-                  {lineup.map((l) => (
-                    <tr key={l.player}>
-                      <td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /></td>
-                      <td className={clsx("num display text-xl", l.goals > 0 ? "text-mint-soft" : "text-ash/40")}>{l.goals || "·"}</td>
-                      <td className={clsx("num display text-xl", l.assists > 0 ? "text-cream" : "text-ash/40")}>{l.assists || "·"}</td>
-                      <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} aria-hidden />MOTM</span>}</td>
-                    </tr>
-                  ))}
-                  {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-ash">(no appearance mark)</span></td><td className="num display text-xl text-mint-soft">{l.goals || "·"}</td><td className="num display text-xl">{l.assists || "·"}</td><td></td></tr>)}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        <div className="space-y-6 lg:col-span-2">
-          {m.played && (
-            <div className="card p-5">
+      {(() => {
+        const showH2h = Boolean(h2h && !isForfeit && (m.played || h2h.matches.some((x) => x.id !== m.id)));
+        // No team sheet yet: the season's regulars are the best guess at who will turn up.
+        const usual = !m.played && season.id !== "FR" ? leaderboard(seasonPlayers(data, season.id), "apps").slice(0, 8) : [];
+        const lineupCard = (
+          <div className="card overflow-hidden">
+            <div className={clsx("p-5", (lineup.length || usual.length) ? "pb-2" : "")}><SectionTitle sub={m.played ? (lineup.length ? "Who turned up, and what they did about it" : "No appearance marks recorded for this one") : "Squad TBC. As is our attendance."}>Line-up</SectionTitle></div>
+            {!m.played && usual.length > 0 && (
+              <div className="px-5 pb-5">
+                <p className="eyebrow mb-2">Usual suspects · {season.id} appearances</p>
+                <LeaderList items={usual} color="bg-cream" />
+                <p className="mt-3 text-xs text-ash">Played? <Link href={`/submit?match=${m.id}`} className="link">Submit the score →</Link></p>
+              </div>
+            )}
+            {lineup.length > 0 && (
+              <div className="scroll-x overflow-x-auto">
+                <table className="stats">
+                  <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="whitespace-nowrap text-right">Award</th></tr></thead>
+                  <tbody>
+                    {lineup.map((l) => (
+                      <tr key={l.player}>
+                        <td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /></td>
+                        <td className={clsx("num display text-xl", l.goals > 0 ? "text-mint-soft" : "text-ash/40")}>{l.goals || "·"}</td>
+                        <td className={clsx("num display text-xl", l.assists > 0 ? "text-cream" : "text-ash/40")}>{l.assists || "·"}</td>
+                        <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} aria-hidden />MOTM</span>}</td>
+                      </tr>
+                    ))}
+                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-ash">(no appearance mark)</span></td><td className="num display text-xl text-mint-soft">{l.goals || "·"}</td><td className="num display text-xl">{l.assists || "·"}</td><td></td></tr>)}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+        // Before kick-off the admin's team sheet stands in for the line-up; the score form starts from the same list.
+        const squadCard = squad && squad.players.length > 0 ? (
+          <section className="card p-5" aria-labelledby="expected-squad">
+            <SectionTitle id="expected-squad" sub={`${squad.players.length} named by the admin. Subject to who actually turns up.`}>Expected squad</SectionTitle>
+            <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">{squad.players.map((p) => <li key={p} className="flex min-w-0 items-center rounded-lg border border-white/5 bg-white/[0.02] px-3 py-1.5"><PlayerLink name={p} player={byName.get(p)} avatar className="min-w-0 truncate text-sm" /></li>)}</ul>
+            {squad.note && <p className="mt-4 border-l-2 border-mint pl-3 text-sm text-cream/90">{squad.note}</p>}
+            <p className="mt-4 text-xs text-ash">Played? <Link href={`/submit?match=${m.id}`} className="link">Submit the score →</Link> and this list is ticked for you.</p>
+          </section>
+        ) : null;
+        const h2hCard = showH2h && h2h ? (
+          <div className="card p-5">
+            <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"} across ${h2h.seasons.join(", ")}`}>Head to head</SectionTitle>
+            <dl className="grid grid-cols-3 gap-2 text-center">
+              {([["Won", h2h.won, "text-mint-soft"], ["Drawn", h2h.drawn, "text-draw-soft"], ["Lost", h2h.lost, "text-loss-soft"]] as [string, number, string][]).map(([k, v, c]) => <div key={k} className="flex flex-col-reverse"><dt className="eyebrow mt-1">{k}</dt><dd className={clsx("display text-3xl leading-none", c)}>{v}</dd></div>)}
+            </dl>
+            <p className="mt-2 text-center text-xs text-ash">Goals {h2h.gf}–{h2h.ga}</p>
+            {h2h.matches.filter((x) => x.id !== m.id).length > 0 && (
+              <ul className="mt-4 space-y-1.5 text-sm">
+                {[...h2h.matches].filter((x) => x.id !== m.id).reverse().map((x) => <li key={x.id} className="flex items-center gap-2"><ResultPill result={x.result} size="sm" /><Link href={`/matches/${x.id}`} className="link">{scoreline(x)}</Link><span className="ml-auto text-xs text-ash">{x.seasonId} · {fmtDate(x.date)}</span></li>)}
+              </ul>
+            )}
+          </div>
+        ) : null;
+        if (m.played || !showPreview) {
+          const side = [m.played && (
+            <div key="summary" className="card p-5">
               <SectionTitle>Summary</SectionTitle>
               <dl className="space-y-3 text-sm">
                 <div><dt className="eyebrow">Scorers</dt><dd className="mt-1 text-cream">{scorers.length ? scorers.map((s) => `${s.player}${s.goals > 1 ? ` ×${s.goals}` : ""}`).join(", ") : (m.ourGoals ?? 0) > 0 ? "Goals recorded, scorers lost to history" : "Nobody. Not one."}</dd></div>
@@ -127,31 +162,22 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 {!m.scorersRecorded && (m.ourGoals ?? 0) > 0 && <div><dt className="eyebrow">Note</dt><dd className="mt-1 text-ash">Scorers weren&apos;t logged, so this game doesn&apos;t count towards anyone&apos;s goals-per-game.</dd></div>}
               </dl>
             </div>
-          )}
-          {squad && squad.players.length > 0 && (
-            <section className="card p-5" aria-labelledby="expected-squad">
-              <SectionTitle id="expected-squad" sub={`${squad.players.length} named by the admin. Subject to who actually turns up.`}>Expected squad</SectionTitle>
-              <ul className="flex flex-wrap gap-2">{squad.players.map((p) => <li key={p}><PlayerLink name={p} player={byName.get(p)} avatar className="chip normal-case tracking-normal" /></li>)}</ul>
-              {squad.note && <p className="mt-3 border-l-2 border-mint pl-3 text-sm text-cream/90">{squad.note}</p>}
+          ), h2hCard].filter(Boolean);
+          return (
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
+              <div className={side.length ? "lg:col-span-3" : "lg:col-span-5"}>{lineupCard}</div>
+              {side.length > 0 && <div className="space-y-6 lg:col-span-2">{side}</div>}
             </section>
-          )}
-          {showPreview && <MatchPreview data={data} match={m} />}
-          {h2h && !isForfeit && (m.played || h2h.matches.some((x) => x.id !== m.id)) && (
-            <div className="card p-5">
-              <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"} across ${h2h.seasons.join(", ")}`}>Head to head</SectionTitle>
-              <dl className="grid grid-cols-3 gap-2 text-center">
-                {([["Won", h2h.won, "text-mint-soft"], ["Drawn", h2h.drawn, "text-draw-soft"], ["Lost", h2h.lost, "text-loss-soft"]] as [string, number, string][]).map(([k, v, c]) => <div key={k} className="flex flex-col-reverse"><dt className="eyebrow">{k}</dt><dd className={clsx("display text-3xl", c)}>{v}</dd></div>)}
-              </dl>
-              <p className="mt-2 text-center text-xs text-ash">Goals {h2h.gf}–{h2h.ga}</p>
-              {h2h.matches.filter((x) => x.id !== m.id).length > 0 && (
-                <ul className="mt-4 space-y-1.5 text-sm">
-                  {[...h2h.matches].filter((x) => x.id !== m.id).reverse().map((x) => <li key={x.id} className="flex items-center gap-2"><ResultPill result={x.result} size="sm" /><Link href={`/matches/${x.id}`} className="link">{scoreline(x)}</Link><span className="ml-auto text-xs text-ash">{x.seasonId} · {fmtDate(x.date)}</span></li>)}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
+          );
+        }
+        // Still to play: the team sheet (or the shrug) and the history on the left, the forecast with room to breathe on the right.
+        return (
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
+            <div className="space-y-6 lg:col-span-2">{squadCard ?? lineupCard}{h2hCard}</div>
+            <div className="lg:col-span-3"><MatchPreview data={data} match={m} /></div>
+          </section>
+        );
+      })()}
 
       <nav className="grid grid-cols-2 gap-3" aria-label="Adjacent matches">
         {prev ? <Link href={`/matches/${prev.id}`} className="focus-ring card flex min-w-0 items-center gap-2 p-3 transition-colors hover:border-white/20 sm:gap-3 sm:p-4"><ChevronLeft className="shrink-0" aria-hidden /><span className="min-w-0"><span className="eyebrow block">Previous</span><span className="block truncate text-sm text-cream"><span className="hidden sm:inline">{scoreline(prev)} vs </span>{prev.opponent}</span><span className="block text-xs text-ash">{fmtDate(prev.date)}</span></span></Link> : <span />}

@@ -153,13 +153,13 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         </div>
       </section>
 
-      {(hatTricks.length > 0 || motms.length > 0 || (money && (money.totalCharged > 0 || money.paid > 0))) && (
-        <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      {(() => { const n = (hatTricks.length > 0 ? 1 : 0) + (motms.length > 0 ? 1 : 0) + (money && (money.totalCharged > 0 || money.paid > 0) ? 1 : 0); return n > 0 && (
+        <section className={clsx("grid grid-cols-1 gap-6", n >= 2 && "md:grid-cols-2", n >= 3 && "lg:grid-cols-3")}>
           {hatTricks.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Sparkles size={20} className="text-gold" aria-hidden />Hat-tricks</span></SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
           {motms.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Medal size={20} className="text-gold" aria-hidden />Man of the match</span></SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
           {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-5"><SectionTitle sub="Season 8 onwards">Tab</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Charged</dt><dd className="display text-2xl text-cream">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Paid</dt><dd className="display text-2xl text-mint-soft">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className={clsx("display text-2xl", money.balance > 0.01 ? "text-loss-soft" : "text-mint-soft")}>{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-ash">{money.balance > 0.01 ? <>The treasurer has been informed. <Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Paid? Log it →</Link></> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch hire. The others owe ${first}.` : "Fully paid up. A model citizen."} <Link href="/money" className="link">Money →</Link></p></div>}
         </section>
-      )}
+      ); })()}
 
       <section className="card overflow-hidden">
         <div className="p-5 pb-3"><SectionTitle sub={`${log.length} game${log.length === 1 ? "" : "s"} on record, newest first`}>Match log</SectionTitle></div>

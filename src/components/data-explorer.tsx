@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Copy, Download, ExternalLink } from "lucide-react";
 import clsx from "clsx";
 import { Select } from "./controls";
+import { btn } from "./button";
 
 type Preview = { table: string; columns: string[]; rows: Record<string, string | number | boolean | null>[] };
 
@@ -41,8 +42,8 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
         <p className="flex-1 text-xs text-ash sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-white/10 bg-white/[0.02] p-3 text-sm">
-        <a href={url("csv")} download className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-transparent bg-mint px-3 py-1.5 font-semibold text-night hover:bg-mint-soft"><Download size={15} aria-hidden />CSV</a>
-        <a href={url("json")} target="_blank" rel="noopener" className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-cream hover:bg-white/10"><ExternalLink size={15} aria-hidden />JSON</a>
+        <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />CSV</a>
+        <a href={url("json")} target="_blank" rel="noopener" className={btn("secondary", "xs", "font-medium")}><ExternalLink size={15} aria-hidden />JSON</a>
         <Btn onClick={() => copy("md", async () => (await fetch(url("md"))).text())} done={copied === "md"}>Copy Markdown</Btn>
         <Btn onClick={() => copy("sheets", `=IMPORTDATA("${absolute("csv")}")`)} done={copied === "sheets"}>Copy Google Sheets formula</Btn>
         <Btn onClick={() => copy("curl", `curl -s '${absolute("json")}' | jq .rows`)} done={copied === "curl"}>Copy curl</Btn>
@@ -68,5 +69,5 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
 }
 
 function Btn({ onClick, done, children }: { onClick: () => void; done: boolean; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-cream hover:bg-white/10">{done ? <Check size={15} className="text-mint-soft" aria-hidden /> : <Copy size={15} aria-hidden />}{done ? "Copied" : children}</button>;
+  return <button type="button" onClick={onClick} className={btn("secondary", "xs", "font-medium")}>{done ? <Check size={15} className="text-mint-soft" aria-hidden /> : <Copy size={15} aria-hidden />}{done ? "Copied" : children}</button>;
 }

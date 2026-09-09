@@ -3,6 +3,7 @@ import { useActionState, useState, useTransition } from "react";
 import { ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { addMemberAction, removeMemberAction, setAdminAction, type ActionState } from "@/app/actions/admin";
 import { inputClass, Select } from "./controls";
+import { btn } from "./button";
 
 export type MemberRow = { email: string; player: string; admin: boolean };
 
@@ -30,7 +31,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
                 </li>
               ))}
             </ul>
-            <button type="button" disabled={busy} onClick={() => toggleAdmin(p, !rows.some((r) => r.admin))} className="focus-ring shrink-0 rounded-md px-2 py-1 text-xs text-ash hover:text-cream">{rows.some((r) => r.admin) ? "Remove admin" : "Make admin"}</button>
+            <button type="button" disabled={busy} onClick={() => toggleAdmin(p, !rows.some((r) => r.admin))} className={btn("ghost", "xs", "text-xs font-medium")}>{rows.some((r) => r.admin) ? "Remove admin" : "Make admin"}</button>
           </li>
         ))}
       </ul>
@@ -40,7 +41,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
         <Select label="Signs in as" value={player} onChange={setPlayer} options={roster.map((r) => ({ value: r, label: r }))} />
         <input type="hidden" name="player" value={player} />
         <label className="flex h-[2.375rem] items-center gap-2 text-xs text-ash"><input type="checkbox" name="admin" className="accent-mint" />Admin</label>
-        <button type="submit" disabled={pending} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-2 rounded-lg bg-mint px-4 text-sm font-semibold text-night hover:bg-mint-soft disabled:opacity-50"><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
+        <button type="submit" disabled={pending} className={btn("primary")}><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
       </form>
       {state && <p role="status" className={`text-sm ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.message}</p>}
     </div>

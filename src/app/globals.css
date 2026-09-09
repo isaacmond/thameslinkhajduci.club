@@ -139,7 +139,10 @@ table.stats th:first-child { z-index: 2; }
 select.control { appearance: none; -webkit-appearance: none; background-image: none; padding-right: 2rem; }
 
 /* bigger hit areas for dense table links and sort buttons without changing the visual */
-table.stats td a { display: inline-block; padding: 0.3rem 0; margin: -0.3rem 0; }
+table.stats td a { padding: 0.3rem 0; margin: -0.3rem 0; }
+table.stats td a:not(.inline-flex) { display: inline-block; }
+/* a link carrying an avatar has no text baseline of its own when the avatar is a photo; centre it so every row is one height */
+table.stats td a.inline-flex { vertical-align: middle; }
 table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
 
 /* dense tables on phones: tighter horizontal padding so the key columns fit */

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { btn } from "./button";
 
 export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; applied?: boolean; appliedBy?: string | null; queued?: boolean; applyError?: string | null; summary?: string; text?: string };
 
@@ -16,9 +17,9 @@ export function SubmissionResult({ result, onEdit, children }: { result: SubmitR
       {children}
       <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
       <div className="mt-4 flex flex-wrap gap-2">
-        <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className="focus-ring inline-flex items-center gap-2 rounded-lg border border-transparent bg-mint px-4 py-2.5 font-semibold text-night hover:bg-mint-soft">Send to the group chat</a>
-        <button type="button" onClick={copy} className="focus-ring inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2.5 font-semibold text-cream hover:bg-white/10">{copied ? <Check size={16} className="text-mint" aria-hidden /> : <Copy size={16} aria-hidden />}{copied ? "Copied" : "Copy"}</button>
-        <button type="button" onClick={onEdit} className="focus-ring inline-flex items-center rounded-lg border border-transparent px-4 py-2.5 text-ash hover:text-cream">Edit</button>
+        <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className={btn("primary")}>Send to the group chat</a>
+        <button type="button" onClick={copy} className={btn("secondary")}>{copied ? <Check size={16} className="text-mint" aria-hidden /> : <Copy size={16} aria-hidden />}{copied ? "Copied" : "Copy"}</button>
+        <button type="button" onClick={onEdit} className={btn("ghost")}>Edit</button>
       </div>
     </div>
   );
