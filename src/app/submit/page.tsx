@@ -67,7 +67,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
       label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} vs ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
       lineup: m.lineup.filter((l) => l.played).map((l) => l.player),
       expected: expected.get(m.id) ?? [],
-      type: m.type, matchCost: m.matchCost,
+      type: m.type, matchCost: m.matchCost, kickOff: m.kickOff,
       scorers: Object.fromEntries(m.lineup.filter((l) => l.goals > 0).map((l) => [l.player, l.goals])),
       assists: Object.fromEntries(m.lineup.filter((l) => l.assists > 0).map((l) => [l.player, l.assists])),
       motm: m.motm,

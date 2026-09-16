@@ -9,12 +9,13 @@ import { BoardPreview } from "./board-preview";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { serviceStatus } from "@/lib/captions";
+import { PollButton } from "./poll-button";
 
 /**
  * `lineup` is who the records say played; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
  * For a fixture typed Forfeit the line-up is the players charged for the pitch, and `matchCost` is what they split.
  */
-export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; expected: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null; type: string | null; matchCost: number };
+export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; expected: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null; type: string | null; matchCost: number; kickOff: string | null };
 
 /** The recorded line-up when there is one, otherwise the team sheet: the best guess at who played. */
 const startingLineup = (f: SubmitFixture | undefined) => (f ? (f.lineup.length ? f.lineup : f.expected) : []);
@@ -91,8 +92,10 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
   const verb = signedIn?.direct ? "Record" : webhook ? "Submit" : "Prepare";
 
   if (result?.ok) {
+    // The game is in; the next job is finding out who is free for the one after it.
+    const nextUp = fx ? fixtures.filter((f) => !f.played && !isForfeit(f) && f.id !== fx.id && (f.date ?? "9999") >= (fx.date ?? "")).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"))[0] : undefined;
     return (
-      <SubmissionResult result={result} onEdit={() => setResult(null)}>
+      <SubmissionResult result={result} onEdit={() => setResult(null)} extra={nextUp && <PollButton fixture={nextUp} label={`Poll for ${nextUp.seasonId === "FR" ? "the friendly" : `GW${nextUp.gw}`} v ${nextUp.opponent}`} className="h-[2.375rem] px-4 text-sm" />}>
         {fx && (() => { const st = forfeit ? { word: "No show", tone: "bad" as const } : serviceStatus(ours > theirs ? "W" : ours === theirs ? "D" : "L"); return (
           <BoardPreview className="mt-4" time={boardDate(fx.date)} label={fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} destination={forfeit ? `Forfeit v ${fx.opponent}` : `Hajduci ${ours}–${theirs} ${fx.opponent}`} status={st.word} tone={st.tone} caption={result.applied ? "Recorded" : "Pending the admin's tick"} />
         ); })()}

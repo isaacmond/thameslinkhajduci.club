@@ -6,7 +6,8 @@ import { btn } from "./button";
 export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; applied?: boolean; appliedBy?: string | null; queued?: boolean; applyError?: string | null; summary?: string; text?: string };
 
 /** The "it's gone to the admin" card every submit form ends on: summary, optional preview, the message itself and ways to pass it on. */
-export function SubmissionResult({ result, onEdit, children }: { result: SubmitResult; onEdit: () => void; children?: React.ReactNode }) {
+/** `extra`: one more action for the button row, such as the poll for the next game. */
+export function SubmissionResult({ result, onEdit, children, extra }: { result: SubmitResult; onEdit: () => void; children?: React.ReactNode; extra?: React.ReactNode }) {
   const [copied, setCopied] = useState(false);
   const copy = async () => { if (!result.text) return; try { await navigator.clipboard.writeText(result.text); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* clipboard blocked */ } };
   return (
@@ -20,6 +21,7 @@ export function SubmissionResult({ result, onEdit, children }: { result: SubmitR
         <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className={btn("primary")}>Send to the group chat</a>
         <button type="button" onClick={copy} className={btn("secondary")}>{copied ? <Check size={16} className="text-mint" aria-hidden /> : <Copy size={16} aria-hidden />}{copied ? "Copied" : "Copy"}</button>
         <button type="button" onClick={onEdit} className={btn("ghost")}>Edit</button>
+        {extra}
       </div>
     </div>
   );

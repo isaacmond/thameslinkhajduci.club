@@ -14,6 +14,7 @@ import { Countdown } from "@/components/board";
 import { sponsorFor } from "@/components/footer";
 import { ShareButton } from "@/components/share-button";
 import { MatchPreview } from "@/components/match-preview";
+import { PollButton } from "@/components/poll-button";
 import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
@@ -54,7 +55,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const verdict = isForfeit && m.played ? `Forfeited. The league awarded it ${m.ourGoals}–${m.theirGoals} and nobody got to kick anything.` : matchVerdict(m, scorers[0]?.goals ?? 0, scorers[0]?.player ?? null, firstWin);
   const sponsor = sponsorFor(m.id);
   // A forecast only makes sense before kick-off: an old fixture that never got a score would otherwise be "predicted" from games played after it.
-  const showPreview = !m.played && !isForfeit && (!m.date || m.date >= londonToday());
+  const today = londonToday();
+  const showPreview = !m.played && !isForfeit && (!m.date || m.date >= today);
+  // The who's-in poll: for this game while it is still ahead, otherwise for the next one still to be played in the same competition.
+  const upcoming = (x: typeof m) => !x.played && !/forfeit|cancel/i.test(x.type ?? "") && (!x.date || x.date >= today);
+  const pollFor = upcoming(m) ? m : chronological(season.matches).find((x) => upcoming(x) && (x.date ?? "9999") >= (m.date ?? "")) ?? null;
   const squad = showPreview && dbConfigured() ? await getSquad(m.id).catch(() => null) : null;
   const shareText = m.played ? `Thameslink Hajduci ${m.ourGoals}–${m.theirGoals} ${opponentLabel} · ${status.word}${m.motm ? ` · MOTM ${m.motm}` : ""}` : `Thameslink Hajduci vs ${m.opponent} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} ${m.kickOff ?? ""}`;
 
@@ -86,10 +91,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {m.motm && <span className="chip border-gold/40 bg-gold/10 text-gold"><Star size={12} aria-hidden />MOTM <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></span>}
             {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci {isForfeit ? "paying for it" : "on the pitch"}</Tag>}
-            {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)} · {fmtMoney(m.costPerPlayer)} each</Tag>}
+            {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
             <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
             <Link href={`/submit?match=${m.id}`} className="focus-ring chip gap-1.5 border-mint/40 bg-mint/10 text-mint-soft transition-colors hover:bg-mint/20">{isForfeit && m.played ? "Amend the forfeit" : m.played ? "Correct this score" : "Submit the score"}</Link>
+            {pollFor && <PollButton fixture={pollFor} label={pollFor.id === m.id ? "Poll the group chat" : `Poll for ${gwLabel(pollFor)} v ${pollFor.opponent}`} />}
           </div>
         </div>
       </section>

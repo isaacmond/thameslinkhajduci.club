@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ScoreForm, type SubmitFixture } from "@/components/score-form";
 
-const fixture = (over: Partial<SubmitFixture>): SubmitFixture => ({ id: "s8-gw3", label: "Tue 15 Sept · GW3 vs TMHLR F.C.", seasonId: "S8", gw: 3, opponent: "TMHLR F.C.", date: "2026-09-15", played: false, ourGoals: null, theirGoals: null, lineup: [], expected: [], scorers: {}, assists: {}, motm: null, type: null, matchCost: 79.95, ...over });
+const fixture = (over: Partial<SubmitFixture>): SubmitFixture => ({ id: "s8-gw3", label: "Tue 15 Sept · GW3 vs TMHLR F.C.", seasonId: "S8", gw: 3, opponent: "TMHLR F.C.", date: "2026-09-15", played: false, ourGoals: null, theirGoals: null, lineup: [], expected: [], scorers: {}, assists: {}, motm: null, type: null, matchCost: 79.95, kickOff: "18:15", ...over });
 const roster = ["Ben Merrett", "Finn Cawley", "Isaac Mond", "Phil Knott"];
 const pressed = (html: string) => [...html.matchAll(/aria-pressed="true"[^>]*>.*?<span class="truncate">([^<]+)</g)].map((m) => m[1]);
 
