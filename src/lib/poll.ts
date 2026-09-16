@@ -1,6 +1,6 @@
 /**
  * The weekly "who's in?" poll for the group chat, drafted the way it is always written:
- * "Thameslink Hajduci v TMHLR F.C. 18:15, 15th September", options In and Out.
+ * "Thameslink Hajduci v TMHLR F.C. - 18:15, 15th September", options In and Out.
  * WhatsApp has no link or API that creates a poll, so the site copies the question and shows the layout to paste it into.
  * Pure: no dates from the clock, no I/O; the fixture's own yyyy-mm-dd and hh:mm are all it reads.
  */
@@ -23,7 +23,7 @@ export function pollDay(iso: string | null): string | null {
 /** The poll question. Time and date are left out when the fixture does not have them yet. */
 export function pollQuestion(f: PollFixture): string {
   const when = [f.kickOff, pollDay(f.date)].filter(Boolean).join(", ");
-  return `Thameslink Hajduci v ${f.opponent}${when ? ` ${when}` : ""}`;
+  return `Thameslink Hajduci v ${f.opponent}${when ? ` - ${when}` : ""}`;
 }
 /** A plain message for chats where a poll is not wanted: the question and the two answers on their own lines. */
 export function pollMessage(f: PollFixture): string {

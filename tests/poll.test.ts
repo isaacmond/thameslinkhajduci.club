@@ -3,10 +3,10 @@ import { ordinal, pollDay, pollMessage, pollQuestion } from "@/lib/poll";
 
 describe("the who's-in poll", () => {
   it("writes the question the way the group chat always sees it", () => {
-    expect(pollQuestion({ opponent: "TMHLR F.C.", date: "2026-09-15", kickOff: "18:15" })).toBe("Thameslink Hajduci v TMHLR F.C. 18:15, 15th September");
+    expect(pollQuestion({ opponent: "TMHLR F.C.", date: "2026-09-15", kickOff: "18:15" })).toBe("Thameslink Hajduci v TMHLR F.C. - 18:15, 15th September");
   });
   it("leaves out what the fixture does not have yet", () => {
-    expect(pollQuestion({ opponent: "Heavy MWEtal Football", date: "2026-09-22", kickOff: null })).toBe("Thameslink Hajduci v Heavy MWEtal Football 22nd September");
+    expect(pollQuestion({ opponent: "Heavy MWEtal Football", date: "2026-09-22", kickOff: null })).toBe("Thameslink Hajduci v Heavy MWEtal Football - 22nd September");
     expect(pollQuestion({ opponent: "TBC", date: null, kickOff: null })).toBe("Thameslink Hajduci v TBC");
   });
   it("gets the ordinals right, including the teens", () => {
@@ -15,6 +15,6 @@ describe("the who's-in poll", () => {
     expect(pollDay("nonsense")).toBeNull();
   });
   it("has a plain-message fallback with the two answers", () => {
-    expect(pollMessage({ opponent: "Inter Islington", date: "2026-11-10", kickOff: "20:15" })).toBe("Thameslink Hajduci v Inter Islington 20:15, 10th November\nIn or Out?");
+    expect(pollMessage({ opponent: "Inter Islington", date: "2026-11-10", kickOff: "20:15" })).toBe("Thameslink Hajduci v Inter Islington - 20:15, 10th November\nIn or Out?");
   });
 });
