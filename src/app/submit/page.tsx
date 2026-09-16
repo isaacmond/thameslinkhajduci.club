@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 
 type Params = Promise<{ match?: string; type?: string; player?: string }>;
 const COPY: Record<SubmitKind, { eyebrow: string; title: string; sub: string; description: string }> = {
-  score: { eyebrow: "Match report", title: "Submit a score", sub: "Just played? Put the result, scorers and line-up in here. It goes to the admin for approval and shows up on the site once it's checked, so nobody can slip a 14–0 past us.", description: "Report a result, scorers and line-up for approval by the club admin." },
+  score: { eyebrow: "Match report", title: "Submit a score", sub: "Just played? Put the result, scorers and line-up in here. It goes to the admin for approval and shows up on the site once it's checked, so nobody can slip a 14–0 past us. Didn't play at all? Flip it to a forfeit and say who's paying for the pitch.", description: "Report a result, scorers and line-up (or a forfeit and who pays) for approval by the club admin." },
   payment: { eyebrow: "Settle up", title: "Log a payment", sub: "Paid your share of the pitch? Say who, how much and when. The admin checks it against the bank and ticks it off; the Money page updates once it's done.", description: "Tell the admin you have paid your share of pitch hire." },
   player: { eyebrow: "New signing", title: "Add a player", sub: "Someone new pulled on the shirt? Put their details in and the admin adds them to the roster, so they can be picked in match reports and start racking up numbers.", description: "Propose a new player for the Thameslink Hajduci roster." },
 };
@@ -67,6 +67,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
       label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} vs ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
       lineup: m.lineup.filter((l) => l.played).map((l) => l.player),
       expected: expected.get(m.id) ?? [],
+      type: m.type, matchCost: m.matchCost,
       scorers: Object.fromEntries(m.lineup.filter((l) => l.goals > 0).map((l) => [l.player, l.goals])),
       assists: Object.fromEntries(m.lineup.filter((l) => l.assists > 0).map((l) => [l.player, l.assists])),
       motm: m.motm,

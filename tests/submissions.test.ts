@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, rosterName, validatePayment, validatePlayer, validateScore } from "@/lib/submissions";
+import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, forfeitBill, rosterName, validatePayment, validatePlayer, validateScore } from "@/lib/submissions";
 
 const roster = ["Phil Knott", "Seb Burgess", "Isaac Mond"];
 const today = "2026-09-04";
@@ -86,6 +86,27 @@ describe("scores", () => {
   it("marks a correction when the fixture already has a score", () => {
     const r = validateScore({ ours: 0, theirs: 2, submittedBy: "Phil" }, known);
     expect(r.ok && buildScoreMessage(r.value, { ...fixture, played: true }, "Tue").text.startsWith("SCORE (correction)")).toBe(true);
+  });
+  it("a forfeit drops scorers, assists and MOTM, keeps the payers, and bills them in the message", () => {
+    const r = validateScore({ ours: 0, theirs: 8, forfeit: true, scorers: { "Seb Burgess": 9 }, assists: { "Phil Knott": 3 }, played: ["Isaac Mond", "Phil Knott"], motm: "Seb Burgess", submittedBy: "Isaac", note: "Turned up at 8.10" }, known);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value).toMatchObject({ forfeit: true, scorers: {}, assists: {}, motm: null, played: ["Isaac Mond", "Phil Knott"] });
+    const m = buildScoreMessage(r.value, { ...fixture, matchCost: 79.95 }, "Tue 15 Sept");
+    expect(m.summary).toBe("Forfeit v Inter Islington · S8 GW2 · Tue 15 Sept");
+    expect(m.subject).toBe("Forfeit: Forfeit v Inter Islington · S8 GW2 · Tue 15 Sept");
+    expect(m.text.split("\n")).toEqual(["FORFEIT", m.summary, "Awarded 0–8. Does not count for records.", "Paying for it: Isaac Mond, Phil Knott · £39.98 each of £79.95", "Note: Turned up at 8.10", "Submitted by Isaac"]);
+    expect(m.change).toEqual({ matchId: "s8-gw2", ours: 0, theirs: 8, scorers: {}, assists: {}, played: ["Isaac Mond", "Phil Knott"], motm: null, comment: "Turned up at 8.10", forfeit: true });
+  });
+  it("a forfeit with nobody ticked says so", () => {
+    const r = validateScore({ ours: 0, theirs: 8, forfeit: true, submittedBy: "Isaac" }, known);
+    expect(r.ok && buildScoreMessage(r.value, { ...fixture, matchCost: 79.95 }, "Tue").text).toContain("Nobody is charged for the pitch.");
+    expect(forfeitBill(["Isaac Mond"], undefined)).toBe("Paying for it: Isaac Mond");
+  });
+  it("without the flag a score is a score, and the change carries no forfeit", () => {
+    const r = validateScore({ ours: 1, theirs: 1, forfeit: "yes", submittedBy: "Phil" }, known);
+    expect(r.ok && r.value.forfeit).toBe(false);
+    expect(r.ok && "forfeit" in buildScoreMessage(r.value, fixture, "Tue").change).toBe(false);
   });
 });
 

@@ -28,7 +28,7 @@ export const SEVERITY_LABEL: Record<Severity, string> = { high: "Needs fixing", 
 
 const tabName = (seasonId: string) => (seasonId === "FR" ? "Friendlies" : seasonId);
 const where = (m: Match) => `${tabName(m.seasonId)} ${gwLabel(m)} v ${m.opponent}, ${fmtDate(m.date)}`;
-/** A real game with a line-up: league fixtures and friendlies. Forfeits/walkovers have no line-up by design. */
+/** A real game with a line-up: league fixtures and friendlies. A forfeit's line-up, when it has one, is who pays for the pitch, not who played. */
 const isGame = (m: Match) => !m.type || /^friendly$/i.test(m.type);
 
 export function sheetHealth(data: ClubData, today: string = londonToday()): HealthReport {

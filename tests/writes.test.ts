@@ -42,6 +42,32 @@ describe("recording results", () => {
     const after = (await loadClubData(db)).matches.find((x) => x.id === m.id)!;
     expect(after.result).toBe("L"); expect(after.lineup.length).toBe(2); expect(after.motm).toBeNull();
   });
+  it("a forfeit types the fixture, bills only the players named, counts for nobody, and a real score later lifts it", async () => {
+    const before = await loadClubData(db);
+    const fixture = before.seasons.find((s) => s.id === "S8")!.matches.find((m) => !m.played && m.matchCost > 0)!;
+    const apps = (d: typeof before, n: string) => d.players.find((p) => p.name === n)?.apps ?? 0;
+    const owed = (d: typeof before, n: string) => d.money.rows.find((r) => r.player === n)?.charges.S8 ?? 0;
+    const payer = before.money.paidBy.S8;
+    const covered = before.money.rows.find((r) => r.player === payer)!.pitchCovered;
+    await recordScore({ matchId: fixture.id, ours: 0, theirs: 8, scorers: { "Phil Knott": 1 }, assists: {}, played: ["Phil Knott", "Isaac Mond"], motm: "Phil Knott", comment: "Late", forfeit: true }, "test", db);
+    const after = await loadClubData(db);
+    const m = after.matches.find((x) => x.id === fixture.id)!;
+    expect(m.type).toBe("Forfeit"); expect(m.countsForRecords).toBe(false); expect(m.played).toBe(true); expect(m.motm).toBeNull();
+    expect(m.lineup.map((l) => l.player).sort()).toEqual(["Isaac Mond", "Phil Knott"]);
+    expect(m.lineup.every((l) => l.goals === 0 && l.played)).toBe(true);
+    expect(m.playersInGame).toBe(2); expect(m.costPerPlayer).toBeCloseTo(fixture.matchCost / 2, 6);
+    // the bill lands on the two named and nobody else; apps do not move; the pitch payer is credited the game
+    expect(owed(after, "Phil Knott") - owed(before, "Phil Knott")).toBeCloseTo(fixture.matchCost / 2, 6);
+    expect(owed(after, "Isaac Mond") - owed(before, "Isaac Mond")).toBeCloseTo(fixture.matchCost / 2, 6);
+    expect(owed(after, "Seb Burgess")).toBeCloseTo(owed(before, "Seb Burgess"), 6);
+    expect(apps(after, "Phil Knott")).toBe(apps(before, "Phil Knott"));
+    expect(after.seasons.find((s) => s.id === "S8")!.summary.played).toBe(before.seasons.find((s) => s.id === "S8")!.summary.played);
+    expect(after.money.rows.find((r) => r.player === payer)!.pitchCovered - covered).toBeCloseTo(fixture.matchCost, 6);
+    // it turns out the game was played after all: a normal score clears the forfeit
+    await recordScore({ matchId: fixture.id, ours: 2, theirs: 2, scorers: {}, assists: {}, played: ["Seb Burgess", "Isaac Mond"], motm: null, comment: null }, "test", db);
+    const lifted = (await loadClubData(db)).matches.find((x) => x.id === fixture.id)!;
+    expect(lifted.type).toBeNull(); expect(lifted.countsForRecords).toBe(true); expect(lifted.result).toBe("D");
+  });
 });
 
 describe("payments, players, profiles", () => {

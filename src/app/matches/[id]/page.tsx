@@ -51,7 +51,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const status = serviceStatus(m.played ? m.result : null);
   const seasonCounted = chronological(playedMatches(season.matches));
   const firstWin = m.result === "W" && !seasonCounted.some((x) => x.result === "W" && (x.date ?? "") < (m.date ?? "") && x.id !== m.id);
-  const verdict = matchVerdict(m, scorers[0]?.goals ?? 0, scorers[0]?.player ?? null, firstWin);
+  const verdict = isForfeit && m.played ? `Forfeited. The league awarded it ${m.ourGoals}–${m.theirGoals} and nobody got to kick anything.` : matchVerdict(m, scorers[0]?.goals ?? 0, scorers[0]?.player ?? null, firstWin);
   const sponsor = sponsorFor(m.id);
   // A forecast only makes sense before kick-off: an old fixture that never got a score would otherwise be "predicted" from games played after it.
   const showPreview = !m.played && !isForfeit && (!m.date || m.date >= londonToday());
@@ -85,11 +85,11 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <p className="mt-6 text-center text-lg italic text-cream/90 sm:text-xl">{m.comment ? <>“{m.comment}”</> : verdict}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {m.motm && <span className="chip border-gold/40 bg-gold/10 text-gold"><Star size={12} aria-hidden />MOTM <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></span>}
-            {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci on the pitch</Tag>}
+            {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci {isForfeit ? "paying for it" : "on the pitch"}</Tag>}
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)} · {fmtMoney(m.costPerPlayer)} each</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
             <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
-            <Link href={`/submit?match=${m.id}`} className="focus-ring chip gap-1.5 border-mint/40 bg-mint/10 text-mint-soft transition-colors hover:bg-mint/20">{m.played ? "Correct this score" : "Submit the score"}</Link>
+            <Link href={`/submit?match=${m.id}`} className="focus-ring chip gap-1.5 border-mint/40 bg-mint/10 text-mint-soft transition-colors hover:bg-mint/20">{isForfeit && m.played ? "Amend the forfeit" : m.played ? "Correct this score" : "Submit the score"}</Link>
           </div>
         </div>
       </section>
@@ -98,7 +98,14 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         const showH2h = Boolean(h2h && !isForfeit && (m.played || h2h.matches.some((x) => x.id !== m.id)));
         // No team sheet yet: the season's regulars are the best guess at who will turn up.
         const usual = !m.played && season.id !== "FR" ? leaderboard(seasonPlayers(data, season.id), "apps").slice(0, 8) : [];
-        const lineupCard = (
+        // A forfeit's line-up is the bill: who was responsible, and what the pitch cost each of them.
+        const lineupCard = isForfeit && m.played ? (
+          <div className="card p-5">
+            <SectionTitle sub={lineup.length ? `${lineup.length} responsible, ${fmtMoney(m.costPerPlayer)} each of the ${fmtMoney(m.matchCost)} pitch. Everyone else pays nothing for this one.` : "Nobody was charged for the pitch on this one."}>Paying for it</SectionTitle>
+            {lineup.length > 0 && <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">{lineup.map((l) => <li key={l.player} className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-gold/20 bg-gold/[0.05] px-3 py-1.5"><PlayerLink name={l.player} player={byName.get(l.player)} avatar className="min-w-0 truncate text-sm" /><span className="tabular shrink-0 text-xs text-gold">{fmtMoney(l.cost)}</span></li>)}</ul>}
+            <p className="mt-4 text-xs text-ash">Wrong people? <Link href={`/submit?match=${m.id}`} className="link">Amend the forfeit →</Link></p>
+          </div>
+        ) : (
           <div className="card overflow-hidden">
             <div className={clsx("p-5", (lineup.length || usual.length) ? "pb-2" : "")}><SectionTitle sub={m.played ? (lineup.length ? "Who turned up, and what they did about it" : "No appearance marks recorded for this one") : "Squad TBC. As is our attendance."}>Line-up</SectionTitle></div>
             {!m.played && usual.length > 0 && (
@@ -138,7 +145,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </section>
         ) : null;
         const h2hCard = showH2h && h2h ? (
-          <div className="card p-5">
+          <div key="h2h" className="card p-5">
             <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"} across ${h2h.seasons.join(", ")}`}>Head to head</SectionTitle>
             <dl className="grid grid-cols-3 gap-2 text-center">
               {([["Won", h2h.won, "text-mint-soft"], ["Drawn", h2h.drawn, "text-draw-soft"], ["Lost", h2h.lost, "text-loss-soft"]] as [string, number, string][]).map(([k, v, c]) => <div key={k} className="flex flex-col-reverse"><dt className="eyebrow mt-1">{k}</dt><dd className={clsx("display text-3xl leading-none", c)}>{v}</dd></div>)}
@@ -156,8 +163,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <div key="summary" className="card p-5">
               <SectionTitle>Summary</SectionTitle>
               <dl className="space-y-3 text-sm">
+                {isForfeit ? <div><dt className="eyebrow">Forfeit</dt><dd className="mt-1 text-cream">Awarded {m.ourGoals}–{m.theirGoals}. Not counted for records, but the pitch was still paid for.</dd></div> : (
                 <div><dt className="eyebrow">Scorers</dt><dd className="mt-1 text-cream">{scorers.length ? scorers.map((s) => `${s.player}${s.goals > 1 ? ` ×${s.goals}` : ""}`).join(", ") : (m.ourGoals ?? 0) > 0 ? "Goals recorded, scorers lost to history" : "Nobody. Not one."}</dd></div>
-                <div><dt className="eyebrow">Assists</dt><dd className="mt-1 text-cream">{assisters.length ? assisters.map((s) => `${s.player}${s.assists > 1 ? ` ×${s.assists}` : ""}`).join(", ") : "None claimed, remarkably"}</dd></div>
+                )}
+                {!isForfeit && <div><dt className="eyebrow">Assists</dt><dd className="mt-1 text-cream">{assisters.length ? assisters.map((s) => `${s.player}${s.assists > 1 ? ` ×${s.assists}` : ""}`).join(", ") : "None claimed, remarkably"}</dd></div>}
                 <div><dt className="eyebrow">Verdict</dt><dd className="mt-1 text-cream">{verdict}</dd></div>
                 {!m.scorersRecorded && (m.ourGoals ?? 0) > 0 && <div><dt className="eyebrow">Note</dt><dd className="mt-1 text-ash">Scorers weren&apos;t logged, so this game doesn&apos;t count towards anyone&apos;s goals-per-game.</dd></div>}
               </dl>

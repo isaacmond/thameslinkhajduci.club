@@ -6,7 +6,8 @@ import { slugify } from "./slug";
  * Every change the site makes to the records, in one place. Callers (server actions, the submit route) check who is
  * allowed to do what; these functions just do it and stamp who did it. Reads for pages go through db-data.ts.
  */
-export type ScoreChange = { matchId: string; ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; comment: string | null };
+/** `forfeit`: we did not play (turned up late, too few of us). The score is whatever the league awarded, `played` is who pays for the pitch, and the fixture is typed Forfeit so nothing counts. */
+export type ScoreChange = { matchId: string; ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; comment: string | null; forfeit?: boolean };
 export type PaymentChange = { player: string; to: string | null; amount: number; date: string; note: string };
 export type PlayerChange = { name: string; nickname: string; positions: string[]; shirt: number | null; photo: string; seasonId: string | null };
 export type ProfileChange = { nickname?: string; positions?: string[]; shirt?: number | null; photo?: string | null; bio?: string };
@@ -30,15 +31,22 @@ async function ensureOnRoster(db: Db, seasonId: string, names: string[], by: str
   }
 }
 
-/** A result: score, line-up, scorers, assists, MOTM. Replaces whatever was recorded for that fixture. */
+/**
+ * A result: score, line-up, scorers, assists, MOTM. Replaces whatever was recorded for that fixture.
+ * A forfeit has no scorers or MOTM; its "line-up" is the players charged for the pitch, and the fixture is typed Forfeit.
+ * A real score sent for a fixture typed Forfeit lifts the forfeit (the game was played after all); other types are left alone.
+ */
 export async function recordScore(c: ScoreChange, by: string, db: Db = getDb()) {
-  const [m] = await db.select({ id: schema.matches.id, seasonId: schema.matches.seasonId }).from(schema.matches).where(eq(schema.matches.id, c.matchId));
+  const [m] = await db.select({ id: schema.matches.id, seasonId: schema.matches.seasonId, type: schema.matches.type }).from(schema.matches).where(eq(schema.matches.id, c.matchId));
   if (!m) throw new Error(`No fixture ${c.matchId}`);
-  const names = [...new Set([...c.played, ...Object.keys(c.scorers), ...Object.keys(c.assists), ...(c.motm ? [c.motm] : [])])];
+  const forfeit = c.forfeit === true;
+  const scorers = forfeit ? {} : c.scorers, assists = forfeit ? {} : c.assists, motm = forfeit ? null : c.motm;
+  const names = [...new Set([...c.played, ...Object.keys(scorers), ...Object.keys(assists), ...(motm ? [motm] : [])])];
   await ensureOnRoster(db, m.seasonId, names, by);
-  const lines = names.map((player) => ({ matchId: c.matchId, player, played: c.played.includes(player) || (c.scorers[player] ?? 0) > 0, goals: c.scorers[player] ?? 0, assists: c.assists[player] ?? 0 })).filter((l) => l.played || l.goals || l.assists);
+  const lines = names.map((player) => ({ matchId: c.matchId, player, played: c.played.includes(player) || (scorers[player] ?? 0) > 0, goals: scorers[player] ?? 0, assists: assists[player] ?? 0 })).filter((l) => l.played || l.goals || l.assists);
+  const type = forfeit ? "Forfeit" : /^forfeit$/i.test(m.type ?? "") ? null : m.type;
   await atomic(db, [
-    db.update(schema.matches).set({ ourGoals: c.ours, theirGoals: c.theirs, motm: c.motm, comment: c.comment, updatedAt: new Date(), updatedBy: by }).where(eq(schema.matches.id, c.matchId)),
+    db.update(schema.matches).set({ ourGoals: c.ours, theirGoals: c.theirs, motm, comment: c.comment, type, updatedAt: new Date(), updatedBy: by }).where(eq(schema.matches.id, c.matchId)),
     db.delete(schema.appearances).where(eq(schema.appearances.matchId, c.matchId)),
     ...(lines.length ? [db.insert(schema.appearances).values(lines)] : []),
   ]);

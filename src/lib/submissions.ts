@@ -44,14 +44,16 @@ export function originAllowed(h: { get(name: string): string | null }): boolean 
 }
 
 /* -------------------------------------------------------------------- scores */
-export type ScoreValue = { ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; note: string; submittedBy: string };
+/** `forfeit`: we did not play. `played` is then the players charged for the pitch, and scorers, assists and MOTM are ignored. */
+export type ScoreValue = { ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; note: string; submittedBy: string; forfeit: boolean };
 export function validateScore(body: Record<string, unknown>, known: (name: string) => boolean): { ok: true; value: ScoreValue } | { ok: false; error: string } {
   const ours = body.ours, theirs = body.theirs;
   if (!isCount(ours) || !isCount(theirs)) return { ok: false, error: "Scores must be whole numbers between 0 and 30." };
+  const forfeit = body.forfeit === true;
   const asCounts = (v: unknown) => Object.fromEntries(Object.entries((v ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => isCount(e[1]) && e[1] > 0).map(([n, v]) => [clean(n, 40), v]));
-  const scorers = asCounts(body.scorers), assists = asCounts(body.assists);
+  const scorers = forfeit ? {} : asCounts(body.scorers), assists = forfeit ? {} : asCounts(body.assists);
   const played = [...new Set([...(Array.isArray(body.played) ? body.played : []).map((s) => clean(s, 40)), ...Object.keys(scorers), ...Object.keys(assists)])].filter(Boolean);
-  const motm = body.motm ? clean(body.motm, 40) : null;
+  const motm = body.motm && !forfeit ? clean(body.motm, 40) : null;
   const unknown = [...Object.keys(scorers), ...Object.keys(assists), ...played, ...(motm ? [motm] : [])].filter((n) => !known(n));
   if (unknown.length) return { ok: false, error: `Not on the roster: ${[...new Set(unknown)].join(", ")}. Add them under "New player" first.` };
   const goalsLogged = Object.values(scorers).reduce((t, v) => t + v, 0), assistsLogged = Object.values(assists).reduce((t, v) => t + v, 0);
@@ -60,11 +62,30 @@ export function validateScore(body: Record<string, unknown>, known: (name: strin
   if (played.length > 12) return { ok: false, error: "That is a lot of players for six-a-side." };
   const submittedBy = clean(body.submittedBy, 40);
   if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
-  return { ok: true, value: { ours, theirs, scorers, assists, played, motm, note: clean(body.note, 200), submittedBy } };
+  return { ok: true, value: { ours, theirs, scorers, assists, played, motm, note: clean(body.note, 200), submittedBy, forfeit } };
 }
-export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId" | "gw" | "opponent" | "date" | "played">, when: string): Built<ScoreChange> {
+/** Who pays for a forfeited pitch, and how much each: the line the message, the queue and the fixture page all use. */
+export function forfeitBill(payers: string[], matchCost: number | undefined): string {
+  if (!payers.length) return "Nobody is charged for the pitch.";
+  const cost = matchCost ?? 0;
+  return `Paying for it: ${payers.join(", ")}${cost > 0 ? ` · ${pounds(cost / payers.length)} each of ${pounds(cost)}` : ""}`;
+}
+export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId" | "gw" | "opponent" | "date" | "played"> & Partial<Pick<Match, "matchCost">>, when: string): Built<ScoreChange> {
   const list = (o: Record<string, number>) => Object.entries(o).map(([n, c]) => `${n}${c > 1 ? ` ×${c}` : ""}`).join(", ");
-  const summary = `Hajduci ${v.ours}–${v.theirs} ${m.opponent} · ${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} GW${m.gw}`} · ${when}`;
+  const fixture = `${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} GW${m.gw}`} · ${when}`;
+  if (v.forfeit) {
+    const summary = `Forfeit v ${m.opponent} · ${fixture}`;
+    const lines = [
+      `FORFEIT${m.played ? " (correction)" : ""}`,
+      summary,
+      `Awarded ${v.ours}–${v.theirs}. Does not count for records.`,
+      forfeitBill(v.played, m.matchCost),
+      v.note ? `Note: ${v.note}` : null,
+      `Submitted by ${v.submittedBy}`,
+    ].filter((l): l is string => l !== null);
+    return { kind: "score", subject: `Forfeit: ${summary}`, summary, text: lines.join("\n"), submittedBy: v.submittedBy, change: { matchId: m.id, ours: v.ours, theirs: v.theirs, scorers: {}, assists: {}, played: v.played, motm: null, comment: v.note || null, forfeit: true } };
+  }
+  const summary = `Hajduci ${v.ours}–${v.theirs} ${m.opponent} · ${fixture}`;
   const lines = [
     `SCORE${m.played ? " (correction)" : ""}`,
     summary,

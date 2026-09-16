@@ -7,6 +7,7 @@ import { authEnabled, knownMembers, resolveMember } from "@/lib/auth";
 import { dbConfigured } from "@/lib/db";
 import { getData } from "@/lib/data";
 import { listSquads, pendingSubmissions } from "@/lib/writes";
+import { forfeitBill } from "@/lib/submissions";
 import { fmtDate, gwLabel } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { PageHeader, SectionTitle } from "@/components/ui";
@@ -22,6 +23,7 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false, foll
 
 const detailLines = (kind: string, p: Record<string, unknown>): string[] => {
   const list = (o: unknown) => Object.entries((o ?? {}) as Record<string, number>).map(([n, c]) => `${n}${c > 1 ? ` ×${c}` : ""}`).join(", ");
+  if (kind === "score" && p.forfeit === true) return [`Forfeit, awarded ${p.ours}–${p.theirs}. ${forfeitBill(Array.isArray(p.played) ? (p.played as string[]) : [], undefined)}`, p.comment ? `Note: ${p.comment}` : ""].filter(Boolean);
   if (kind === "score") return [p.scorers && Object.keys(p.scorers as object).length ? `Scorers: ${list(p.scorers)}` : "", p.assists && Object.keys(p.assists as object).length ? `Assists: ${list(p.assists)}` : "", p.motm ? `MOTM: ${p.motm}` : "", Array.isArray(p.played) ? `Played: ${(p.played as string[]).join(", ")}` : "", p.comment ? `Note: ${p.comment}` : ""].filter(Boolean);
   if (kind === "payment") return [p.note ? `Reference: ${p.note}` : ""].filter(Boolean);
   return [p.nickname ? `Nickname: ${p.nickname}` : "", Array.isArray(p.positions) && (p.positions as string[]).length ? `Position: ${(p.positions as string[]).join("/")}` : "", p.photo ? `Photo: ${p.photo}` : ""].filter(Boolean);
