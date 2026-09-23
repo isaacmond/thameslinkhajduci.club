@@ -22,6 +22,13 @@
       "when": 1788537977297,
       "tag": "0002_venue_url",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790184587568,
+      "tag": "0003_motm_polls",
+      "breakpoints": true
     }
   ]
 }

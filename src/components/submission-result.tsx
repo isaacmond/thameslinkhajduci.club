@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Star } from "lucide-react";
 import { btn } from "./button";
 
-export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; applied?: boolean; appliedBy?: string | null; queued?: boolean; applyError?: string | null; summary?: string; text?: string };
+export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; applied?: boolean; appliedBy?: string | null; queued?: boolean; applyError?: string | null; summary?: string; text?: string; /** what happened to the man-of-the-match vote, for a recorded league result */ motm?: string | null };
 
 /** The "it's gone to the admin" card every submit form ends on: summary, optional preview, the message itself and ways to pass it on. */
 /** `extra`: one more action for the button row, such as the poll for the next game. */
@@ -15,6 +15,7 @@ export function SubmissionResult({ result, onEdit, children, extra }: { result: 
       <p className="eyebrow">{result.applied ? "Recorded" : result.queued ? "Sent for approval" : result.sent ? "Sent for approval" : "Ready to send"}</p>
       <h2 className="display mt-1 text-3xl leading-none text-cream">{result.summary}</h2>
       <p className="mt-2 text-sm text-ash">{result.applied ? `Written straight into the records${result.appliedBy ? ` as ${result.appliedBy}` : ""}. The site updates within a minute. Post it to the group chat so everyone knows.` : result.queued ? "It is in the admin's approval queue and they have been emailed. Nothing changes on the site until they approve it, which takes them one tap. You can still post it to the group chat so everyone knows." : result.applyError ? `${result.applyError} It has gone to the admin instead, who will apply it by hand.` : result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
+      {result.motm && <p className="mt-3 flex items-start gap-2 rounded-lg border border-gold/30 bg-gold/[0.06] px-3 py-2 text-sm text-cream/90"><Star size={14} className="mt-0.5 shrink-0 text-gold" aria-hidden /><span>{result.motm}</span></p>}
       {children}
       <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
       <div className="mt-4 flex flex-wrap gap-2">

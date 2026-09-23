@@ -128,3 +128,32 @@ export const squads = pgTable("squads", {
   updatedBy: text(),
   remindedAt: timestamp({ withTimezone: true }),
 });
+
+/**
+ * The man-of-the-match vote for a league game: opened the moment a result is recorded, one ballot per player who played
+ * (and has an address on the members list). Closes after 48 hours or when every ballot is in, whichever is first; the
+ * winner is written to matches.motm. Friendlies and forfeits never get one.
+ */
+export const motmPolls = pgTable("motm_polls", {
+  matchId: text().primaryKey().references(() => matches.id, { onDelete: "cascade" }),
+  status: text().notNull().default("open"), // 'open' | 'closed' | 'cancelled'
+  /** everyone who played, so the ballot can list them even when a candidate has no email */
+  candidates: text().array().notNull().default([]),
+  openedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  closesAt: timestamp({ withTimezone: true }).notNull(),
+  closedAt: timestamp({ withTimezone: true }),
+  /** why it closed: 'everyone voted', 'deadline', or who closed it by hand */
+  closedBy: text(),
+  winner: text(),
+  openedBy: text(),
+}, (t) => [index("motm_polls_status_idx").on(t.status, t.closesAt)]);
+
+export const motmBallots = pgTable("motm_ballots", {
+  /** the secret in the emailed link */
+  token: text().primaryKey(),
+  matchId: text().notNull().references(() => motmPolls.matchId, { onDelete: "cascade" }),
+  player: text().notNull().references(() => players.name, { onUpdate: "cascade", onDelete: "cascade" }),
+  vote: text(),
+  votedAt: timestamp({ withTimezone: true }),
+  sentAt: timestamp({ withTimezone: true }),
+}, (t) => [unique("motm_ballots_match_player").on(t.matchId, t.player), index("motm_ballots_match_idx").on(t.matchId)]);

@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight, MapPin, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Star, Vote } from "lucide-react";
 import { getData } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
 import { getSquad } from "@/lib/writes";
+import { pollSummary } from "@/lib/motm-polls";
+import { fmtCloses } from "@/lib/motm";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, leaderboard, opponentKey, playedMatches, scorersFor, scoreline, seasonHref, seasonPlayers } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, serviceStatus } from "@/lib/captions";
@@ -61,6 +63,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const upcoming = (x: typeof m) => !x.played && !/forfeit|cancel/i.test(x.type ?? "") && (!x.date || x.date >= today);
   const pollFor = upcoming(m) ? m : chronological(season.matches).find((x) => upcoming(x) && (x.date ?? "9999") >= (m.date ?? "")) ?? null;
   const squad = showPreview && dbConfigured() ? await getSquad(m.id).catch(() => null) : null;
+  // The man-of-the-match vote: open (how many ballots are in) or decided (the count). Only league results have one.
+  const poll = m.played && !isForfeit && m.countsForRecords && dbConfigured() ? await pollSummary(m.id).catch(() => null) : null;
   const shareText = m.played ? `Thameslink Hajduci ${m.ourGoals}–${m.theirGoals} ${opponentLabel} · ${status.word}${m.motm ? ` · MOTM ${m.motm}` : ""}` : `Thameslink Hajduci vs ${m.opponent} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} ${m.kickOff ?? ""}`;
 
   return (
@@ -89,7 +93,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           {!m.played && kickoff && <p className="mt-6 text-center text-sm text-ash">Kick-off in <Countdown target={kickoff} className="display text-3xl text-gold" /></p>}
           <p className="mt-6 text-center text-lg italic text-cream/90 sm:text-xl">{m.comment ? <>“{m.comment}”</> : verdict}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            {m.motm && <span className="chip border-gold/40 bg-gold/10 text-gold"><Star size={12} aria-hidden />MOTM <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></span>}
+            {m.motm && <span className="chip border-gold/40 bg-gold/10 text-gold"><Star size={12} aria-hidden />MOTM <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" />{poll?.status === "closed" && poll.winner === m.motm && <span className="font-normal text-gold/80">· voted</span>}</span>}
+            {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />MOTM vote open · {poll.voted}/{poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
             {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci {isForfeit ? "paying for it" : "on the pitch"}</Tag>}
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
@@ -174,6 +179,18 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 )}
                 {!isForfeit && <div><dt className="eyebrow">Assists</dt><dd className="mt-1 text-cream">{assisters.length ? assisters.map((s) => `${s.player}${s.assists > 1 ? ` ×${s.assists}` : ""}`).join(", ") : "None claimed, remarkably"}</dd></div>}
                 <div><dt className="eyebrow">Verdict</dt><dd className="mt-1 text-cream">{verdict}</dd></div>
+                {poll && (
+                  <div>
+                    <dt className="eyebrow">Man of the match vote</dt>
+                    <dd className="mt-1 text-cream">
+                      {poll.status === "open" ? <>Open. {poll.voted} of {poll.ballots} ballot{poll.ballots === 1 ? "" : "s"} in; closes {fmtCloses(poll.closesAt)} or once everyone has voted. Ballots went out by email to everyone who played.</>
+                        : poll.winner ? <>{poll.winner} with {poll.counts?.[0]?.votes ?? 0} of {poll.voted} vote{poll.voted === 1 ? "" : "s"} · {poll.voted}/{poll.ballots} ballots came back{poll.closedBy === "everyone voted" ? ", closed early" : poll.closedBy === "deadline" ? ", closed on time" : `, closed by ${poll.closedBy}`}.</>
+                        : <>Closed with no votes. {m.motm ? `${m.motm} stands, as recorded with the score.` : "No award this week."}</>}
+                      {poll.counts && poll.counts.some((c) => c.votes > 0) && <span className="mt-1 block text-xs text-ash">{poll.counts.filter((c) => c.votes > 0).map((c) => `${c.player} ${c.votes}`).join(" · ")}</span>}
+                      {poll.noVote.length > 0 && <span className="mt-1 block text-xs text-ash">No ballot for {poll.noVote.join(", ")}: no email on the members list.</span>}
+                    </dd>
+                  </div>
+                )}
                 {!m.scorersRecorded && (m.ourGoals ?? 0) > 0 && <div><dt className="eyebrow">Note</dt><dd className="mt-1 text-ash">Scorers weren&apos;t logged, so this game doesn&apos;t count towards anyone&apos;s goals-per-game.</dd></div>}
               </dl>
             </div>

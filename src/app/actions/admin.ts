@@ -6,6 +6,7 @@ import { getData } from "@/lib/data";
 import { clean, rosterName, validEmailAddress } from "@/lib/admin-validation";
 import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, saveSquad, setAdmin, upsertFixture, upsertSeason } from "@/lib/writes";
 import { sendReminderPreview, sendSquadReminders } from "@/lib/reminders";
+import { afterScoreRecorded, closeMotmPoll } from "@/lib/motm-polls";
 import { log } from "@/lib/log";
 
 /** Everything here is admin-only. Each action re-checks the session; the UI merely hides what it must not offer. */
@@ -24,8 +25,31 @@ export async function approveSubmissionAction(id: number): Promise<ActionState> 
   if (!done) return fail("That one has already been dealt with.");
   purge();
   log("submission.approved", { id, kind: done.kind, by: s.member.player });
+  // An approved league result opens the man-of-the-match vote, exactly as a signed-in member's would have.
+  let motm = "";
+  if (done.kind === "score") motm = await afterScoreRecorded(String(done.payload.matchId), s.member.player).then((r) => ` ${r.message}`).catch((err) => { console.error("motm poll:", err); return " Man-of-the-match ballots could not be sent; open the vote below."; });
   revalidatePath("/admin");
-  return { ok: true, message: `Recorded: ${done.summary}` };
+  return { ok: true, message: `Recorded: ${done.summary}.${motm}` };
+}
+
+/* ------------------------------------------------------- man of the match */
+/** Open (or re-send for) the vote on a played league game: for results recorded before the vote existed, or when the emails failed. */
+export async function openMotmPollAction(matchId: string): Promise<ActionState> {
+  const s = await admin();
+  const id = clean(matchId, 40);
+  if (!id) return fail("Pick a fixture.");
+  const r = await afterScoreRecorded(id, s.member.player);
+  purge(); revalidatePath("/admin"); revalidatePath(`/matches/${id}`);
+  log("motm.manual", { matchId: id, by: s.member.player, outcome: r.result.outcome });
+  return { ok: r.result.outcome === "opened" || r.result.outcome === "updated", message: r.message };
+}
+/** Call it now, with the votes that are in. */
+export async function closeMotmPollAction(matchId: string): Promise<ActionState> {
+  const s = await admin();
+  const r = await closeMotmPoll(clean(matchId, 40), s.member.player);
+  if (!r) return fail("That vote is not open.");
+  purge(); revalidatePath("/admin"); revalidatePath(`/matches/${r.matchId}`);
+  return { ok: true, message: r.winner ? `Closed. ${r.winner} is man of the match with ${r.counts[0]?.votes ?? 0} of ${r.voted} votes${r.tieBreak ? ` (level on votes, ahead on ${r.tieBreak === "first" ? "getting there first" : r.tieBreak})` : ""}. Everyone who had a ballot has been emailed.` : "Closed with no votes at all. The recorded MOTM, if any, stands." };
 }
 export async function rejectSubmissionAction(id: number): Promise<ActionState> {
   const s = await admin();
