@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { Star } from "lucide-react";
 import { dbConfigured } from "@/lib/db";
 import { ballotView } from "@/lib/motm-polls";
-import { fmtCloses, scoreTitle } from "@/lib/motm";
+import { fmtCloses, scoreTitle, shuffled } from "@/lib/motm";
 import { fmtDate, gwLabel } from "@/lib/stats";
 import { MotmVote } from "@/components/motm-vote";
 import { PageTransition } from "@/components/page-transition";
@@ -40,7 +40,7 @@ export default async function BallotPage({ params, searchParams }: { params: Pro
           <>
             <p className="mt-6 text-lg text-cream">Who was the man of the match, {first}?</p>
             <p className="mb-4 mt-1 text-sm text-ash">{ballot.vote ? <>You picked <span className="text-gold">{ballot.vote}</span>. Tap another name to change it.</> : pick && pick !== ballot.player && candidates.some((c) => c.player === pick) ? "Tap once more to confirm, or pick someone else." : "Tap a name. That is the whole job."}</p>
-            <MotmVote token={token} voter={ballot.player} candidates={candidates} current={ballot.vote} pick={pick ?? null} />
+            <MotmVote token={token} voter={ballot.player} candidates={shuffled(candidates, token)} current={ballot.vote} pick={pick ?? null} />
             <p className="mt-5 text-xs text-ash">{voted} of {ballots.length} ballot{ballots.length === 1 ? "" : "s"} in · closes {fmtCloses(poll.closesAt)}, or as soon as everyone has voted.{ballots.length < candidates.length && ` ${candidates.length - ballots.length} of the ${candidates.length} who played ${candidates.length - ballots.length === 1 ? "has" : "have"} no email on the members list, so ${candidates.length - ballots.length === 1 ? "they" : "they"} can be picked but cannot vote.`}</p>
           </>
         ) : poll.status === "closed" && poll.winner ? (

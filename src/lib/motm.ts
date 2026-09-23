@@ -53,6 +53,19 @@ function comparator(ballots: BallotLine[], candidates: Candidate[]) {
   return (a: Count, b: Count) => b.votes - a.votes || stat(b.player).goals - stat(a.player).goals || stat(b.player).assists - stat(a.player).assists || (a.votes ? lastVote(ballots, a.player) - lastVote(ballots, b.player) : 0) || a.player.localeCompare(b.player);
 }
 
+/**
+ * The names on a ballot in a random order, so the top scorer is not always the first tap. Seeded by the ballot token, so a
+ * player's email and their page agree while every player sees a different order.
+ */
+export function shuffled<T>(items: T[], seed: string): T[] {
+  let h = 2166136261;
+  for (const ch of seed) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  const next = () => { h = (h + 0x6d2b79f5) >>> 0; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(next() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+}
+
 /** "Thursday 20:15" in London time, for the "closes" line. */
 export const fmtCloses = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(d).replace(",", "").replace(/ (\d)/, " $1");
 export const scoreTitle = (m: MotmMatch) => `Hajduci ${m.ourGoals}–${m.theirGoals} ${m.opponent}`;
@@ -72,7 +85,7 @@ export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Ca
 /** The ballot: one tap on a name opens the vote page with that name picked, one more confirms it. Nobody can vote for themselves. */
 export function renderBallot({ match: m, voter, candidates, token, closesAt }: BallotEmailInput): { subject: string; html: string; text: string } {
   const first = voter.split(" ")[0];
-  const options = candidates.filter((c) => c.player !== voter);
+  const options = shuffled(candidates.filter((c) => c.player !== voter), token);
   const closes = fmtCloses(closesAt);
   const subject = `Man of the match vote: ${scoreTitle(m)}`;
   const rows = options.map((c) => `<tr><td style="padding:5px 0"><a href="${esc(ballotUrl(token, c.player))}" style="display:block;background:#0d2b19;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:12px 14px;color:#f6f1e6;text-decoration:none;font-size:15px;font-weight:600">${esc(c.player)}${whatTheyDid(c) ? ` <span style="color:#a7b8ab;font-weight:400;font-size:13px">· ${esc(whatTheyDid(c))}</span>` : ""}</a></td></tr>`).join("");

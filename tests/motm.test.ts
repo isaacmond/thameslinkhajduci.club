@@ -6,7 +6,7 @@ import { parseWorkbook, lastParsedAliases, ALIASES, OPPONENTS } from "@/lib/shee
 import { importClubData } from "@/lib/db-import";
 import { loadClubData } from "@/lib/db-data";
 import { addMember, recordScore } from "@/lib/writes";
-import { decide, pollEligible, renderBallot, renderResult, tally } from "@/lib/motm";
+import { decide, pollEligible, renderBallot, renderResult, shuffled, tally } from "@/lib/motm";
 import { ballotView, castVote, closeDuePolls, closeMotmPoll, listMotmPolls, openMotmPoll, pollSummary, sendBallots } from "@/lib/motm-polls";
 import type { Db } from "@/lib/db";
 import { testDb } from "./db";
@@ -51,6 +51,17 @@ describe("the emails", () => {
     expect(mail.text).not.toContain("Isaac Mond:");
     expect(mail.html).toContain("2 goals");
     expect(mail.text).toContain("Voting closes Wednesday 20:30");
+  });
+  it("names come in a random order that is fixed per ballot, so the email and the page agree", () => {
+    const names = ["A", "B", "C", "D", "E", "F", "G"];
+    const one = shuffled(names, "token-one");
+    expect(one).toEqual(shuffled(names, "token-one"));
+    expect([...one].sort()).toEqual(names);
+    expect(["token-two", "token-three", "token-four"].map((t) => shuffled(names, t).join("")).some((s) => s !== one.join(""))).toBe(true);
+    const mail = (t: string) => renderBallot({ match: m, voter: "Max Cobain", candidates: cands, token: t, closesAt: at("2026-09-23T19:30:00Z") }).text;
+    const order = (t: string) => ["Phil Knott", "Seb Burgess", "Isaac Mond"].map((n) => mail(t).indexOf(`  ${n}`)).join(",");
+    expect(order("aaaaaaaaaaaaaaaaaaaaaaaa")).toBe(order("aaaaaaaaaaaaaaaaaaaaaaaa"));
+    expect(new Set(["a1", "b2", "c3", "d4", "e5", "f6"].map(order)).size).toBeGreaterThan(1);
   });
   it("the result names the winner and shows the count", () => {
     const mail = renderResult({ match: m, winner: "Seb Burgess", counts: [{ player: "Seb Burgess", votes: 2 }, { player: "Isaac Mond", votes: 1 }, { player: "Phil Knott", votes: 0 }], ballots: 4, reason: "everyone voted" });
