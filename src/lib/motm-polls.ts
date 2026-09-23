@@ -106,7 +106,7 @@ export async function openMotmPoll(matchId: string, by: string, db: Db = getDb()
   // Everyone left has voted (a non-voter was dropped from the line-up): nothing to wait for.
   const closed = after.length && after.every((b) => b.vote) ? await closeMotmPoll(matchId, "everyone voted", db, now) : null;
   const bits = [added.length ? `${added.length} new ballot${added.length === 1 ? "" : "s"}` : "", dropped.length ? `${dropped.length} withdrawn` : "", stale.length ? `${stale.length} vote${stale.length === 1 ? "" : "s"} cleared` : ""].filter(Boolean);
-  return { outcome: changed ? "updated" : "unchanged", message: changed ? `Man-of-the-match vote updated for the new line-up: ${bits.join(", ")}.${closed ? ` Closed: ${closed.winner ?? "no votes"}.` : ""}` : `Man-of-the-match vote already open until ${fmtCloses(existing.closesAt)}.`, toSend, noEmail, fixture: fx, closesAt: existing.closesAt, closed };
+  return { outcome: changed ? "updated" : "unchanged", message: changed ? `Man-of-the-match vote brought up to date: ${bits.join(", ")}.${closed ? ` Closed: ${closed.winner ?? "no votes"}.` : ""}` : `Man-of-the-match vote already open until ${fmtCloses(existing.closesAt)}; everyone who played and has an email has a ballot.`, toSend, noEmail, fixture: fx, closesAt: existing.closesAt, closed };
 }
 
 /* ------------------------------------------------------------------ sending */
@@ -139,6 +139,22 @@ export async function afterScoreRecorded(matchId: string, by: string, db: Db = g
   else if (sent.failed.length) parts.push(`Emails failed for ${sent.failed.join(", ")}.`);
   if (result.noEmail.length && result.outcome !== "skipped" && result.outcome !== "cancelled") parts.push(`No vote for ${result.noEmail.join(", ")}: no email on the members list.`);
   return { result, sent, message: parts.join(" ") };
+}
+
+/**
+ * A player got an email address after the whistle: every open vote they played in owes them a ballot. Called when the admin
+ * adds a member, so finding Andy's address the day after the game is enough for Andy to get his vote.
+ */
+export async function ballotsForNewMember(player: string, by: string, db: Db = getDb()): Promise<string[]> {
+  const open = await db.select({ matchId: schema.motmPolls.matchId, candidates: schema.motmPolls.candidates }).from(schema.motmPolls).where(eq(schema.motmPolls.status, "open"));
+  const owed = open.filter((p) => p.candidates.some((c) => lower(c) === lower(player)));
+  const notes: string[] = [];
+  for (const p of owed) {
+    const r = await afterScoreRecorded(p.matchId, by, db);
+    if (r.sent.sent.length) notes.push(`Man-of-the-match ballot for ${r.result.fixture ? `Hajduci ${r.result.fixture.match.ourGoals}–${r.result.fixture.match.theirGoals} ${r.result.fixture.match.opponent}` : p.matchId} emailed to ${r.sent.sent.join(", ")}.`);
+    else if (r.sent.failed.length || r.sent.skipped) notes.push(`Could not email the man-of-the-match ballot for ${p.matchId}${r.sent.skipped ? `: ${r.sent.skipped}` : ""}.`);
+  }
+  return notes;
 }
 
 /* ------------------------------------------------------------------- voting */

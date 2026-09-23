@@ -6,7 +6,7 @@ import { getData } from "@/lib/data";
 import { clean, rosterName, validEmailAddress } from "@/lib/admin-validation";
 import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, saveSquad, setAdmin, upsertFixture, upsertSeason } from "@/lib/writes";
 import { sendReminderPreview, sendSquadReminders } from "@/lib/reminders";
-import { afterScoreRecorded, closeMotmPoll } from "@/lib/motm-polls";
+import { afterScoreRecorded, ballotsForNewMember, closeMotmPoll } from "@/lib/motm-polls";
 import { log } from "@/lib/log";
 
 /** Everything here is admin-only. Each action re-checks the session; the UI merely hides what it must not offer. */
@@ -69,9 +69,12 @@ export async function addMemberAction(_prev: ActionState, form: FormData): Promi
   if (!player) return fail("Pick a player from the list.");
   await addMember(email, player, form.get("admin") === "on", s.email);
   forgetMembers();
+  // Found their address after a game they played in? Any open man-of-the-match vote owes them a ballot; send it now.
+  const ballots = await ballotsForNewMember(player, s.member.player).catch((err) => { console.error("motm ballots:", err); return [] as string[]; });
+  if (ballots.length) purge();
   revalidatePath("/admin");
-  log("member.added", { player, by: s.member.player });
-  return { ok: true, message: `${email} can now sign in as ${player}.` };
+  log("member.added", { player, by: s.member.player, ballots: ballots.length });
+  return { ok: true, message: [`${email} can now sign in as ${player}.`, ...ballots].join(" ") };
 }
 export async function removeMemberAction(email: string): Promise<ActionState> {
   const s = await admin();

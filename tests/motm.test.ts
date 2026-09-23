@@ -7,8 +7,8 @@ import { importClubData } from "@/lib/db-import";
 import { loadClubData } from "@/lib/db-data";
 import { addMember, recordScore } from "@/lib/writes";
 import { decide, pollEligible, renderBallot, renderResult, shuffled, tally } from "@/lib/motm";
-import { ballotView, castVote, closeDuePolls, closeMotmPoll, listMotmPolls, openMotmPoll, pollSummary, sendBallots } from "@/lib/motm-polls";
-import type { Db } from "@/lib/db";
+import { ballotView, ballotsForNewMember, castVote, closeDuePolls, closeMotmPoll, listMotmPolls, openMotmPoll, pollSummary, sendBallots } from "@/lib/motm-polls";
+import { schema, type Db } from "@/lib/db";
 import { testDb } from "./db";
 
 const at = (iso: string) => new Date(iso);
@@ -119,16 +119,27 @@ describe("the vote against the records", () => {
     expect(await castVote(tok("Isaac Mond"), "Phil Knott", db, at("2026-09-21T20:13:00Z"))).toMatchObject({ ok: true });
     const view = await ballotView(tok("Max Cobain"), db, at("2026-09-21T20:14:00Z"));
     expect(view!.ballots.filter((x) => x.voted).length).toBe(3); expect(view!.counts).toBeNull(); expect(view!.candidates.length).toBe(5);
-    const last = await castVote(tok("Max Cobain"), "Phil Knott", db, at("2026-09-21T20:15:00Z"));
-    expect(last.ok && last.closed).toMatchObject({ winner: "Phil Knott", voted: 4, ballots: 4, reason: "everyone voted" });
+    // Ben's address turns up the day after: he gets his ballot, and the vote now waits for him too
+    expect(await ballotsForNewMember("Ben Merrett", "test", db)).toEqual([]); // no address yet, nothing owed
+    await addMember("ben@example.com", "Ben Merrett", false, "test", db);
+    const notes = await ballotsForNewMember("Ben Merrett", "test", db);
+    expect(notes).toHaveLength(1); expect(notes[0]).toMatch(/Could not email|emailed to Ben Merrett/); // no Resend key here, so "could not"
+    const withBen = await ballotView(tok("Max Cobain"), db, at("2026-09-21T20:14:30Z"));
+    expect(withBen!.ballots.map((x) => x.player)).toContain("Ben Merrett"); expect(withBen!.ballots.length).toBe(5);
+    expect(await ballotsForNewMember("Ben Merrett", "test", db)).toEqual([]); // already has one
+    const notLast = await castVote(tok("Max Cobain"), "Phil Knott", db, at("2026-09-21T20:15:00Z"));
+    expect(notLast.ok && notLast.closed).toBeNull();
+    const benTok = (await db.select().from(schema.motmBallots)).find((x) => x.matchId === id && x.player === "Ben Merrett")!.token;
+    const last = await castVote(benTok, "Phil Knott", db, at("2026-09-21T20:16:00Z"));
+    expect(last.ok && last.closed).toMatchObject({ winner: "Phil Knott", voted: 5, ballots: 5, reason: "everyone voted" });
     // the winner is in the records, over the name the score form offered
     const data = await loadClubData(db);
     expect(data.matches.find((x) => x.id === id)!.motm).toBe("Phil Knott");
     const s = await pollSummary(id, db);
-    expect(s).toMatchObject({ status: "closed", winner: "Phil Knott", voted: 4, ballots: 4, closedBy: "everyone voted", noVote: ["Ben Merrett"] });
-    expect(s!.counts![0]).toEqual({ player: "Phil Knott", votes: 3 });
+    expect(s).toMatchObject({ status: "closed", winner: "Phil Knott", voted: 5, ballots: 5, closedBy: "everyone voted", noVote: [] });
+    expect(s!.counts![0]).toEqual({ player: "Phil Knott", votes: 4 });
     // voting is over
-    expect(await castVote(tok("Phil Knott"), "Seb Burgess", db, at("2026-09-21T20:16:00Z"))).toMatchObject({ ok: false, closed: true });
+    expect(await castVote(tok("Phil Knott"), "Seb Burgess", db, at("2026-09-21T20:17:00Z"))).toMatchObject({ ok: false, closed: true });
     expect((await openMotmPoll(id, "test", db)).outcome).toBe("unchanged");
     expect(await closeMotmPoll(id, "test", db)).toBeNull();
   });
