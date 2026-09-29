@@ -82,21 +82,32 @@ const shell = (eyebrow: string, body: string) => `<!doctype html><html><body sty
   </div></body></html>`;
 
 export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Candidate[]; token: string; closesAt: Date };
-/** The ballot: one tap on a name opens the vote page with that name picked, one more confirms it. Nobody can vote for themselves. */
-export function renderBallot({ match: m, voter, candidates, token, closesAt }: BallotEmailInput): { subject: string; html: string; text: string } {
+/**
+ * The voting part of the ballot on its own (question, names, button, small print), so it can sit inside another email: the
+ * admin who records a score and played gets their ballot in the score confirmation rather than as a second message.
+ */
+export function ballotBody({ voter, candidates, token, closesAt }: BallotEmailInput): { html: string; text: string } {
   const first = voter.split(" ")[0];
   const options = shuffled(candidates.filter((c) => c.player !== voter), token);
   const closes = fmtCloses(closesAt);
-  const subject = `Man of the match vote: ${scoreTitle(m)}`;
   const rows = options.map((c) => `<tr><td style="padding:5px 0"><a href="${esc(ballotUrl(token, c.player))}" style="display:block;background:#0d2b19;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:12px 14px;color:#f6f1e6;text-decoration:none;font-size:15px;font-weight:600">${esc(c.player)}${whatTheyDid(c) ? ` <span style="color:#a7b8ab;font-weight:400;font-size:13px">· ${esc(whatTheyDid(c))}</span>` : ""}</a></td></tr>`).join("");
-  const html = shell("Man of the match", `
-    <h1 style="margin:0 0 6px;font-size:30px;line-height:1.05">${esc(scoreTitle(m))}</h1>
-    <p style="margin:0 0 18px;font-size:14px;color:#a7b8ab">${esc(fixtureLine(m))}</p>
+  const html = `
     <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match, ${esc(first)}? Tap a name.</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(ballotUrl(token))}" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Open the ballot</a></p>
-    <p style="margin:18px 0 0;font-size:13px;color:#a7b8ab">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>`);
-  const text = [scoreTitle(m), fixtureLine(m), "", `Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}${whatTheyDid(c) ? ` (${whatTheyDid(c)})` : ""}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`].join("\n");
+    <p style="margin:18px 0 0;font-size:13px;color:#a7b8ab">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>`;
+  const text = [`Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}${whatTheyDid(c) ? ` (${whatTheyDid(c)})` : ""}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`].join("\n");
+  return { html, text };
+}
+/** The ballot as its own email: one tap on a name opens the vote page with that name picked, one more confirms it. Nobody can vote for themselves. */
+export function renderBallot(input: BallotEmailInput): { subject: string; html: string; text: string } {
+  const m = input.match;
+  const body = ballotBody(input);
+  const subject = `Man of the match vote: ${scoreTitle(m)}`;
+  const html = shell("Man of the match", `
+    <h1 style="margin:0 0 6px;font-size:30px;line-height:1.05">${esc(scoreTitle(m))}</h1>
+    <p style="margin:0 0 18px;font-size:14px;color:#a7b8ab">${esc(fixtureLine(m))}</p>${body.html}`);
+  const text = [scoreTitle(m), fixtureLine(m), "", body.text].join("\n");
   return { subject, html, text };
 }
 

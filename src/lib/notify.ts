@@ -6,7 +6,8 @@ import { SITE_URL } from "./config";
  * SCORE_TO_EMAIL is the recipient; SCORE_FROM_EMAIL the sender (must be on a domain verified in Resend, otherwise Resend's
  * default sender is used, which only delivers to the Resend account's own address). Returns false when not configured or on failure.
  */
-export async function emailSubmission(input: { subject: string; text: string; summary: string; submittedBy: string; kind: "score" | "payment" | "player"; applied: boolean; queued: boolean }): Promise<boolean> {
+/** `extra`: a section to carry inside this email (the recorder's own man-of-the-match ballot), so they get one message, not two. */
+export async function emailSubmission(input: { subject: string; text: string; summary: string; submittedBy: string; kind: "score" | "payment" | "player"; applied: boolean; queued: boolean; extra?: { title: string; html: string; text: string } }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY, to = process.env.SCORE_TO_EMAIL;
   if (!key || !to) return false;
   const from = process.env.SCORE_FROM_EMAIL ?? "Thameslink Hajduci <onboarding@resend.dev>";
@@ -26,11 +27,13 @@ export async function emailSubmission(input: { subject: string; text: string; su
     <h1 style="margin:0 0 14px;font-size:26px;line-height:1.1">${esc(input.summary)}</h1>
     <pre style="white-space:pre-wrap;background:#0d2b19;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px;font-size:13px;line-height:1.5;color:#f6f1e6">${esc(details)}</pre>
     ${cta}
+    ${input.extra ? `<hr style="margin:26px 0;border:0;border-top:1px solid rgba(255,255,255,.12)"><p style="margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a7b8ab">${esc(input.extra.title)}</p>${input.extra.html}` : ""}
     <p style="margin:18px 0 0;font-size:12px;color:#a7b8ab">${footer}</p>
   </div></body></html>`;
+  const text = input.extra ? `${input.text}\n\n— ${input.extra.title} —\n${input.extra.text}` : input.text;
   try {
     const resend = new Resend(key);
-    const { error } = await resend.emails.send({ from, to: to.split(",").map((s) => s.trim()).filter(Boolean), subject: input.subject, html, text: input.text });
+    const { error } = await resend.emails.send({ from, to: to.split(",").map((s) => s.trim()).filter(Boolean), subject: input.subject, html, text });
     if (error) { console.error("resend:", error); return false; }
     return true;
   } catch (err) { console.error("resend:", err); return false; }

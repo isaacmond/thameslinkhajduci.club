@@ -105,6 +105,12 @@ describe("the vote against the records", () => {
     expect(r.fixture!.candidates.map((c) => c.player)).toContain("Ben Merrett");
     // no Resend key in tests: nothing goes out, and that is reported rather than thrown
     expect((await sendBallots(r, db)).skipped).toMatch(/RESEND_API_KEY/);
+    // the recorder's own ballot is held back, rendered, to ride inside the score email rather than arrive as a second message
+    const heldRun = await sendBallots(r, db, ["ISAAC@example.com"]);
+    expect(heldRun.held.map((h) => h.player)).toEqual(["Isaac Mond"]);
+    expect(heldRun.held[0].body.text).toContain("Who was the man of the match, Isaac?");
+    expect(heldRun.held[0].body.text).toContain(`/motm/${heldRun.held[0].token}?pick=`);
+    expect(heldRun.failed).not.toContain("Isaac Mond");
     // opening again changes nothing
     expect((await openMotmPoll(id, "test", db, t0)).outcome).toBe("unchanged");
 

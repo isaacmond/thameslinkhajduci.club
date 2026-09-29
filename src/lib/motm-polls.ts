@@ -5,7 +5,7 @@ import { atomic, getDb, schema, type Db } from "./db";
 import { groupMembers } from "./members";
 import { REMINDER_FROM } from "./reminder-email";
 import { log } from "./log";
-import { decide, fmtCloses, MOTM_POLL_HOURS, pollEligible, renderBallot, renderResult, type Candidate, type Count, type MotmMatch } from "./motm";
+import { ballotBody, decide, fmtCloses, MOTM_POLL_HOURS, pollEligible, renderBallot, renderResult, type Candidate, type Count, type MotmMatch } from "./motm";
 
 /**
  * The man-of-the-match vote, the database half. A poll opens when a league result is recorded (openMotmPoll), everyone who
@@ -110,31 +110,52 @@ export async function openMotmPoll(matchId: string, by: string, db: Db = getDb()
 }
 
 /* ------------------------------------------------------------------ sending */
-export type SendResult = { sent: string[]; failed: string[]; skipped?: string };
-/** Email the ballots that have not gone out yet: one batch call to Resend, then each is stamped sent. */
-export async function sendBallots(r: OpenResult, db: Db = getDb()): Promise<SendResult> {
+/** A ballot kept out of the batch because its owner is about to get another email it can ride in (the score confirmation). */
+export type HeldBallot = { player: string; token: string; emails: string[]; body: { html: string; text: string } };
+export type SendResult = { sent: string[]; failed: string[]; held: HeldBallot[]; skipped?: string };
+/**
+ * Email the ballots that have not gone out yet: one batch call to Resend, then each is stamped sent. Ballots for anyone in
+ * `holdBack` (addresses) are not sent but handed back rendered, for the caller to put inside its own email.
+ */
+export async function sendBallots(r: OpenResult, db: Db = getDb(), holdBack: string[] = []): Promise<SendResult> {
   const key = process.env.RESEND_API_KEY;
-  if (!r.toSend.length || !r.fixture || !r.closesAt) return { sent: [], failed: [] };
-  if (!key) return { sent: [], failed: r.toSend.map((t) => t.ballot.player), skipped: "RESEND_API_KEY is not set" };
+  if (!r.toSend.length || !r.fixture || !r.closesAt) return { sent: [], failed: [], held: [] };
   const { match, candidates } = r.fixture;
   const closesAt = r.closesAt;
-  const mails = r.toSend.filter((t) => t.emails.length).map((t) => ({ from: REMINDER_FROM, to: t.emails, ...renderBallot({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt }) }));
-  const players = r.toSend.filter((t) => t.emails.length).map((t) => t.ballot.player);
+  const hold = new Set(holdBack.map(lower));
+  const held: HeldBallot[] = r.toSend.filter((t) => t.emails.some((e) => hold.has(lower(e)))).map((t) => ({ player: t.ballot.player, token: t.ballot.token, emails: t.emails, body: ballotBody({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt }) }));
+  const rest = r.toSend.filter((t) => t.emails.length && !held.some((h) => h.token === t.ballot.token));
+  if (!rest.length) return { sent: [], failed: [], held };
+  const players = rest.map((t) => t.ballot.player);
+  if (!key) return { sent: [], failed: players, held, skipped: "RESEND_API_KEY is not set" };
+  const mails = rest.map((t) => ({ from: REMINDER_FROM, to: t.emails, ...renderBallot({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt }) }));
   try {
     const { error } = await new Resend(key).batch.send(mails);
-    if (error) { console.error("motm ballots:", error); return { sent: [], failed: players }; }
-  } catch (err) { console.error("motm ballots:", err); return { sent: [], failed: players }; }
-  await db.update(schema.motmBallots).set({ sentAt: new Date() }).where(inArray(schema.motmBallots.token, r.toSend.map((t) => t.ballot.token)));
-  return { sent: players, failed: [] };
+    if (error) { console.error("motm ballots:", error); return { sent: [], failed: players, held }; }
+  } catch (err) { console.error("motm ballots:", err); return { sent: [], failed: players, held }; }
+  await markBallotsSent(rest.map((t) => t.ballot.token), db);
+  return { sent: players, failed: [], held };
+}
+export async function markBallotsSent(tokens: string[], db: Db = getDb()) {
+  if (tokens.length) await db.update(schema.motmBallots).set({ sentAt: new Date() }).where(inArray(schema.motmBallots.token, tokens));
+}
+/** Held ballots that could not ride in the other email after all: send them on their own. */
+export async function sendHeldBallots(result: OpenResult, held: HeldBallot[], db: Db = getDb()): Promise<SendResult> {
+  const toSend = result.toSend.filter((t) => held.some((h) => h.token === t.ballot.token));
+  return sendBallots({ ...result, toSend }, db);
 }
 
-/** The whole thing after a result lands: open (or sync) the poll, email the ballots, say what happened in one line. */
-export async function afterScoreRecorded(matchId: string, by: string, db: Db = getDb()): Promise<{ result: OpenResult; sent: SendResult; message: string }> {
+/**
+ * The whole thing after a result lands: open (or sync) the poll, email the ballots, say what happened in one line.
+ * `holdBack`: addresses whose ballot should come back rendered instead of sent (see sendBallots).
+ */
+export async function afterScoreRecorded(matchId: string, by: string, db: Db = getDb(), holdBack: string[] = []): Promise<{ result: OpenResult; sent: SendResult; message: string }> {
   const result = await openMotmPoll(matchId, by, db);
-  const sent = await sendBallots(result, db);
-  log("motm.poll", { matchId, outcome: result.outcome, ballots: result.toSend.length, sent: sent.sent.length, failed: sent.failed.length, noEmail: result.noEmail.length, skipped: sent.skipped ?? null });
+  const sent = await sendBallots(result, db, holdBack);
+  log("motm.poll", { matchId, outcome: result.outcome, ballots: result.toSend.length, sent: sent.sent.length, held: sent.held.length, failed: sent.failed.length, noEmail: result.noEmail.length, skipped: sent.skipped ?? null });
   const parts = [result.message];
-  if (sent.sent.length) parts.push(`Ballots emailed to ${sent.sent.join(", ")}.`);
+  const emailed = [...sent.sent, ...sent.held.map((h) => h.player)];
+  if (emailed.length) parts.push(`Ballots emailed to ${emailed.join(", ")}.`);
   if (sent.skipped) parts.push(`Ballots not emailed: ${sent.skipped}.`);
   else if (sent.failed.length) parts.push(`Emails failed for ${sent.failed.join(", ")}.`);
   if (result.noEmail.length && result.outcome !== "skipped" && result.outcome !== "cancelled") parts.push(`No vote for ${result.noEmail.join(", ")}: no email on the members list.`);

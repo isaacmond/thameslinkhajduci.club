@@ -8,7 +8,7 @@ import { log } from "@/lib/log";
 import { currentMember } from "@/lib/auth";
 import { queueSubmission, type ScoreChange } from "@/lib/writes";
 import { applyChange } from "@/lib/apply";
-import { afterScoreRecorded } from "@/lib/motm-polls";
+import { afterScoreRecorded, markBallotsSent, sendHeldBallots, type HeldBallot, type OpenResult } from "@/lib/motm-polls";
 import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, clean, originAllowed, validatePayment, validatePlayer, validateScore, type Built, type Kind, type Rejected } from "@/lib/submissions";
 import { SITE_URL } from "@/lib/config";
 import type { ClubData } from "@/lib/types";
@@ -82,13 +82,25 @@ export async function POST(req: Request) {
   const built = kind === "score" ? buildScore(body, data) : kind === "payment" ? buildPayment(body, data) : buildPlayer(body, data);
   if ("error" in built) return NextResponse.json({ ok: false, error: built.error }, { status: 400 });
 
+  // Decide up front whether the admin's email is going out: a ballot for the admin's own address can then ride inside it instead of being a second message.
+  const canNotify = notifyBudgetOk();
+  if (!canNotify) log("submit.notify.budget", { kind, ip });
+  const adminTo = (process.env.SCORE_TO_EMAIL ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const willEmail = canNotify && Boolean(process.env.RESEND_API_KEY) && adminTo.length > 0;
+
   let applied = false, queued = false, queueId: number | null = null, applyError: string | null = null, motm: string | null = null;
+  let held: HeldBallot[] = [], pollResult: OpenResult | null = null;
   if (dbConfigured()) {
     try {
       if (member) {
         await applyChange(built, `${member.member.player} <${member.email}>`); applied = true; log("submit.applied", { kind, player: member.member.player });
         // A league result opens the man-of-the-match vote: everyone who played gets a ballot by email. Best effort: the score is in whatever happens here.
-        if (kind === "score") motm = await afterScoreRecorded((built.change as ScoreChange).matchId, member.member.player).then((r) => r.message).catch((err) => { console.error("motm poll:", err); return "Man-of-the-match ballots could not be sent; the admin can open the vote from the admin page."; });
+        if (kind === "score") {
+          try {
+            const r = await afterScoreRecorded((built.change as ScoreChange).matchId, member.member.player, undefined, willEmail ? adminTo : []);
+            motm = r.message; held = r.sent.held; pollResult = r.result;
+          } catch (err) { console.error("motm poll:", err); motm = "Man-of-the-match ballots could not be sent; the admin can open the vote from the admin page."; }
+        }
       }
       else { queueId = await queueSubmission(kind, built.change as unknown as Record<string, unknown>, built.summary, built.submittedBy); queued = true; log("submit.queued", { kind, id: queueId }); }
     } catch (err) {
@@ -100,16 +112,20 @@ export async function POST(req: Request) {
   const submittedBy = member ? `${built.submittedBy} (${member.member.player}, signed in)` : built.submittedBy;
   const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/admin` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
   const text = `${built.text}\n\n${status}${motm ? `\n${motm}` : ""}`;
-  const subject = applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject;
+  const subject = (applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject) + (held.length ? " · your MOTM ballot inside" : "");
+  const extra = held.length ? { title: held.length === 1 ? `Your man-of-the-match ballot, ${held[0].player.split(" ")[0]}` : "Man-of-the-match ballots", html: held.map((h) => h.body.html).join('<hr style="margin:22px 0;border:0;border-top:1px solid rgba(255,255,255,.12)">'), text: held.map((h) => h.body.text).join("\n\n") } : undefined;
 
   const hook = process.env.SCORE_WEBHOOK_URL;
-  const canNotify = notifyBudgetOk();
-  if (!canNotify) log("submit.notify.budget", { kind, ip });
   const [emailed, hooked] = canNotify
     ? await Promise.all([
-        emailSubmission({ subject, text, summary: built.summary, submittedBy, kind, applied, queued }),
+        emailSubmission({ subject, text, summary: built.summary, submittedBy, kind, applied, queued, extra }),
         hook ? fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text, content: text.slice(0, 1900) }) }).then((r) => r.ok).catch(() => false) : Promise.resolve(false),
       ])
     : [false, false]; // over budget: the submitter still gets the text to copy or share, the admin just is not pinged
+  // The ballot that rode in the admin's email counts as sent; if that email did not go, the ballot goes on its own after all.
+  if (held.length && pollResult) {
+    if (emailed) await markBallotsSent(held.map((h) => h.token)).catch((err) => console.error("motm mark:", err));
+    else { const r = await sendHeldBallots(pollResult, held).catch(() => null); log("motm.held.fallback", { sent: r?.sent.length ?? 0, failed: r?.failed.length ?? held.length }); }
+  }
   return NextResponse.json({ ok: true, kind, sent: emailed || hooked, emailed, applied, appliedBy: applied ? member!.member.player : null, queued, applyError, throttled: !canNotify, motm, summary: built.summary, text });
 }
