@@ -15,7 +15,7 @@ import { PollButton } from "./poll-button";
 /**
  * `lineup` is who the records say played (roster players only); `ringers` the outsiders recorded alongside them; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
  * For a fixture typed Forfeit the line-up is the players charged for the pitch, and `matchCost` is what they split.
- * `priorApps` counts each roster player's appearances in the league games before this one that make up the ringer-levy window (nine at most), and `counted` says whether this game itself joins that window, so the form can show who picks up a ringer's share.
+ * `priorApps` counts each roster player's appearances in the league games before this one that make up the ringer-levy window (nine when this game joins the window itself, `counted`; ten for a friendly), so the form can show which absent regulars pick up a ringer's share.
  */
 export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; ringers: string[]; expected: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null; type: string | null; matchCost: number; kickOff: string | null; priorApps: Record<string, number>; counted: boolean };
 
@@ -100,11 +100,11 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
     setBusy(false);
   };
   const playedList = [...roster.filter((n) => played.has(n)), ...ringers];
-  // Who picks up the ringers' share: the regulars over the last ten league games, this one included once it is recorded.
+  // Who picks up the ringers' share: the regulars over the last ten league games who are not on the pitch tonight.
   const heads = played.size + ringers.length;
   const levyCounts: Record<string, number> = { ...(fx?.priorApps ?? {}) };
-  if (fx?.counted) for (const n of played) levyCounts[n] = (levyCounts[n] ?? 0) + 1;
-  const regulars = ringers.length ? (() => { const r = pickRegulars(levyCounts); return r.length ? r : [...played].sort(); })() : [];
+  for (const n of played) delete levyCounts[n];
+  const regulars = ringers.length ? pickRegulars(levyCounts) : [];
   const perHead = heads > 0 ? (fx?.matchCost ?? 0) / heads : 0;
   const levyTotal = perHead * ringers.length, levyEach = regulars.length ? levyTotal / regulars.length : 0;
   // The team sheet is a proposal: say where the ticks came from, and offer the way back once the reporter has changed them.
@@ -193,7 +193,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           </div>
           {ringers.length > 0 && (
             <p className="mt-3 rounded-lg border border-gold/30 bg-gold/[0.06] px-3 py-2 text-xs text-cream/90" role="status">
-              {heads} on the pitch{pitch > 0 && <>, {pounds(perHead)} a head</>}. {ringers.join(", ")}{ringers.length === 1 ? "'s" : "'"} {pitch > 0 ? pounds(levyTotal) : "share"} {regulars.length ? <>is split between {regulars.length} regular{regulars.length === 1 ? "" : "s"}{pitch > 0 && <> at <span className="text-cream">{pounds(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>has nobody to land on yet: tick who played.</>}
+              {heads} on the pitch{pitch > 0 && <>, {pounds(perHead)} a head</>}. {ringers.join(", ")}{ringers.length === 1 ? "'s" : "'"} {pitch > 0 ? pounds(levyTotal) : "share"} {regulars.length ? <>is split between the {regulars.length} regular{regulars.length === 1 ? "" : "s"} who did not play{pitch > 0 && <>, <span className="text-cream">{pounds(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>has nobody to land on: no absent regular has three games in the last ten, so it stays with whoever paid for the pitch.</>}
             </p>
           )}
         </div>

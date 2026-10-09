@@ -34,14 +34,14 @@ describe("ScoreForm and the team sheet", () => {
     expect(html).toContain("Prepare the forfeit");
   });
   it("a recorded ringer is listed with the levy on the regulars, worked out from the window plus the night's ticks", () => {
-    const priorApps = { "Ben Merrett": 4, "Finn Cawley": 3, "Isaac Mond": 2, "Phil Knott": 1 };
+    const priorApps = { "Ben Merrett": 4, "Finn Cawley": 3, "Isaac Mond": 3, "Phil Knott": 1 };
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ played: true, ourGoals: 11, theirGoals: 5, lineup: ["Ben Merrett", "Phil Knott", "Isaac Mond"], ringers: ["Alex"], priorApps })]} roster={roster} webhook={false} />);
     expect(html).toContain("Ringer</span><span class=\"truncate\">Alex</span>");
-    // 4 on the pitch at £19.99 a head; Ben 5, Finn 3, Isaac 3 qualify (Phil is on 2), so Alex's £19.99 splits three ways
+    // 4 on the pitch at £19.99 a head; Ben, Phil and Isaac played so pay nothing extra; Finn (3) is the one absent regular and gets the whole £19.99
     expect(html).toContain("4 on the pitch, £19.99 a head");
-    expect(html).toContain("split between 3 regulars");
-    expect(html).toContain("£6.66 each");
-    expect(html).toContain("Ben Merrett, Finn Cawley, Isaac Mond");
+    expect(html).toContain("split between the 1 regular who did not play");
+    expect(html).toContain("£19.99 each");
+    expect(html).toContain(": Finn Cawley.");
     expect(html).toContain("Add ringer");
   });
   it("a recorded forfeit keeps its payers and shows each one's share", () => {

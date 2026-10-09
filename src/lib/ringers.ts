@@ -5,9 +5,11 @@ import type { Match, RingerLevy, Season } from "./types";
  * anyone else (the pitch is split by heads on the pitch, ringers included) but pays nothing. Their share is levied on the
  * regulars instead, equally, so the few who did turn up are not left carrying the cost of a half-empty team sheet.
  *
- * Regulars, as agreed with the admin (9 Oct 2026): the ten players with the most appearances in the last ten league
- * games (the game being recorded included), each with at least three. Ties on the tenth place are all charged rather
- * than picking by alphabet. If nobody qualifies yet, the regulars who played that night pick it up. Pure, no I/O.
+ * Regulars, as agreed with the admin (9 Oct 2026): of the players who were NOT on the pitch that night, the ten with the
+ * most appearances in the last ten league games (the game being recorded included), each with at least three. Ties on
+ * the tenth place are all charged rather than picking by alphabet. Whoever did play never pays for the ringer: the whole
+ * point is that a half-empty team sheet is the absentees' bill. If no absent regular qualifies there is no levy and the
+ * ringer's share stays with whoever paid for the pitch. Pure, no I/O.
  */
 export const LEVY_WINDOW = 10;
 export const LEVY_PAYERS = 10;
@@ -40,10 +42,11 @@ export function levyWindow(match: Match, counted: Match[]): Match[] {
   return pool.slice(-LEVY_WINDOW);
 }
 
-/** Who picks up the ringers' share when `match` is recorded. Falls back to the regulars on the pitch that night when nobody qualifies. */
+/** Who picks up the ringers' share when `match` is recorded: the absent regulars. Empty when none of them has three games yet. */
 export function regularsFor(match: Match, counted: Match[]): string[] {
-  const regulars = pickRegulars(appearanceCounts(levyWindow(match, counted)));
-  return regulars.length ? regulars : match.lineup.filter((l) => l.played && !l.ringer).map((l) => l.player).sort();
+  const counts = appearanceCounts(levyWindow(match, counted));
+  for (const l of match.lineup) if (l.played) delete counts[l.player];
+  return pickRegulars(counts);
 }
 
 /** The levy for a played game with ringers on a pitch that cost money; null when there is nothing to spread. */
@@ -64,5 +67,5 @@ export function applyRingerLevies(seasons: Season[], friendlies: Season | null):
 /** One line for the group chat and the fixture page: who the ringers were and who is paying for them. */
 export function levyLine(levy: RingerLevy, fmt: (n: number) => string = (n) => `£${n.toFixed(2)}`): string {
   const who = levy.ringers.join(", ");
-  return `${who} ${levy.ringers.length === 1 ? "is a ringer: their" : "are ringers: their"} ${fmt(levy.total)} is split between ${levy.payers.length} regular${levy.payers.length === 1 ? "" : "s"} at ${fmt(levy.each)} each (${levy.payers.join(", ")}).`;
+  return `${who} ${levy.ringers.length === 1 ? "is a ringer: their" : "are ringers: their"} ${fmt(levy.total)} is split between the ${levy.payers.length} regular${levy.payers.length === 1 ? "" : "s"} who did not play, at ${fmt(levy.each)} each (${levy.payers.join(", ")}).`;
 }

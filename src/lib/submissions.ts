@@ -105,7 +105,7 @@ export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId
     Object.keys(v.assists).length ? `Assists: ${list(v.assists)}` : null,
     v.motm ? `MOTM: ${v.motm}` : null,
     v.played.length ? `Played: ${v.played.filter((p) => !v.ringers.includes(p)).join(", ")}` : null,
-    v.ringers.length ? `Ringers: ${v.ringers.join(", ")}${levy ? ` · ${levy}` : ""}` : null,
+    v.ringers.length ? `Ringers: ${v.ringers.join(", ")}${levy ? ` · ${levy}` : " · nobody picks up their share: no absent regular has three games in the last ten"}` : null,
     v.note ? `Note: ${v.note}` : null,
     `Submitted by ${v.submittedBy}`,
   ].filter((l): l is string => l !== null);

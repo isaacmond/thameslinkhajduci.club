@@ -182,8 +182,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 {m.levy && (
                   <div>
                     <dt className="eyebrow">Ringer levy</dt>
-                    <dd className="mt-1 text-cream">{m.levy.ringers.join(", ")} {m.levy.ringers.length === 1 ? "was borrowed" : "were borrowed"} for the night and pay{m.levy.ringers.length === 1 ? "s" : ""} nothing. {m.levy.ringers.length === 1 ? "Their" : "Their"} {fmtMoney(m.levy.total)} is split between the {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} at {fmtMoney(m.levy.each)} each.</dd>
-                    <dd className="mt-1 text-xs text-ash">Regulars: the ten with the most games in the last ten, three at least. {m.levy.payers.join(", ")}.</dd>
+                    <dd className="mt-1 text-cream">{m.levy.ringers.join(", ")} {m.levy.ringers.length === 1 ? "was borrowed" : "were borrowed"} for the night and pay{m.levy.ringers.length === 1 ? "s" : ""} nothing. Their {fmtMoney(m.levy.total)} is split between the {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} who did not play, {fmtMoney(m.levy.each)} each.</dd>
+                    <dd className="mt-1 text-xs text-ash">Regulars: of those not on the pitch, the ten with the most games in the last ten, three at least. {m.levy.payers.join(", ")}.</dd>
                   </div>
                 )}
                 {poll && (

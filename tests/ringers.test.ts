@@ -38,13 +38,13 @@ describe("the window", () => {
     expect(levyWindow(games[4], games).map((m) => m.gw)).toEqual([1, 2, 3, 4, 5]);
     expect(levyWindow(friendly, [...games, friendly]).map((m) => m.gw)).toEqual([1, 2, 3]);
   });
-  it("falls back to the regulars on the pitch that night when nobody has three games yet", () => {
-    const games = season(1);
-    const tonight = match({ seasonId: "S8", gw: 2, date: "2026-09-02", ourGoals: 2, theirGoals: 2, lineup: [line("B"), line("A"), ringer("X")] });
-    expect(regularsFor(tonight, [...games, tonight])).toEqual(["A", "B"]);
-    // one more game and A has three: the fallback is no longer needed
-    const third = match({ seasonId: "S8", gw: 3, date: "2026-09-03", ourGoals: 1, theirGoals: 0, lineup: [line("A"), ringer("X")] });
-    expect(regularsFor(third, [...games, tonight, third])).toEqual(["A"]);
+  it("never charges anyone who was on the pitch that night, and is empty when no absent regular has three games", () => {
+    const games = Array.from({ length: 4 }, (_, i) => match({ seasonId: "S8", gw: i + 1, date: `2026-09-0${i + 1}`, ourGoals: 1, theirGoals: 0, lineup: [line("A"), line("B"), ...(i < 2 ? [line("C")] : [])] }));
+    const tonight = match({ seasonId: "S8", gw: 5, date: "2026-09-05", ourGoals: 2, theirGoals: 2, lineup: [line("A"), ringer("X")] });
+    expect(regularsFor(tonight, [...games, tonight])).toEqual(["B"]); // A played; C has two
+    const both = match({ seasonId: "S8", gw: 5, date: "2026-09-05", ourGoals: 2, theirGoals: 2, lineup: [line("A"), line("B"), ringer("X")] });
+    expect(regularsFor(both, [...games, both])).toEqual([]);
+    expect(ringerLevy({ ...both, costPerPlayer: 10 }, regularsFor(both, [...games, both]))).toBeNull();
   });
 });
 
@@ -53,7 +53,7 @@ describe("the levy", () => {
     const m = match({ date: "2026-10-06", ourGoals: 11, theirGoals: 5, matchCost: 79.95, costPerPlayer: 79.95 / 6, lineup: [line("A"), line("B"), line("C"), line("D"), line("E"), ringer("X", 1)] });
     const l = ringerLevy(m, ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"])!;
     expect(l.ringers).toEqual(["X"]); expect(l.total).toBeCloseTo(13.325, 6); expect(l.each).toBeCloseTo(1.3325, 6); expect(l.payers.length).toBe(10);
-    expect(levyLine(l)).toBe("X is a ringer: their £13.33 is split between 10 regulars at £1.33 each (A, B, C, D, E, F, G, H, I, J).");
+    expect(levyLine(l)).toBe("X is a ringer: their £13.33 is split between the 10 regulars who did not play, at £1.33 each (A, B, C, D, E, F, G, H, I, J).");
   });
   it("is nothing when there are no ringers, the pitch was free, or nobody can be charged", () => {
     expect(ringerLevy(match({ date: "2026-10-06", costPerPlayer: 10, lineup: [line("A")] }), ["A"])).toBeNull();
@@ -66,8 +66,8 @@ describe("the levy", () => {
     const data = club([...s7, ...s8]);
     applyRingerLevies(data.seasons, data.friendlies);
     const m = data.seasons.find((s) => s.id === "S8")!.matches[0];
-    // last ten: S7 GW1–8 (A, B, C each 8; D 3) + S8 GW1 → A, B, C and D all qualify
-    expect(m.levy).toEqual({ ringers: ["X"], total: 20, each: 5, payers: ["A", "B", "C", "D"] });
+    // last ten: S7 GW1–8 (A, B, C each 8; D 3) + S8 GW1 → C and D qualify; A and B played, so they pay nothing extra
+    expect(m.levy).toEqual({ ringers: ["X"], total: 20, each: 10, payers: ["C", "D"] });
     expect(data.seasons.find((s) => s.id === "S7")!.matches.every((x) => x.levy === null)).toBe(true);
   });
 });

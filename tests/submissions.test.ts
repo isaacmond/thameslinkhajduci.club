@@ -11,7 +11,7 @@ describe("ringers on the score form", () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.value.ringers).toEqual(["Alex"]); expect(r.value.played.sort()).toEqual(["Alex", "Phil Knott", "Seb Burgess"]);
-    const m = buildScoreMessage(r.value, fixture, "Tue 6 Oct", "Alex is a ringer: their £13.33 is split between 10 regulars at £1.33 each (…).");
+    const m = buildScoreMessage(r.value, fixture, "Tue 6 Oct", "Alex is a ringer: their £13.33 is split between the 10 regulars who did not play, at £1.33 each (…).");
     expect(m.text).toContain("Played: Phil Knott, Seb Burgess");
     expect(m.text).toContain("Ringers: Alex · Alex is a ringer");
     expect(m.change.ringers).toEqual(["Alex"]);

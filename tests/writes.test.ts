@@ -60,11 +60,10 @@ describe("recording results", () => {
     // the levy: one head's worth, split equally between the regulars, all of whom are charged for it in S8
     expect(m.levy).not.toBeNull();
     expect(m.levy!.total).toBeCloseTo(m.costPerPlayer, 6); expect(m.levy!.each).toBeCloseTo(m.costPerPlayer / m.levy!.payers.length, 6);
-    expect(m.levy!.payers.length).toBeGreaterThanOrEqual(3); expect(m.levy!.payers.length).toBeLessThanOrEqual(12);
-    for (const name of m.levy!.payers) {
-      const played = m.lineup.some((l) => l.player === name && l.played);
-      expect(owed(after, name) - owed(before, name)).toBeCloseTo((played ? m.costPerPlayer : 0) + m.levy!.each, 6);
-    }
+    expect(m.levy!.payers.length).toBeGreaterThanOrEqual(1); expect(m.levy!.payers.length).toBeLessThanOrEqual(12);
+    expect(m.levy!.payers.some((name) => m.lineup.some((l) => l.player === name && l.played))).toBe(false);
+    for (const name of m.levy!.payers) expect(owed(after, name) - owed(before, name)).toBeCloseTo(m.levy!.each, 6);
+    for (const l of m.lineup) if (!l.ringer) expect(owed(after, l.player) - owed(before, l.player)).toBeCloseTo(m.costPerPlayer, 6);
     expect(owed(after, "Alex")).toBe(0);
     // the whole pitch is still accounted for: heads' shares plus the levy add up to the match cost
     const charged = after.money.rows.reduce((t, r) => t + (r.charges.S8 ?? 0), 0) - before.money.rows.reduce((t, r) => t + (r.charges.S8 ?? 0), 0);
