@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { fmtDate } from "@/lib/stats";
 import { Shirt } from "./ui";
 
-export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null };
+export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null; ringer: boolean };
 type SortKey = "apps" | "goals" | "assists" | "goalsPerGame" | "winRate" | "motm" | "debut" | "name";
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "apps", label: "Apps" }, { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" }, { key: "goalsPerGame", label: "Goals / game" },
@@ -57,6 +57,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                   <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night/90 to-transparent" aria-hidden />
                   {p.shirt !== null && p.photo && <span className="display absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-gold text-lg leading-none text-night shadow"><span className="translate-y-[0.05em]">{p.shirt}</span></span>}
                   {p.activeThisSeason && <span className="chip absolute left-2 top-2 border-mint/50 bg-night/85 text-mint-soft shadow backdrop-blur">{currentSeason}</span>}
+                  {p.ringer && <span className={clsx("chip absolute left-2 border-gold/50 bg-night/85 text-gold shadow backdrop-blur", p.activeThisSeason ? "top-10" : "top-2")}>Ringer</span>}
                   <div className="absolute inset-x-0 bottom-0 p-3">
                     <h2 className="display text-2xl leading-none text-cream drop-shadow">{p.name}</h2>
                     <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-ash">

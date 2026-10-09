@@ -29,6 +29,13 @@
       "when": 1790184587568,
       "tag": "0003_motm_polls",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791540000000,
+      "tag": "0004_ringers",
+      "breakpoints": true
     }
   ]
 }

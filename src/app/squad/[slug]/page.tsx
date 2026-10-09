@@ -72,6 +72,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
               <Tag>Debut {fmtDate(p.debut)}</Tag>
               <Tag>Last seen {fmtDate(p.lastPlayed)}</Tag>
               <Tag>{seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}</Tag>
+              {p.ringer && <Tag tone="gold">Ringer · borrowed, never on the team sheet</Tag>}
               {ranks.map((r) => <Tag key={r.label} tone="gold"><Crown size={12} aria-hidden />#{r.rank} all-time {r.label}</Tag>)}
               <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.`} />
               <EditProfileLink player={p.name} />

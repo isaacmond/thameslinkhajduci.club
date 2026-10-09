@@ -72,6 +72,8 @@ export const appearances = pgTable("appearances", {
   played: boolean().notNull().default(true),
   goals: integer().notNull().default(0),
   assists: integer().notNull().default(0),
+  /** an outside player borrowed for the night: counts as an appearance, pays nothing; their share of the pitch is levied on the regulars */
+  ringer: boolean().notNull().default(false),
 }, (t) => [primaryKey({ columns: [t.matchId, t.player] }), index("appearances_player_idx").on(t.player)]);
 
 export const payments = pgTable("payments", {

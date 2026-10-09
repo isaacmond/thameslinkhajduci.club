@@ -9,7 +9,7 @@ export function fixtureWorkbook(): ArrayBuffer {
   return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
 }
 
-export const line = (player: string, goals = 0, assists = 0, played = true): PlayerMatchLine => ({ player, played, goals, assists, cost: 0 });
+export const line = (player: string, goals = 0, assists = 0, played = true): PlayerMatchLine => ({ player, played, goals, assists, cost: 0, ringer: false });
 
 let gwCounter = 0;
 /** A Match with the same derived flags the parser would set, so tests only state what matters. */
@@ -42,12 +42,13 @@ export function match(o: Partial<Match> & { date: string }): Match {
     playersInGame: o.playersInGame ?? lineup.filter((l) => l.played).length,
     costPerPlayer: o.costPerPlayer ?? 0,
     lineup,
+    levy: o.levy ?? null,
   };
 }
 
 export function player(o: Partial<Player> & { name: string }): Player {
   return {
-    slug: slugify(o.name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: {},
+    slug: slugify(o.name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: {}, ringer: false,
     ...o,
   };
 }

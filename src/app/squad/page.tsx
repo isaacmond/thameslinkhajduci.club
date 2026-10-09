@@ -14,7 +14,7 @@ export default async function SquadPage() {
     name: p.name, slug: p.slug, apps: p.apps, goals: p.goals, assists: p.assists, motm: p.motm, goalsPerGame: p.goalsPerGame, winRate: p.winRate, debut: p.debut,
     seasonsPlayed: p.seasons.filter((x) => x.apps > 0).length,
     activeThisSeason: !!current && p.seasons.some((x) => x.seasonId === current.id && x.apps > 0),
-    photo: p.extra.photo ?? null, shirt: p.extra.shirt ?? null, positions: p.extra.positions ?? [], nickname: p.extra.nickname ?? null,
+    photo: p.extra.photo ?? null, shirt: p.extra.shirt ?? null, positions: p.extra.positions ?? [], nickname: p.extra.nickname ?? null, ringer: p.ringer,
   }));
   const active = cards.filter((c) => c.activeThisSeason).length;
   return (

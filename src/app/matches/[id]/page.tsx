@@ -95,7 +95,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
             {m.motm && <span className="chip border-gold/40 bg-gold/10 text-gold"><Star size={12} aria-hidden />MOTM <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" />{poll?.status === "closed" && poll.winner === m.motm && <span className="font-normal text-gold/80">· voted</span>}</span>}
             {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />MOTM vote open · {poll.voted}/{poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
-            {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci {isForfeit ? "paying for it" : "on the pitch"}</Tag>}
+            {m.playersInGame > 0 && <Tag>{m.playersInGame} Hajduci {isForfeit ? "paying for it" : "on the pitch"}{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
             {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
             <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-ash hover:text-cream" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
             <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
@@ -133,7 +133,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   <tbody>
                     {lineup.map((l) => (
                       <tr key={l.player}>
-                        <td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /></td>
+                        <td><span className="inline-flex max-w-full items-center gap-2"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{l.ringer && <Tag tone="gold" className="text-[10px]">Ringer</Tag>}</span></td>
                         <td className={clsx("num display text-xl", l.goals > 0 ? "text-mint-soft" : "text-ash/40")}>{l.goals || "·"}</td>
                         <td className={clsx("num display text-xl", l.assists > 0 ? "text-cream" : "text-ash/40")}>{l.assists || "·"}</td>
                         <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} aria-hidden />MOTM</span>}</td>
@@ -179,6 +179,13 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 )}
                 {!isForfeit && <div><dt className="eyebrow">Assists</dt><dd className="mt-1 text-cream">{assisters.length ? assisters.map((s) => `${s.player}${s.assists > 1 ? ` ×${s.assists}` : ""}`).join(", ") : "None claimed, remarkably"}</dd></div>}
                 <div><dt className="eyebrow">Verdict</dt><dd className="mt-1 text-cream">{verdict}</dd></div>
+                {m.levy && (
+                  <div>
+                    <dt className="eyebrow">Ringer levy</dt>
+                    <dd className="mt-1 text-cream">{m.levy.ringers.join(", ")} {m.levy.ringers.length === 1 ? "was borrowed" : "were borrowed"} for the night and pay{m.levy.ringers.length === 1 ? "s" : ""} nothing. {m.levy.ringers.length === 1 ? "Their" : "Their"} {fmtMoney(m.levy.total)} is split between the {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} at {fmtMoney(m.levy.each)} each.</dd>
+                    <dd className="mt-1 text-xs text-ash">Regulars: the ten with the most games in the last ten, three at least. {m.levy.payers.join(", ")}.</dd>
+                  </div>
+                )}
                 {poll && (
                   <div>
                     <dt className="eyebrow">Man of the match vote</dt>

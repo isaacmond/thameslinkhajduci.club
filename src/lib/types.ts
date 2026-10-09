@@ -6,6 +6,19 @@ export interface PlayerMatchLine {
   goals: number;
   assists: number;
   cost: number;
+  /** borrowed for the night: an appearance like any other, but their share of the pitch is levied on the regulars (see Match.levy) */
+  ringer: boolean;
+}
+
+/** What the ringers' share of a pitch comes to and who picks it up: the regulars, equally. */
+export interface RingerLevy {
+  ringers: string[];
+  /** the ringers' combined share of the pitch */
+  total: number;
+  /** what each regular is charged */
+  each: number;
+  /** the regulars charged, in rank order */
+  payers: string[];
 }
 
 export interface Match {
@@ -33,6 +46,8 @@ export interface Match {
   playersInGame: number;
   costPerPlayer: number;
   lineup: PlayerMatchLine[]; // only players who played or scored
+  /** set when ringers played and the pitch cost money: how their share is spread (null otherwise) */
+  levy: RingerLevy | null;
 }
 
 export interface SeasonSummary {
@@ -102,6 +117,8 @@ export interface Player {
   lastPlayed: string | null;
   seasons: PlayerSeasonStats[];
   extra: SquadExtra;
+  /** every appearance was as a ringer: never on a team sheet, listed for the record */
+  ringer: boolean;
 }
 
 export interface MoneyRow {
@@ -126,7 +143,7 @@ export interface Payment {
 }
 
 /** What the client-side match browser needs: a Match without the per-player cost/lineup detail (about a quarter of the bytes). */
-export type MatchLite = Omit<Match, "lineup" | "matchCost" | "playersInGame" | "costPerPlayer"> & { lineup: Pick<PlayerMatchLine, "player" | "played" | "goals">[] };
+export type MatchLite = Omit<Match, "lineup" | "matchCost" | "playersInGame" | "costPerPlayer" | "levy"> & { lineup: Pick<PlayerMatchLine, "player" | "played" | "goals">[] };
 
 export interface ClubData {
   fetchedAt: string;

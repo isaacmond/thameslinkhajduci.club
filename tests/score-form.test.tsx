@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ScoreForm, type SubmitFixture } from "@/components/score-form";
 
-const fixture = (over: Partial<SubmitFixture>): SubmitFixture => ({ id: "s8-gw3", label: "Tue 15 Sept · GW3 vs TMHLR F.C.", seasonId: "S8", gw: 3, opponent: "TMHLR F.C.", date: "2026-09-15", played: false, ourGoals: null, theirGoals: null, lineup: [], expected: [], scorers: {}, assists: {}, motm: null, type: null, matchCost: 79.95, kickOff: "18:15", ...over });
+const fixture = (over: Partial<SubmitFixture>): SubmitFixture => ({ id: "s8-gw3", label: "Tue 15 Sept · GW3 vs TMHLR F.C.", seasonId: "S8", gw: 3, opponent: "TMHLR F.C.", date: "2026-09-15", played: false, ourGoals: null, theirGoals: null, lineup: [], expected: [], scorers: {}, assists: {}, motm: null, type: null, matchCost: 79.95, kickOff: "18:15", ringers: [], priorApps: {}, counted: true, ...over });
 const roster = ["Ben Merrett", "Finn Cawley", "Isaac Mond", "Phil Knott"];
 const pressed = (html: string) => [...html.matchAll(/aria-pressed="true"[^>]*>.*?<span class="truncate">([^<]+)</g)].map((m) => m[1]);
 
@@ -32,6 +32,17 @@ describe("ScoreForm and the team sheet", () => {
     expect(html).toContain("Tick the whole team sheet");
     expect(html).not.toContain("Man of the match");
     expect(html).toContain("Prepare the forfeit");
+  });
+  it("a recorded ringer is listed with the levy on the regulars, worked out from the window plus the night's ticks", () => {
+    const priorApps = { "Ben Merrett": 4, "Finn Cawley": 3, "Isaac Mond": 2, "Phil Knott": 1 };
+    const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ played: true, ourGoals: 11, theirGoals: 5, lineup: ["Ben Merrett", "Phil Knott", "Isaac Mond"], ringers: ["Alex"], priorApps })]} roster={roster} webhook={false} />);
+    expect(html).toContain("Ringer</span><span class=\"truncate\">Alex</span>");
+    // 4 on the pitch at £19.99 a head; Ben 5, Finn 3, Isaac 3 qualify (Phil is on 2), so Alex's £19.99 splits three ways
+    expect(html).toContain("4 on the pitch, £19.99 a head");
+    expect(html).toContain("split between 3 regulars");
+    expect(html).toContain("£6.66 each");
+    expect(html).toContain("Ben Merrett, Finn Cawley, Isaac Mond");
+    expect(html).toContain("Add ringer");
   });
   it("a recorded forfeit keeps its payers and shows each one's share", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ type: "Forfeit", played: true, ourGoals: 0, theirGoals: 8, lineup: ["Isaac Mond", "Phil Knott", "Finn Cawley"] })]} roster={roster} webhook={false} />);

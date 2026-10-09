@@ -46,9 +46,9 @@ export function buildTable(data: ClubData, table: TableName, opts: { season?: st
         if (table === "appearances" && !l.played) continue;
         if (table === "goals" && !l.goals) continue;
         if (table === "assists" && !l.assists) continue;
-        rows.push({ season: m.seasonId, gw: m.gw, date: m.date, opponent: m.opponent, result: m.result, player: l.player, goals: l.goals, assists: l.assists, motm: m.motm === l.player, counts_for_records: m.countsForRecords });
+        rows.push({ season: m.seasonId, gw: m.gw, date: m.date, opponent: m.opponent, result: m.result, player: l.player, goals: l.goals, assists: l.assists, motm: m.motm === l.player, ringer: l.ringer, counts_for_records: m.countsForRecords });
       }
-      return { columns: ["season", "gw", "date", "opponent", "result", "player", "goals", "assists", "motm", "counts_for_records"], rows };
+      return { columns: ["season", "gw", "date", "opponent", "result", "player", "goals", "assists", "motm", "ringer", "counts_for_records"], rows };
     }
     case "opponents": {
       const rows: Row[] = headToHead(matches).map((o) => ({ opponent: o.opponent, played: o.played, won: o.won, drawn: o.drawn, lost: o.lost, goals_for: o.gf, goals_against: o.ga, seasons: o.seasons.join(" ") }));

@@ -2,6 +2,7 @@ import { asc } from "drizzle-orm";
 import { getDb, schema, type Db } from "./db";
 import { assembleClubData, mergeExtras, recomputeSummary, rejectedPhotos, resultOf, safePhoto, seasonComplete } from "./assemble";
 import { SHEET_URL } from "./config";
+import { applyRingerLevies } from "./ringers";
 import type { ClubData, Match, MoneyRow, Payment, PlayerMatchLine, Season, SeasonSummary, SquadExtra } from "./types";
 
 /**
@@ -42,7 +43,8 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
       const playersInGame = m.playersInGame ?? apps.filter((a) => a.played || a.goals > 0).length;
       const matchCost = num(m.matchCost);
       const costPerPlayer = playersInGame > 0 ? matchCost / playersInGame : 0;
-      const lineup: PlayerMatchLine[] = apps.map((a) => ({ player: a.player, played: a.played || a.goals > 0, goals: a.goals, assists: a.assists, cost: a.played ? costPerPlayer : 0 }));
+      // A ringer is a head on the pitch for the split but pays nothing: their share is the levy on the regulars (set below, once every season is in).
+      const lineup: PlayerMatchLine[] = apps.map((a) => ({ player: a.player, played: a.played || a.goals > 0, goals: a.goals, assists: a.assists, cost: a.played && !a.ringer ? costPerPlayer : 0, ringer: a.ringer }));
       const og = m.ourGoals, tg = m.theirGoals;
       const played = og !== null && tg !== null;
       const goalsLogged = lineup.reduce((t, l) => t + l.goals, 0), assistsLogged = lineup.reduce((t, l) => t + l.assists, 0);
@@ -51,7 +53,7 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
         ourGoals: og, theirGoals: tg, result: resultOf(og, tg), played, motm: m.motm, comment: m.comment,
         type: m.type ?? (isFriendlies ? "Friendly" : null), countsForRecords: !m.type && !isFriendlies,
         scorersRecorded: og === 0 || goalsLogged > 0, assistsRecorded: og === 0 || assistsLogged > 0,
-        matchCost, playersInGame, costPerPlayer, lineup,
+        matchCost, playersInGame, costPerPlayer, lineup, levy: null,
       };
     });
     const perPlayer = new Map<string, { apps: number; goals: number }>();
@@ -64,6 +66,8 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
     else if (matches.length) seasons.push(season);
   }
 
+  applyRingerLevies(seasons, friendlies);
+
   const extras = new Map<string, SquadExtra>();
   for (const p of playerRows) extras.set(p.name, { nickname: p.nickname ?? undefined, positions: p.positions ?? [], shirt: p.shirt, photo: safePhoto(p.name, p.photo), bio: p.bio ?? undefined });
 
@@ -74,7 +78,10 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
   const rows = new Map<string, MoneyRow>();
   const row = (player: string) => { let r = rows.get(player); if (!r) { r = { player, charges: {}, totalCharged: 0, paid: 0, balance: 0, pitchCovered: 0 }; rows.set(player, r); } return r; };
   for (const s of tracked) if (s.id !== "FR") for (const p of s.players) row(p).charges[s.id] = row(p).charges[s.id] ?? 0;
-  for (const s of tracked) for (const m of s.matches) if (m.played) for (const l of m.lineup) if (l.cost > 0) { const r = row(l.player); r.charges[s.id] = (r.charges[s.id] ?? 0) + l.cost; }
+  for (const s of tracked) for (const m of s.matches) if (m.played) {
+    for (const l of m.lineup) if (l.cost > 0) { const r = row(l.player); r.charges[s.id] = (r.charges[s.id] ?? 0) + l.cost; }
+    if (m.levy) for (const p of m.levy.payers) { const r = row(p); r.charges[s.id] = (r.charges[s.id] ?? 0) + m.levy.each; }
+  }
   const payments: Payment[] = paymentRows.map((p) => ({ date: p.date, player: p.player, amount: num(p.amount), to: p.paidTo, note: p.note }));
   for (const p of payments) row(p.player).paid += p.amount;
   for (const r of rows.values()) { r.totalCharged = Object.values(r.charges).reduce((t, v) => t + v, 0); r.balance = r.totalCharged - r.paid; }

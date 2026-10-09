@@ -35,7 +35,7 @@ export async function importClubData(db: Db, data: ClubData, extras: ImportExtra
       const played = m.lineup.filter((l) => l.played).length;
       return { id: m.id, seasonId: s.id, gw: m.gw, date: m.date, kickOff: m.kickOff, opponent: m.opponent, ourGoals: m.ourGoals, theirGoals: m.theirGoals, motm: m.motm, comment: m.comment, type: s.id === "FR" && m.type === "Friendly" ? null : m.type, matchCost: m.matchCost.toFixed(2), playersInGame: m.playersInGame !== played ? m.playersInGame : null, updatedBy: "import" };
     }));
-    const lines = s.matches.flatMap((m) => m.lineup.map((l) => ({ matchId: m.id, player: l.player, played: l.played, goals: l.goals, assists: l.assists })));
+    const lines = s.matches.flatMap((m) => m.lineup.map((l) => ({ matchId: m.id, player: l.player, played: l.played, goals: l.goals, assists: l.assists, ringer: l.ringer ?? false })));
     if (lines.length) await db.insert(schema.appearances).values(lines);
   }
   if (data.money.payments.length) await db.insert(schema.payments).values(data.money.payments.map((p) => ({ date: p.date, player: p.player, paidTo: p.to, amount: p.amount.toFixed(2), note: p.note, createdBy: "import" })));

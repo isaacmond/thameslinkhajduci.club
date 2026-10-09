@@ -9,7 +9,7 @@ export const ppg = (s: { won: number; drawn: number; played: number }) => (s.pla
 export const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 export const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
 /** Strip a match to what the client-side browser renders and searches on. */
-export const toLite = (m: Match): MatchLite => { const { lineup, matchCost, playersInGame, costPerPlayer, ...rest } = m; void matchCost; void playersInGame; void costPerPlayer; return { ...rest, lineup: lineup.filter((l) => l.played || l.goals > 0).map((l) => ({ player: l.player, played: l.played, goals: l.goals })) }; };
+export const toLite = (m: Match): MatchLite => { const { lineup, matchCost, playersInGame, costPerPlayer, levy, ...rest } = m; void matchCost; void playersInGame; void costPerPlayer; void levy; return { ...rest, lineup: lineup.filter((l) => l.played || l.goals > 0).map((l) => ({ player: l.player, played: l.played, goals: l.goals })) }; };
 /** "GW3" for league games, "Friendly 3" for the friendlies tab. */
 export const gwLabel = (m: { seasonId: string; gw: number }) => (m.seasonId === "FR" ? `Friendly ${m.gw}` : `GW${m.gw}`);
 export const seasonHref = (seasonId: string) => (seasonId === "FR" ? "/seasons/friendlies" : `/seasons/${seasonId.toLowerCase()}`);

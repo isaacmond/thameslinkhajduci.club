@@ -6,8 +6,11 @@ import { slugify } from "./slug";
  * Every change the site makes to the records, in one place. Callers (server actions, the submit route) check who is
  * allowed to do what; these functions just do it and stamp who did it. Reads for pages go through db-data.ts.
  */
-/** `forfeit`: we did not play (turned up late, too few of us). The score is whatever the league awarded, `played` is who pays for the pitch, and the fixture is typed Forfeit so nothing counts. */
-export type ScoreChange = { matchId: string; ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; comment: string | null; forfeit?: boolean };
+/**
+ * `forfeit`: we did not play (turned up late, too few of us). The score is whatever the league awarded, `played` is who pays for the pitch, and the fixture is typed Forfeit so nothing counts.
+ * `ringers`: outside players borrowed for the night. They count as appearances (and may be in `scorers`/`assists`) but pay nothing and never join the team sheet; their share is levied on the regulars.
+ */
+export type ScoreChange = { matchId: string; ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; comment: string | null; forfeit?: boolean; ringers?: string[] };
 export type PaymentChange = { player: string; to: string | null; amount: number; date: string; note: string };
 export type PlayerChange = { name: string; nickname: string; positions: string[]; shirt: number | null; photo: string; seasonId: string | null };
 export type ProfileChange = { nickname?: string; positions?: string[]; shirt?: number | null; photo?: string | null; bio?: string };
@@ -16,13 +19,19 @@ export type SeasonChange = { id: string; number: number; title: string; venue: s
 
 const money = (n: number | null | undefined) => (n === null || n === undefined ? null : n.toFixed(2));
 
-/** Make sure every named player exists and is on the season's team sheet (appended at the end). */
-async function ensureOnRoster(db: Db, seasonId: string, names: string[], by: string) {
+/** Make sure every named player has a row on the players table (ringers included: appearances point at it). */
+async function ensurePlayers(db: Db, names: string[], by: string) {
   const unique = [...new Set(names)].filter(Boolean);
   if (!unique.length) return;
   const known = new Set((await db.select({ name: schema.players.name }).from(schema.players).where(inArray(schema.players.name, unique))).map((r) => r.name));
   const missing = unique.filter((n) => !known.has(n));
   if (missing.length) await db.insert(schema.players).values(missing.map((name) => ({ name, slug: slugify(name), updatedBy: by }))).onConflictDoNothing();
+}
+/** Make sure every named player exists and is on the season's team sheet (appended at the end). */
+async function ensureOnRoster(db: Db, seasonId: string, names: string[], by: string) {
+  const unique = [...new Set(names)].filter(Boolean);
+  if (!unique.length) return;
+  await ensurePlayers(db, unique, by);
   const onSheet = new Set((await db.select({ player: schema.seasonRosters.player }).from(schema.seasonRosters).where(eq(schema.seasonRosters.seasonId, seasonId))).map((r) => r.player));
   const toAdd = unique.filter((n) => !onSheet.has(n));
   if (toAdd.length) {
@@ -41,9 +50,12 @@ export async function recordScore(c: ScoreChange, by: string, db: Db = getDb()) 
   if (!m) throw new Error(`No fixture ${c.matchId}`);
   const forfeit = c.forfeit === true;
   const scorers = forfeit ? {} : c.scorers, assists = forfeit ? {} : c.assists, motm = forfeit ? null : c.motm;
-  const names = [...new Set([...c.played, ...Object.keys(scorers), ...Object.keys(assists), ...(motm ? [motm] : [])])];
-  await ensureOnRoster(db, m.seasonId, names, by);
-  const lines = names.map((player) => ({ matchId: c.matchId, player, played: c.played.includes(player) || (scorers[player] ?? 0) > 0, goals: scorers[player] ?? 0, assists: assists[player] ?? 0 })).filter((l) => l.played || l.goals || l.assists);
+  // A forfeit has no ringers: nobody played. Otherwise a ringer is on the pitch (played) but kept off the team sheet.
+  const ringers = new Set(forfeit ? [] : c.ringers ?? []);
+  const names = [...new Set([...c.played, ...ringers, ...Object.keys(scorers), ...Object.keys(assists), ...(motm ? [motm] : [])])];
+  await ensurePlayers(db, [...ringers], by);
+  await ensureOnRoster(db, m.seasonId, names.filter((n) => !ringers.has(n)), by);
+  const lines = names.map((player) => ({ matchId: c.matchId, player, played: c.played.includes(player) || ringers.has(player) || (scorers[player] ?? 0) > 0, goals: scorers[player] ?? 0, assists: assists[player] ?? 0, ringer: ringers.has(player) })).filter((l) => l.played || l.goals || l.assists);
   const type = forfeit ? "Forfeit" : /^forfeit$/i.test(m.type ?? "") ? null : m.type;
   await atomic(db, [
     db.update(schema.matches).set({ ourGoals: c.ours, theirGoals: c.theirs, motm, comment: c.comment, type, updatedAt: new Date(), updatedBy: by }).where(eq(schema.matches.id, c.matchId)),

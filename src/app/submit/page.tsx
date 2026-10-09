@@ -11,6 +11,7 @@ import { PageTransition } from "@/components/page-transition";
 import { currentMember } from "@/lib/auth";
 import { dbConfigured } from "@/lib/db";
 import { listSquads } from "@/lib/writes";
+import { appearanceCounts, levyWindow } from "@/lib/ringers";
 import type { SignedIn } from "@/components/signed-in-note";
 
 /** Reads the session, so this page renders per request (the data underneath is still the cached records). */
@@ -62,11 +63,16 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
     const rosterSet = new Set(roster);
     const squads = dbConfigured() ? await listSquads().catch(() => []) : [];
     const expected = new Map(squads.map((s) => [s.matchId, s.players.filter((p) => rosterSet.has(p))]));
+    // The league games before each fixture that count towards the ringer levy; the form adds the night's own ticks on top.
+    const counted = data.matches.filter((m) => m.countsForRecords && m.played);
+    const priorApps = (m: (typeof pool)[number]) => appearanceCounts(levyWindow({ ...m, played: false }, counted).slice(m.countsForRecords ? -9 : -10));
     const toFixture = (m: (typeof pool)[number]): SubmitFixture => ({
       id: m.id, seasonId: m.seasonId, gw: m.gw, opponent: m.opponent, date: m.date, played: m.played, ourGoals: m.ourGoals, theirGoals: m.theirGoals,
       label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} vs ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
-      lineup: m.lineup.filter((l) => l.played).map((l) => l.player),
+      lineup: m.lineup.filter((l) => l.played && !l.ringer).map((l) => l.player),
+      ringers: m.lineup.filter((l) => l.played && l.ringer).map((l) => l.player),
       expected: expected.get(m.id) ?? [],
+      priorApps: priorApps(m), counted: m.countsForRecords,
       type: m.type, matchCost: m.matchCost, kickOff: m.kickOff,
       scorers: Object.fromEntries(m.lineup.filter((l) => l.goals > 0).map((l) => [l.player, l.goals])),
       assists: Object.fromEntries(m.lineup.filter((l) => l.assists > 0).map((l) => [l.player, l.assists])),

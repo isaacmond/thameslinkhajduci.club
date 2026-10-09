@@ -11,6 +11,7 @@ import { applyChange } from "@/lib/apply";
 import { afterScoreRecorded, markBallotsSent, sendHeldBallots, type HeldBallot, type OpenResult } from "@/lib/motm-polls";
 import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, clean, originAllowed, validatePayment, validatePlayer, validateScore, type Built, type Kind, type Rejected } from "@/lib/submissions";
 import { SITE_URL } from "@/lib/config";
+import { levyLine, regularsFor, ringerLevy } from "@/lib/ringers";
 import type { ClubData } from "@/lib/types";
 
 /**
@@ -46,7 +47,16 @@ function buildScore(body: Body, data: ClubData): Built | Rejected {
   const seasonRoster = new Set((m.seasonId === "FR" ? data.friendlies : data.seasons.find((s) => s.id === m.seasonId))?.players ?? []);
   const v = validateScore(body, (n) => roster.has(n) || seasonRoster.has(n));
   if (!v.ok) return { error: v.error };
-  return buildScoreMessage(v.value, m, fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" }));
+  // Ringers: say up front whose pitch money this lands on, worked out the way the records will once the score is in.
+  let levy: string | null = null;
+  if (v.value.ringers.length && m.matchCost > 0) {
+    const heads = v.value.played.length;
+    const after = { ...m, played: true, playersInGame: heads, costPerPlayer: m.matchCost / heads, lineup: v.value.played.map((player) => ({ player, played: true, goals: 0, assists: 0, cost: 0, ringer: v.value.ringers.includes(player) })) };
+    const counted = data.matches.filter((x) => x.countsForRecords && x.played && x.id !== m.id);
+    const l = ringerLevy(after, regularsFor(after, counted));
+    if (l) levy = levyLine(l);
+  }
+  return buildScoreMessage(v.value, m, fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" }), levy);
 }
 function buildPayment(body: Body, data: ClubData): Built | Rejected {
   const current = currentSeason(data);

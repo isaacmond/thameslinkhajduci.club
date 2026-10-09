@@ -28,7 +28,7 @@ export function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>)
   const get = (name: string) => {
     let p = map.get(name);
     if (!p) {
-      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {} };
+      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {}, ringer: true };
       map.set(name, p);
     }
     return p;
@@ -46,6 +46,7 @@ export function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>)
       for (const l of m.lineup) {
         const p = get(l.player); const x = ps(l.player);
         x.cost += l.cost;
+        if (l.played && !l.ringer) p.ringer = false;
         if (!m.countsForRecords) continue;
         if (l.played) {
           x.apps++; p.apps++;
@@ -56,12 +57,15 @@ export function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>)
         }
         x.goals += l.goals; p.goals += l.goals; x.assists += l.assists; p.assists += l.assists;
       }
+      // The ringers' share of the pitch lands on the regulars, whether or not they played that night.
+      if (m.levy) for (const name of m.levy.payers) ps(name).cost += m.levy.each;
       // Awards only count for people on the season's roster; a typo or a guest in the MOTM cell must not mint a new squad member.
       if (m.countsForRecords && m.motm && roster.has(m.motm)) { const p = get(m.motm); p.motm++; ps(m.motm).motm++; }
     }
-    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm) get(name).seasons.push(x); }
+    for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm || x.cost) get(name).seasons.push(x); }
   }
   for (const p of map.values()) {
+    if (p.apps === 0) p.ringer = false;
     p.goalsPerGame = p.gpgGames ? +(p.goals / p.gpgGames).toFixed(2) : 0;
     p.assistsPerGame = p.apgGames ? +(p.assists / p.apgGames).toFixed(2) : 0;
     const decided = p.wins + p.draws + p.losses;

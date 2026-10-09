@@ -4,6 +4,37 @@ import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, forfeitBill
 const roster = ["Phil Knott", "Seb Burgess", "Isaac Mond"];
 const today = "2026-09-04";
 
+describe("ringers on the score form", () => {
+  const fixture = { id: "s8-gw6", seasonId: "S8", gw: 6, opponent: "Corsicans FC", date: "2026-10-06", played: false, matchCost: 79.95 };
+  it("accepts a ringer who is not on the roster, lets them score, and keeps them out of the Played line", () => {
+    const r = validateScore({ ours: 2, theirs: 1, scorers: { Alex: 1, "Phil Knott": 1 }, played: ["Phil Knott", "Seb Burgess"], ringers: [" Alex "], submittedBy: "Phil" }, (n) => roster.includes(n));
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.value.ringers).toEqual(["Alex"]); expect(r.value.played.sort()).toEqual(["Alex", "Phil Knott", "Seb Burgess"]);
+    const m = buildScoreMessage(r.value, fixture, "Tue 6 Oct", "Alex is a ringer: their £13.33 is split between 10 regulars at £1.33 each (…).");
+    expect(m.text).toContain("Played: Phil Knott, Seb Burgess");
+    expect(m.text).toContain("Ringers: Alex · Alex is a ringer");
+    expect(m.change.ringers).toEqual(["Alex"]);
+  });
+  it("still refuses an unknown name that was not declared a ringer", () => {
+    const r = validateScore({ ours: 1, theirs: 1, scorers: { Alex: 1 }, played: [], submittedBy: "Phil" }, (n) => roster.includes(n));
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(/as a ringer/);
+  });
+  it.each([
+    [{ ringers: ["A"] }, /letters/],
+    [{ ringers: ["Al3x"] }, /letters/],
+    [{ ringers: ["A", "B", "C", "D", "E"].map((x) => x + "lex") }, /most we will admit/],
+  ])("rejects %j", (extra, msg) => {
+    const r = validateScore({ ours: 1, theirs: 1, played: ["Phil Knott"], submittedBy: "Phil", ...extra }, (n) => roster.includes(n));
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(msg);
+  });
+  it("a forfeit has no ringers", () => {
+    const r = validateScore({ ours: 0, theirs: 8, forfeit: true, played: ["Phil Knott"], ringers: ["Alex"], submittedBy: "Phil" }, (n) => roster.includes(n));
+    expect(r.ok && r.value.ringers).toEqual([]); expect(r.ok && r.value.played).toEqual(["Phil Knott"]);
+    expect(r.ok && "ringers" in buildScoreMessage(r.value, fixture, "Tue").change).toBe(false);
+  });
+});
+
 describe("payments", () => {
   it("accepts a sensible payment and normalises the amount", () => {
     const r = validatePayment({ player: "phil knott", amount: "11.42", date: "2026-09-03", submittedBy: "Phil", note: "Monzo ref 123" }, roster, today);
