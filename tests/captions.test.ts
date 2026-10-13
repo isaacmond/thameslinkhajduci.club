@@ -5,7 +5,7 @@ describe("resultWord", () => {
   it("names the result plainly", () => {
     expect(resultWord("W")).toBe("Win");
     expect(resultWord("D")).toBe("Draw");
-    expect(resultWord("L")).toBe("Defeat");
+    expect(resultWord("L")).toBe("Loss");
     expect(resultWord(null)).toBe("");
   });
 });

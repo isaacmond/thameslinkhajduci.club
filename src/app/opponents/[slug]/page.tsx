@@ -73,7 +73,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
   const cleanSheets = counted.filter((m) => m.theirGoals === 0).length;
   const summary: SeasonSummary = { played: o.played, won: o.won, drawn: o.drawn, lost: o.lost, goalsFor: o.gf, goalsAgainst: o.ga, topScorer: scorers[0]?.player.name ?? null, mostApps: regulars[0]?.player.name ?? null, seasonCost: 0, paidBy: null };
   const v = opponentVerdict(o);
-  const per = (n: number) => (o.played ? (n / o.played).toFixed(1) : "0.0");
+  const per = (n: number) => (o.played ? (n / o.played).toFixed(2) : "0.00");
 
   return (
     <PageTransition>
@@ -113,7 +113,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
 
       <section className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2">
         <RecordCard compact label="Biggest win" value={biggestWin ? scoreline(biggestWin) : "–"} sub={meetingSub(biggestWin, "No wins yet.")} href={biggestWin ? `/matches/${biggestWin.id}` : undefined} />
-        <RecordCard compact label="Heaviest defeat" value={heaviest ? scoreline(heaviest) : "–"} sub={meetingSub(heaviest, "Never beaten us.")} href={heaviest ? `/matches/${heaviest.id}` : undefined} />
+        <RecordCard compact label="Heaviest defeat" value={heaviest ? scoreline(heaviest) : "–"} sub={meetingSub(heaviest, "No defeats yet.")} href={heaviest ? `/matches/${heaviest.id}` : undefined} />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">

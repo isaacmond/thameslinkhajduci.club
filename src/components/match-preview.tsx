@@ -18,7 +18,7 @@ function scorersAgainst(matches: Match[], players: Player[], top = 3): { player:
 const outcomes = [
   { key: "win", label: "Win", bar: "bg-win" },
   { key: "draw", label: "Draw", bar: "bg-draw" },
-  { key: "loss", label: "Defeat", bar: "bg-loss" },
+  { key: "loss", label: "Loss", bar: "bg-loss" },
 ] as const;
 
 /** Pre-match forecast for an unplayed fixture: outcome odds, expected goals, form, and what history says about this opponent. */

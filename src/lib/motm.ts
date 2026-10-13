@@ -1,5 +1,5 @@
 import { SITE_URL } from "./config";
-import { fmtDate, fmtMoney, gwLabel } from "./stats";
+import { fixtureLabel, fmtDate, fmtMoney } from "./stats";
 import type { ClubData } from "./types";
 
 /**
@@ -70,7 +70,7 @@ export function shuffled<T>(items: T[], seed: string): T[] {
 /** "Thursday 20:15" in London time, for the "closes" line. */
 export const fmtCloses = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(d).replace(",", "").replace(/ (\d)/, " $1");
 export const scoreTitle = (m: MotmMatch) => `Hajduci ${m.ourGoals}–${m.theirGoals} ${m.opponent}`;
-const fixtureLine = (m: MotmMatch) => `${m.seasonId} · ${gwLabel(m)} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })}`;
+const fixtureLine = (m: MotmMatch) => `${fixtureLabel(m)} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })}`;
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
 export const ballotUrl = (token: string, pick?: string) => `${SITE_URL}/motm/${token}${pick ? `?pick=${encodeURIComponent(pick)}` : ""}`;
 
@@ -177,6 +177,6 @@ export function renderResult({ match: m, winner, counts, ballots, reason }: Resu
     <p style="margin:0 0 14px;font-size:16px;line-height:1.4">${top?.votes ?? 0} of ${voted} vote${voted === 1 ? "" : "s"}${tied.length ? `, level with ${esc(tied.map((c) => c.player).join(" and "))} and ahead on what happened in the game` : ""}. ${voted} of ${ballots} ballot${ballots === 1 ? "" : "s"} came back. ${how}</p>
     <table style="width:100%;border-collapse:collapse;background:#fffcf6;border:1px solid rgba(23,34,27,.12);border-radius:10px;font-size:14px">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(SITE_URL)}/matches/${esc(m.id)}" style="display:inline-block;background:#1f5135;color:#f5f1e8;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px">Match page</a></p>`);
-  const text = [`Man of the match: ${winner}`, `${scoreTitle(m)} · ${fixtureLine(m)}`, "", `${top?.votes ?? 0} of ${voted} votes${tied.length ? `, level with ${tied.map((c) => c.player).join(" and ")} and ahead on what happened in the game` : ""}. ${voted} of ${ballots} ballots came back. ${how}`, "", ...counts.filter((c) => c.votes > 0).map((c) => `  ${c.player}: ${c.votes}`), "", `${SITE_URL}/matches/${m.id}`].join("\n");
+  const text = [`Man of the match: ${winner}`, `${scoreTitle(m)} · ${fixtureLine(m)}`, "", `${top?.votes ?? 0} of ${voted} vote${voted === 1 ? "" : "s"}${tied.length ? `, level with ${tied.map((c) => c.player).join(" and ")} and ahead on what happened in the game` : ""}. ${voted} of ${ballots} ballot${ballots === 1 ? "" : "s"} came back. ${how}`, "", ...counts.filter((c) => c.votes > 0).map((c) => `  ${c.player}: ${c.votes}`), "", `${SITE_URL}/matches/${m.id}`].join("\n");
   return { subject, html, text };
 }

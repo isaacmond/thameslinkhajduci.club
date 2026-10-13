@@ -42,7 +42,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
             <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? <span className="text-loss">{clash} already wears {shirt}.</span> : "Shows on your card and page."}</span>
           </label>
           <PositionPicker defaultValue={initial.positions} className="sm:col-span-2" />
-          <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio (optional)</span><textarea name="bio" defaultValue={initial.bio} maxLength={280} rows={3} placeholder="One or two lines for your player page. Keep it printable." className={`${inputClass} min-h-[5rem] resize-y`} /></label>
+          <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio (optional)</span><textarea name="bio" defaultValue={initial.bio} maxLength={280} rows={3} placeholder="One or two lines for your player page." className={`${inputClass} min-h-[5rem] resize-y`} /></label>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">

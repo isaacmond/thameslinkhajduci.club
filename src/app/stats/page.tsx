@@ -36,7 +36,7 @@ export default async function StatsPage() {
     { title: "Man of the match", items: leaderboard(data.players, "motm").slice(0, 5), color: "bg-gold" },
     { title: "Goals a game", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "goalsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2) },
     { title: "Assists a game", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "assistsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2), color: "bg-assist" },
-    { title: "Win rate", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "winRate", MIN).slice(0, 5), fmt: (v) => `${v}%`, color: "bg-accent" },
+    { title: "Win rate", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "winRate", MIN).slice(0, 5), fmt: (v) => `${v.toFixed(1)}%`, color: "bg-accent" },
     { title: "Attendance", sub: `Share of possible matches played, at least ${MIN_POSSIBLE}`, items: punctuality.slice(0, 5), fmt: (v) => `${v}%`, color: "bg-ink" },
     { title: "Goals in wins", sub: `At least ${MIN_GOALS} goals`, items: goalsInWins.slice(0, 5), color: "bg-accent" },
   ];

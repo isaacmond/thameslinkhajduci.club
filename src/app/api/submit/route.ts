@@ -79,7 +79,7 @@ export async function POST(req: Request) {
   // Same-origin JSON only: the forms post from our own pages; a cross-site form post or a stray script gets nothing, before it costs a rate-limit slot.
   if (!originAllowed(req.headers) || !(req.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
-  if (rateLimited(ip)) return NextResponse.json({ ok: false, error: "Steady on. Try again in a minute." }, { status: 429 });
+  if (rateLimited(ip)) return NextResponse.json({ ok: false, error: "Too many requests. Try again in a minute." }, { status: 429 });
   let body: Body;
   try { body = (await req.json()) as Body; } catch { return NextResponse.json({ ok: false, error: "Bad request" }, { status: 400 }); }
   if (body.website) return NextResponse.json({ ok: true, sent: false, summary: "", text: "" }); // honeypot: pretend success, do nothing
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
   const submittedBy = member ? `${built.submittedBy} (${member.member.player}, signed in)` : built.submittedBy;
   const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/admin` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
   const text = `${built.text}\n\n${status}${motm ? `\n${motm}` : ""}`;
-  const subject = (applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject) + (held.length ? " · your MOTM ballot inside" : "");
+  const subject = (applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject) + (held.length ? " · your man of the match ballot inside" : "");
   const extra = held.length ? { title: held.length === 1 ? `Your man-of-the-match ballot, ${held[0].player.split(" ")[0]}` : "Man-of-the-match ballots", html: held.map((h) => h.body.html).join('<hr style="margin:22px 0;border:0;border-top:1px solid rgba(255,255,255,.12)">'), text: held.map((h) => h.body.text).join("\n\n") } : undefined;
 
   const hook = process.env.SCORE_WEBHOOK_URL;

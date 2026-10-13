@@ -9,4 +9,4 @@ export function matchVerdict(m: { result: "W" | "D" | "L" | null; ourGoals: numb
 }
 
 /** The result as a word, for share text and image captions. */
-export const resultWord = (result: "W" | "D" | "L" | null) => (result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Defeat" : "");
+export const resultWord = (result: "W" | "D" | "L" | null) => (result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "");

@@ -1,5 +1,5 @@
 import type { ClubData, Match, Season } from "./types";
-import { fmtDate, gwLabel, opponentKey, seasonHref } from "./stats";
+import { fixtureLabel, fmtDate, gwLabel, opponentKey, seasonHref } from "./stats";
 import { londonToday } from "./time";
 import { slugify } from "./slug";
 import { rejectedPhotos } from "./sheet";
@@ -26,8 +26,8 @@ export interface HealthReport {
 const ORDER: Record<Severity, number> = { high: 0, medium: 1, low: 2 };
 export const SEVERITY_LABEL: Record<Severity, string> = { high: "Needs fixing", medium: "Worth a look", low: "Minor" };
 
-const tabName = (seasonId: string) => (seasonId === "FR" ? "Friendlies" : seasonId);
-const where = (m: Match) => `${tabName(m.seasonId)} ${gwLabel(m)} v ${m.opponent}, ${fmtDate(m.date)}`;
+const seasonName = (seasonId: string) => (seasonId === "FR" ? "Friendlies" : `Season ${seasonId.replace(/^S/, "")}`);
+const where = (m: Match) => `${fixtureLabel(m)} v ${m.opponent}, ${fmtDate(m.date)}`;
 /** A real game with a line-up: league fixtures and friendlies. A forfeit's line-up, when it has one, is who pays for the pitch, not who played. */
 const isGame = (m: Match) => !m.type || /^friendly$/i.test(m.type);
 
@@ -42,7 +42,7 @@ export function sheetHealth(data: ClubData, today: string = londonToday()): Heal
   for (const m of data.matches) {
     const href = `/matches/${m.id}`;
     const at = where(m);
-    if (opponentKey(m.opponent) === "forfeit") push("low", `forfeit-name:${m.id}`, `${tabName(m.seasonId)} ${gwLabel(m)}: the opponent is written as "Forfeit". Keep the real opponent in the Opponent row and put Forfeit in the Type row.`, href);
+    if (opponentKey(m.opponent) === "forfeit") push("low", `forfeit-name:${m.id}`, `${fixtureLabel(m)}: the opponent is set to "Forfeit"; set the real opponent and mark the fixture as a forfeit.`, href);
     if (!m.played) {
       if (isGame(m) && m.date && m.date < today) push("medium", `no-score:${m.id}`, `${at}: kicked off but has no score yet.`, href);
       continue;
@@ -51,23 +51,23 @@ export function sheetHealth(data: ClubData, today: string = londonToday()): Heal
 
     const og = m.ourGoals ?? 0, tg = m.theirGoals ?? 0;
     const computed = og > tg ? "W" : og < tg ? "L" : "D";
-    if (m.result && m.result !== computed) push("high", `result-mismatch:${m.id}`, `${at}: the Result row says ${m.result} but the score ${og}–${tg} is a ${computed}.`, href);
+    if (m.result && m.result !== computed) push("high", `result-mismatch:${m.id}`, `${at}: the result is ${m.result} but the score ${og}–${tg} is a ${computed}.`, href);
 
     const played = m.lineup.filter((l) => l.played).length;
-    if (played === 0) push("high", `no-apps:${m.id}`, `${at}: has a score but nobody is marked in the APPEARANCES grid, so it counts for the club and for no one.`, href);
+    if (played === 0) push("high", `no-apps:${m.id}`, `${at}: has a score but no appearances recorded.`, href);
 
     const scored = m.lineup.reduce((t, l) => t + l.goals, 0);
     const assisted = m.lineup.reduce((t, l) => t + l.assists, 0);
-    if (scored > og) push("high", `too-many-scorers:${m.id}`, `${at}: the GOALS grid adds up to ${scored} but "Our goals" says ${og}.`, href);
-    else if (og > 0 && scored === 0) push("low", `no-scorers:${m.id}`, `${at}: we scored ${og} but no scorer is logged, so the game is left out of goals-per-game.`, href);
+    if (scored > og) push("high", `too-many-scorers:${m.id}`, `${at}: scorers add up to ${scored} but the score says ${og}.`, href);
+    else if (og > 0 && scored === 0) push("low", `no-scorers:${m.id}`, `${at}: ${og} goals with no scorer recorded.`, href);
     else if (og > 0 && scored < og) push("medium", `partial-scorers:${m.id}`, `${at}: ${scored} of ${og} goals have a scorer; ${og - scored} unclaimed.`, href);
-    if (assisted > og) push("high", `assists-exceed:${m.id}`, `${at}: ${assisted} assists logged for ${og} goals.`, href);
+    if (assisted > og) push("high", `assists-exceed:${m.id}`, `${at}: ${assisted} assists recorded for ${og} goals.`, href);
 
     if (m.motm) {
       const onRoster = rosters.get(m.seasonId)?.has(m.motm) ?? false;
       const inLineup = m.lineup.some((l) => l.player === m.motm && l.played);
-      if (!onRoster) push("medium", `motm-unknown:${m.id}`, `${at}: MOTM "${m.motm}" is not on the ${tabName(m.seasonId)} roster, so the award is not counted. Check the spelling or add an alias.`, href);
-      else if (!inLineup) push("medium", `motm-absent:${m.id}`, `${at}: MOTM ${m.motm} has no appearance mark for this game.`, href);
+      if (!onRoster) push("medium", `motm-unknown:${m.id}`, `${at}: man of the match "${m.motm}" is not on the ${seasonName(m.seasonId)} squad. Check the spelling or add an alias.`, href);
+      else if (!inLineup) push("medium", `motm-absent:${m.id}`, `${at}: man of the match ${m.motm} has no appearance recorded for this match.`, href);
     }
   }
 
@@ -75,18 +75,18 @@ export function sheetHealth(data: ClubData, today: string = londonToday()): Heal
   for (const s of data.seasons) {
     const byDate = new Map<string, Match[]>();
     for (const m of s.matches) if (m.date && !m.type) byDate.set(m.date, [...(byDate.get(m.date) ?? []), m]);
-    for (const [date, ms] of byDate) if (ms.length > 1) push("medium", `dup-date:${s.id}:${date}`, `${s.id}: ${ms.map(gwLabel).join(" and ")} share the date ${fmtDate(date)}. One of them is probably last week's row copied down.`, seasonHref(s.id));
+    for (const [date, ms] of byDate) if (ms.length > 1) push("medium", `dup-date:${s.id}:${date}`, `${seasonName(s.id)}: ${ms.map(gwLabel).join(" and ")} share the date ${fmtDate(date)}.`, seasonHref(s.id));
   }
   for (const s of allSeasons) {
     const payer = data.money.paidBy[s.id] ?? s.summary.paidBy;
-    if (payer && !s.matches.some((m) => m.matchCost > 0)) push("low", `paidby-no-cost:${s.id}`, `${tabName(s.id)}: "Paid by" is ${payer} but no game has a match cost, so nothing is credited to them.`, seasonHref(s.id));
+    if (payer && !s.matches.some((m) => m.matchCost > 0)) push("low", `paidby-no-cost:${s.id}`, `${seasonName(s.id)}: "Pitch paid by" is ${payer} but no match has a pitch fee, so nothing is credited to them.`, seasonHref(s.id));
   }
 
   for (const r of data.money.rows) {
-    if (!everyone.has(r.player)) push("medium", `money-unknown:${slugify(r.player)}`, `Money tab: "${r.player}" is not on any season roster. A typo, or someone who never kicked a ball.`, "/money");
+    if (!everyone.has(r.player)) push("medium", `money-unknown:${slugify(r.player)}`, `Payments: "${r.player}" is not on any season squad. Check the spelling.`, "/money");
   }
   // Photo cells the parser refused (see photoAllowed in sheet.ts): the OG image reads local photos from disk, so only /players/… files and https links get through.
-  for (const [name, value] of rejectedPhotos) push("low", `photo-rejected:${slugify(name)}`, `Squad tab: the photo for ${name} is "${value}", which is neither a /players/… file bundled with the site nor an https link, so it is ignored.`, `/squad/${slugify(name)}`);
+  for (const [name, value] of rejectedPhotos) push("low", `photo-rejected:${slugify(name)}`, `Player photo for ${name} is "${value}", which is neither a bundled /players/ file nor an https link, so it is ignored.`, `/squad/${slugify(name)}`);
 
   issues.sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
   const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };

@@ -53,14 +53,14 @@ export default async function MoneyPage() {
                       <td><PlayerLink name={r.player} player={byName.get(r.player)} avatar /></td>
                       {paidSeasons.map((s) => <td key={s.id} className="num hidden text-muted sm:table-cell">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
                       <td className="num hidden sm:table-cell">{fmtMoney(r.totalCharged)}</td>
-                      <td className="num hidden sm:table-cell" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch hire paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-muted">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
+                      <td className="num hidden sm:table-cell" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch fees paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-muted">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
                       <td className={clsx("num font-semibold", Math.abs(r.balance) <= 0.01 ? "text-muted" : "text-ink")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block text-[10px] text-accent">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block text-[10px] text-loss">to pay</span></> : "£0.00"}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          ) : <Empty inset>Nobody has been charged for anything yet.</Empty>}
+          ) : <Empty inset>No charges yet.</Empty>}
         </div>
         <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6">
           <div className={clsx("card p-6", data.money.payments.length > 0 && "lg:flex-1")}>
@@ -69,7 +69,7 @@ export default async function MoneyPage() {
               <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-baseline gap-2"><Receipt size={14} className="self-center text-muted" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} />{p.to && <span className="truncate text-xs text-muted">→ <PlayerLink name={p.to} player={byName.get(p.to)} /></span>}<span className="ml-auto tabular text-ink">{fmtMoney(p.amount)}</span><span className="text-xs text-muted">{fmtDate(p.date)}</span></li>)}</ul>
             ) : <p className="text-sm text-muted">No payments recorded yet.</p>}
           </div>
-          <Callout icon={<Coins size={18} />}>Each match costs the pitch fee divided by the players who played. A ringer pays nothing: their share is split between the regulars who weren&apos;t playing that night. Whoever booked the pitch is credited the full cost, so they show as owed until everyone has paid them. <Link href="/data" className="link">Download the money table</Link>.</Callout>
+          <Callout icon={<Coins size={18} />}>Each match costs the pitch fee divided by the players who played. A ringer pays nothing: their share is split between the regulars who weren&apos;t playing that night. Whoever paid for the pitch is credited the full cost, so they show as owed until everyone has paid them. <Link href="/data" className="link">Download the money table</Link>.</Callout>
         </div>
       </section>
 

@@ -7,7 +7,7 @@ export type Row = Record<string, string | number | boolean | null>;
 
 export const TABLE_INFO: Record<TableName, string> = {
   players: "One row per player with career totals (or season totals when filtered).",
-  matches: "Every fixture and result, including friendlies/forfeits, with MOTM and comments.",
+  matches: "Every fixture and result, including friendlies/forfeits, with man of the match and comments.",
   seasons: "One row per season: venue, dates, W/D/L, goals.",
   appearances: "Long format: one row per player per match played.",
   goals: "Long format: one row per player per match where they scored.",

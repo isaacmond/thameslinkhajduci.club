@@ -8,7 +8,7 @@ import { dbConfigured } from "@/lib/db";
 import { getData } from "@/lib/data";
 import { listSquads, pendingSubmissions } from "@/lib/writes";
 import { forfeitBill } from "@/lib/submissions";
-import { fmtDate, gwLabel } from "@/lib/stats";
+import { fixtureLabel, fmtDate } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { PageHeader, SectionTitle } from "@/components/ui";
 import { PendingAdmin, type PendingItem } from "@/components/pending-admin";
@@ -27,7 +27,7 @@ export const metadata: Metadata = { title: "Admin", robots: { index: false, foll
 const detailLines = (kind: string, p: Record<string, unknown>): string[] => {
   const list = (o: unknown) => Object.entries((o ?? {}) as Record<string, number>).map(([n, c]) => `${n}${c > 1 ? ` ×${c}` : ""}`).join(", ");
   if (kind === "score" && p.forfeit === true) return [`Forfeit, awarded ${p.ours}–${p.theirs}. ${forfeitBill(Array.isArray(p.played) ? (p.played as string[]) : [], undefined)}`, p.comment ? `Note: ${p.comment}` : ""].filter(Boolean);
-  if (kind === "score") return [p.scorers && Object.keys(p.scorers as object).length ? `Scorers: ${list(p.scorers)}` : "", p.assists && Object.keys(p.assists as object).length ? `Assists: ${list(p.assists)}` : "", p.motm ? `MOTM: ${p.motm}` : "", Array.isArray(p.played) ? `Played: ${(p.played as string[]).join(", ")}` : "", p.comment ? `Note: ${p.comment}` : ""].filter(Boolean);
+  if (kind === "score") return [p.scorers && Object.keys(p.scorers as object).length ? `Scorers: ${list(p.scorers)}` : "", p.assists && Object.keys(p.assists as object).length ? `Assists: ${list(p.assists)}` : "", p.motm ? `Man of the match: ${p.motm}` : "", Array.isArray(p.played) ? `Played: ${(p.played as string[]).join(", ")}` : "", p.comment ? `Note: ${p.comment}` : ""].filter(Boolean);
   if (kind === "payment") return [p.note ? `Reference: ${p.note}` : ""].filter(Boolean);
   return [p.nickname ? `Nickname: ${p.nickname}` : "", Array.isArray(p.positions) && (p.positions as string[]).length ? `Position: ${(p.positions as string[]).join("/")}` : "", p.photo ? `Photo: ${p.photo}` : ""].filter(Boolean);
 };
@@ -52,16 +52,16 @@ export default async function AdminPage() {
   const seasons = [...data.seasons, ...(data.friendlies ? [data.friendlies] : [])].map((s) => ({ id: s.id, number: s.number, title: s.title, venue: s.venue, venueUrl: s.venueUrl, period: s.period, pitchCost: (() => { const c = s.matches.map((m) => m.matchCost).filter((x) => x > 0); return c.length ? c.sort((a, b) => a - b)[Math.floor(c.length / 2)] : null; })(), paidBy: data.money.paidBy[s.id] ?? s.summary.paidBy ?? null, seasonCost: s.summary.seasonCost, fixtures: s.matches.length, isCurrent: s.isCurrent }));
   const today = londonToday();
   const upcoming = data.matches.filter((m) => !m.played && (!m.date || m.date >= today) && !/forfeit|cancel/i.test(m.type ?? "")).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999")).slice(0, 8)
-    .map((m) => ({ id: m.id, date: m.date, label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })}${m.kickOff ? ` ${m.kickOff}` : ""} · ${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} ${gwLabel(m)}`} vs ${m.opponent}` }));
+    .map((m) => ({ id: m.id, date: m.date, label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })}${m.kickOff ? ` ${m.kickOff}` : ""} · ${fixtureLabel(m)} v ${m.opponent}` }));
   const emailed = new Set(members.filter((m) => m.emails.length).map((m) => m.player.toLowerCase()));
   const squadRoster = roster.map((name) => ({ name, shirt: data.players.find((p) => p.name === name)?.extra.shirt ?? null, hasEmail: emailed.has(name.toLowerCase()) }));
   const squads = Object.fromEntries(squadRows.map((s) => [s.matchId, { players: s.players, note: s.note, remindedAt: s.remindedAt ? s.remindedAt.toISOString() : null }]));
   const fixtures = data.matches.map((m) => ({ id: m.id, seasonId: m.seasonId, gw: m.gw, date: m.date, kickOff: m.kickOff, opponent: m.opponent, type: m.seasonId === "FR" && m.type === "Friendly" ? null : m.type, matchCost: m.matchCost, played: m.played }));
   // Man-of-the-match votes: what is running or decided, and the league results (most recent first) that never had one.
-  const pollItems: PollItem[] = pollRows.map((p) => ({ matchId: p.matchId, status: p.status, label: `${p.seasonId} GW${p.gw} · ${fmtDate(p.date, { weekday: "short", day: "numeric", month: "short" })}`, score: `Hajduci ${p.ourGoals}–${p.theirGoals} ${p.opponent}`, ballots: p.ballots, voted: p.voted, closesAt: p.closesAt.toISOString(), closedAt: p.closedAt ? p.closedAt.toISOString() : null, closedBy: p.closedBy, winner: p.winner, noVote: Math.max(0, p.candidates.length - p.ballots) }));
+  const pollItems: PollItem[] = pollRows.map((p) => ({ matchId: p.matchId, status: p.status, label: `${fixtureLabel(p)} · ${fmtDate(p.date, { weekday: "short", day: "numeric", month: "short" })}`, score: `Hajduci ${p.ourGoals}–${p.theirGoals} ${p.opponent}`, ballots: p.ballots, voted: p.voted, closesAt: p.closesAt.toISOString(), closedAt: p.closedAt ? p.closedAt.toISOString() : null, closedBy: p.closedBy, winner: p.winner, noVote: Math.max(0, p.candidates.length - p.ballots) }));
   const polled = new Set(pollRows.filter((p) => p.status !== "cancelled").map((p) => p.matchId));
   const pollable = data.matches.filter((m) => m.played && m.countsForRecords && m.lineup.filter((l) => l.played).length >= 2 && !polled.has(m.id)).sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")).slice(0, 6)
-    .map((m) => ({ id: m.id, label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId} ${gwLabel(m)} · Hajduci ${m.ourGoals}–${m.theirGoals} ${m.opponent}${m.motm ? ` · MOTM ${m.motm}` : ""}` }));
+    .map((m) => ({ id: m.id, label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${fixtureLabel(m)} · Hajduci ${m.ourGoals}–${m.theirGoals} ${m.opponent}${m.motm ? ` · Man of the match ${m.motm}` : ""}` }));
 
   return (
     <PageTransition>

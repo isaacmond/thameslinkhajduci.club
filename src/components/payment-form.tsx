@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
+import { fmtMoney } from "@/lib/stats";
 import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 import { SummaryCard } from "./summary-card";
@@ -9,12 +10,11 @@ import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 
 export type PayablePlayer = { name: string; balance: number | null };
-const money = (n: number) => `£${n.toFixed(2)}`;
-const optionLabel = (p: PayablePlayer) => p.balance === null ? p.name : p.balance > 0.01 ? `${p.name} · owes ${money(p.balance)}` : p.balance < -0.01 ? `${p.name} · ${money(-p.balance)} in credit` : `${p.name} · settled`;
+const optionLabel = (p: PayablePlayer) => p.balance === null ? p.name : p.balance > 0.01 ? `${p.name} · owes ${fmtMoney(p.balance)}` : p.balance < -0.01 ? `${p.name} · ${fmtMoney(-p.balance)} in credit` : `${p.name} · settled`;
 const shortDate = (iso: string) => (iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "TBC");
 
 export function PaymentForm({ players, payer, initialPlayer, today, signedIn = null }: { players: PayablePlayer[]; payer: string | null; initialPlayer?: string; today: string; signedIn?: SignedIn | null }) {
-  // Signed in and not the one who booked the pitch? Then you are almost certainly logging your own payment.
+  // Signed in and not the one who paid for the pitch? Then you are almost certainly logging your own payment.
   const start = players.find((p) => p.name === initialPlayer) ?? (signedIn && signedIn.player !== payer ? players.find((p) => p.name === signedIn.player) : undefined) ?? players.find((p) => (p.balance ?? 0) > 0.01) ?? players[0];
   const [player, setPlayer] = useState(start?.name ?? "");
   const [to, setTo] = useState(payer ?? "");
@@ -53,7 +53,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
     const left = balance === null ? null : Math.round((balance - amt) * 100) / 100;
     return (
       <SubmissionResult result={result} onEdit={() => setResult(null)}>
-        <SummaryCard className="mt-4" label={`Payment · ${shortDate(date)}`} title={`${money(amt)} from ${player} to ${to || payer || "the club"}`} detail={`${left !== null && left <= 0.01 ? "All settled" : left !== null ? `${money(left)} still to pay` : "Received"} · ${result.applied ? "recorded" : "waiting for the admin to approve"}`} />
+        <SummaryCard className="mt-4" label={`Payment · ${shortDate(date)}`} title={`${fmtMoney(amt)} from ${player} to ${to || payer || "the club"}`} detail={`${left !== null && left <= 0.01 ? "All settled" : left !== null ? `${fmtMoney(left)} still to pay` : "Received"} · ${result.applied ? "recorded" : "waiting for the admin to approve"}`} />
       </SubmissionResult>
     );
   }
@@ -66,14 +66,14 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
           <span className="min-h-[1.25rem] text-[11px] text-muted">Whose share of the pitch this covers.</span>
         </div>
         <div className="flex min-w-0 flex-col gap-1">
-          <Select label="Paid to" value={to} onChange={(v) => { setTo(v); setResult(null); }} options={[...(to ? [] : [{ value: "", label: "Pick who received it" }]), ...players.map((p) => ({ value: p.name, label: p.name === payer ? `${p.name} · booked this season's pitch` : p.name }))]} className="min-w-0" />
-          <span className="min-h-[1.25rem] text-[11px] text-muted">{payer ? (to && to !== payer ? `${payer} booked the pitch this season; the admin will check who should be credited.` : `${payer} booked the pitch this season.`) : "Whoever booked the pitch."}</span>
+          <Select label="Paid to" value={to} onChange={(v) => { setTo(v); setResult(null); }} options={[...(to ? [] : [{ value: "", label: "Pick who received it" }]), ...players.map((p) => ({ value: p.name, label: p.name === payer ? `${p.name} · paid for this season's pitch` : p.name }))]} className="min-w-0" />
+          <span className="min-h-[1.25rem] text-[11px] text-muted">{payer ? (to && to !== payer ? `${payer} paid for the pitch this season; the admin will check who should be credited.` : `${payer} paid for the pitch this season.`) : "Whoever paid for the pitch."}</span>
         </div>
         <label className="flex flex-col gap-1 text-xs text-muted">
           <span className="eyebrow">Amount (£)</span>
           <span className="relative"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">£</span><input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.00" required className={`${inputClass} pl-7 tabular`} /></span>
           <span className="min-h-[1.25rem] text-[11px] text-muted">
-            {balance !== null && balance > 0.01 ? <>On the records {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding. You can still record a payment."}
+            {balance !== null && balance > 0.01 ? <>On the records {player} owes {fmtMoney(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${fmtMoney(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding. You can still record a payment."}
           </span>
         </label>
         <label className="flex flex-col gap-1 text-xs text-muted">

@@ -36,7 +36,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-1.5" role="group" aria-label="Result">
-            {(["all", "W", "D", "L"] as const).map((r) => <Chip key={r} active={result === r} onClick={() => setResult(r)} tone={r}>{r === "all" ? "All results" : r === "W" ? "Wins" : r === "D" ? "Draws" : "Defeats"}</Chip>)}
+            {(["all", "W", "D", "L"] as const).map((r) => <Chip key={r} active={result === r} onClick={() => setResult(r)} tone={r}>{r === "all" ? "All results" : r === "W" ? "Wins" : r === "D" ? "Draws" : "Losses"}</Chip>)}
           </div>
           <Switch checked={includeExcluded} onChange={setIncludeExcluded} label="Include friendlies and forfeits" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search opponents and players" aria-label="Search matches" className={clsx(inputClass, "py-1.5 sm:ml-auto sm:w-64")} />

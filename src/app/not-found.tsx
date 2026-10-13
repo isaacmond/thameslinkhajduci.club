@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Crest } from "@/components/ui";
 import { btn } from "@/components/button";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (

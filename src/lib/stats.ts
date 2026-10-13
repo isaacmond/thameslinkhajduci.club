@@ -2,16 +2,18 @@ import type { ClubData, Match, MatchLite, Player, Result, Season } from "./types
 import { londonToday } from "./time";
 
 export const fmtDate = (iso: string | null, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
-  iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opts) : "TBC";
-export const fmtMoney = (n: number) => `£${n.toFixed(2)}`;
+  iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opts).replace(/\bSept\b/, "Sep").replace(/^(\w+),/, "$1") : "TBC";
+export const fmtMoney = (n: number) => `£${n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const scoreline = (m: Pick<Match, "played" | "ourGoals" | "theirGoals">) => (m.played ? `${m.ourGoals}–${m.theirGoals}` : "–");
 export const ppg = (s: { won: number; drawn: number; played: number }) => (s.played ? +((s.won * 3 + s.drawn) / s.played).toFixed(2) : 0);
-export const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
+export const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : "0");
 export const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
 /** Strip a match to what the client-side browser renders and searches on. */
 export const toLite = (m: Match): MatchLite => { const { lineup, matchCost, playersInGame, costPerPlayer, levy, ...rest } = m; void matchCost; void playersInGame; void costPerPlayer; void levy; return { ...rest, lineup: lineup.filter((l) => l.played || l.goals > 0).map((l) => ({ player: l.player, played: l.played, goals: l.goals })) }; };
 /** "GW3" for league games, "Friendly 3" for the friendlies tab. */
 export const gwLabel = (m: { seasonId: string; gw: number }) => (m.seasonId === "FR" ? `Friendly ${m.gw}` : `GW${m.gw}`);
+/** "Season 8 · GW6" for league games, "Friendly 3" for friendlies: how a fixture is named in emails, the admin and the records checks. */
+export const fixtureLabel = (m: { seasonId: string; gw: number }) => (m.seasonId === "FR" ? gwLabel(m) : `Season ${m.seasonId.replace(/^S/, "")} · ${gwLabel(m)}`);
 export const seasonHref = (seasonId: string) => (seasonId === "FR" ? "/seasons/friendlies" : `/seasons/${seasonId.toLowerCase()}`);
 
 export function playedMatches(matches: Match[]) {

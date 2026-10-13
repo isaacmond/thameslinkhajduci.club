@@ -256,7 +256,7 @@ describe("the ballot on screen", () => {
     const { MotmVote } = await import("@/components/motm-vote");
     const html = renderToStaticMarkup(createElement(MotmVote, { token: "tok123", voter: "Isaac Mond", candidates: cands, current: null, pick: "Phil Knott" }));
     expect(html.match(/<button/g)?.length).toBe(4);
-    expect(html).toContain("you, sadly ineligible");
+    expect(html).toContain("(you)");
     expect(html).toContain("Tap to confirm");
     expect(html).toContain("2 goals");
   });

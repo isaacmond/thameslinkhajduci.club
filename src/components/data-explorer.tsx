@@ -32,8 +32,8 @@ export function DataExplorer({ tables, seasons, initialPreview }: { tables: { na
   return (
     <div className="card min-w-0 overflow-hidden">
       <div className="flex flex-col gap-3 border-b border-ink/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">
-        <Select label="Table" value={table} onChange={(v) => pick(() => setTable(v))} options={tables.map((t) => ({ value: t.name, label: t.name }))} className="min-w-[10rem]" />
-        <Select label="Season" value={season} onChange={(v) => pick(() => setSeason(v))} disabled={!seasonable} options={[{ value: "", label: "All-time" }, ...seasons.map((s) => ({ value: s, label: s }))]} className="min-w-[8rem]" />
+        <Select label="Table" value={table} onChange={(v) => pick(() => setTable(v))} options={tables.map((t) => ({ value: t.name, label: t.name.charAt(0).toUpperCase() + t.name.slice(1) }))} className="min-w-[10rem]" />
+        <Select label="Season" value={season} onChange={(v) => pick(() => setSeason(v))} disabled={!seasonable} options={[{ value: "", label: "All time" }, ...seasons.map((s) => ({ value: s, label: s }))]} className="min-w-[8rem]" />
         <p className="flex-1 text-xs text-muted sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] p-3 text-sm">

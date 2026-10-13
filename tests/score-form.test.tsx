@@ -25,7 +25,7 @@ describe("ScoreForm and the team sheet", () => {
   it("a fixture typed Forfeit opens on the bill: who pays, not who played, and the team sheet is not pre-ticked", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ type: "Forfeit", expected: ["Ben Merrett", "Phil Knott"] })]} roster={roster} webhook={false} />);
     expect(html).toContain('aria-checked="true"');
-    expect(html).toContain("Pitch charges");
+    expect(html).toContain("Pitch fees");
     expect(pressed(html)).toEqual([]);
     expect(html).toContain("No one ticked");
     expect(html).toContain("Tick the whole team sheet");

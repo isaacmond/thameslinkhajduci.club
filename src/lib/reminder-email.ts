@@ -1,5 +1,5 @@
 import { SITE_URL } from "./config";
-import { fmtDate, gwLabel } from "./stats";
+import { fixtureLabel, fmtDate } from "./stats";
 import { londonToday } from "./time";
 import type { ClubData, Match } from "./types";
 
@@ -17,7 +17,7 @@ export function renderReminder({ data, match: m, players, note, player }: Remind
   const today = londonToday();
   const tomorrow = m.date === new Date(Date.parse(today + "T12:00:00Z") + 86_400_000).toISOString().slice(0, 10);
   const when = `${fmtDate(m.date, { weekday: "long", day: "numeric", month: "long" })}${m.kickOff ? `, ${m.kickOff} kick-off` : ""}`;
-  const comp = m.seasonId === "FR" ? "Friendly" : `${season?.title || m.seasonId} · ${gwLabel(m)}`;
+  const comp = fixtureLabel(m);
   const venue = season?.venue || "the usual place";
   const subject = `${tomorrow ? "Tomorrow" : fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })}: Hajduci v ${m.opponent}${m.kickOff ? `, ${m.kickOff}` : ""}`;
   const squadLines = players.map((p) => { const x = byName.get(p); return { name: p, shirt: x?.extra.shirt ?? null, pos: x?.extra.positions?.join("/") ?? "" }; });

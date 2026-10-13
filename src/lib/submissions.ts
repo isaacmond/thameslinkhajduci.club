@@ -1,4 +1,5 @@
 import type { Match } from "./types";
+import { fixtureLabel, fmtMoney } from "./stats";
 import type { PaymentChange, PlayerChange, ScoreChange } from "./writes";
 
 /**
@@ -25,8 +26,7 @@ export function rosterName(name: unknown, roster: Iterable<string>): string | nu
 }
 const isoDate = (s: string) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false; const d = new Date(s + "T00:00:00Z"); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s; };
 const daysBetween = (a: string, b: string) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86_400_000);
-export const fmtDay = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-const pounds = (n: number) => `£${n.toFixed(2)}`;
+export const fmtDay = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace(/\bSept\b/, "Sep").replace(/^(\w+),/, "$1");
 
 /**
  * Same-origin gate for the POST routes. Browsers label where a request came from (Sec-Fetch-Site, then Origin), so anything
@@ -59,7 +59,7 @@ export function validateScore(body: Record<string, unknown>, known: (name: strin
   const asCounts = (v: unknown) => Object.fromEntries(Object.entries((v ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => isCount(e[1]) && e[1] > 0).map(([n, v]) => [clean(n, 40), v]));
   const scorers = forfeit ? {} : asCounts(body.scorers), assists = forfeit ? {} : asCounts(body.assists);
   const ringers = forfeit ? [] : [...new Set((Array.isArray(body.ringers) ? body.ringers : []).map((s) => clean(s, 40).replace(/\s*-\s*/g, "-")).filter(Boolean))];
-  if (ringers.length > MAX_RINGERS) return { ok: false, error: `${MAX_RINGERS} ringers is the most we will admit to.` };
+  if (ringers.length > MAX_RINGERS) return { ok: false, error: `No more than ${MAX_RINGERS} ringers.` };
   const badRinger = ringers.find((n) => n.length < 2 || !RINGER_NAME.test(n) || !/\p{L}.*\p{L}/u.test(n));
   if (badRinger) return { ok: false, error: `Ringer names are letters, spaces, apostrophes and hyphens: "${badRinger}" is not.` };
   const isRinger = (n: string) => ringers.includes(n);
@@ -69,8 +69,8 @@ export function validateScore(body: Record<string, unknown>, known: (name: strin
   if (unknown.length) return { ok: false, error: `Not on the roster: ${[...new Set(unknown)].join(", ")}. Add them under "New player" first, or as a ringer.` };
   const goalsLogged = Object.values(scorers).reduce((t, v) => t + v, 0), assistsLogged = Object.values(assists).reduce((t, v) => t + v, 0);
   if (goalsLogged > ours) return { ok: false, error: `Scorers add up to ${goalsLogged} but we scored ${ours}.` };
-  if (assistsLogged > ours) return { ok: false, error: "More assists than goals. Ambitious." };
-  if (played.length > 12) return { ok: false, error: "That is a lot of players for six-a-side." };
+  if (assistsLogged > ours) return { ok: false, error: "More assists than goals." };
+  if (played.length > 12) return { ok: false, error: "Too many players for one match." };
   const submittedBy = clean(body.submittedBy, 40);
   if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
   return { ok: true, value: { ours, theirs, scorers, assists, played, ringers, motm, note: clean(body.note, 200), submittedBy, forfeit } };
@@ -79,12 +79,12 @@ export function validateScore(body: Record<string, unknown>, known: (name: strin
 export function forfeitBill(payers: string[], matchCost: number | undefined): string {
   if (!payers.length) return "Nobody is charged for the pitch.";
   const cost = matchCost ?? 0;
-  return `Paying for it: ${payers.join(", ")}${cost > 0 ? ` · ${pounds(cost / payers.length)} each of ${pounds(cost)}` : ""}`;
+  return `Paying for it: ${payers.join(", ")}${cost > 0 ? ` · ${fmtMoney(cost / payers.length)} each of ${fmtMoney(cost)}` : ""}`;
 }
 /** `levy`: how the ringers' share of the pitch will be spread, worked out by the caller from the records; it only decorates the message. */
 export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId" | "gw" | "opponent" | "date" | "played"> & Partial<Pick<Match, "matchCost">>, when: string, levy: string | null = null): Built<ScoreChange> {
   const list = (o: Record<string, number>) => Object.entries(o).map(([n, c]) => `${n}${c > 1 ? ` ×${c}` : ""}`).join(", ");
-  const fixture = `${m.seasonId === "FR" ? "Friendly" : `${m.seasonId} GW${m.gw}`} · ${when}`;
+  const fixture = `${fixtureLabel(m)} · ${when}`;
   if (v.forfeit) {
     const summary = `Forfeit v ${m.opponent} · ${fixture}`;
     const lines = [
@@ -103,7 +103,7 @@ export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId
     summary,
     Object.keys(v.scorers).length ? `Scorers: ${list(v.scorers)}` : "Scorers: none logged",
     Object.keys(v.assists).length ? `Assists: ${list(v.assists)}` : null,
-    v.motm ? `MOTM: ${v.motm}` : null,
+    v.motm ? `Man of the match: ${v.motm}` : null,
     v.played.length ? `Played: ${v.played.filter((p) => !v.ringers.includes(p)).join(", ")}` : null,
     v.ringers.length ? `Ringers: ${v.ringers.join(", ")}${levy ? ` · ${levy}` : " · nobody picks up their share: no absent regular has three games in the last ten"}` : null,
     v.note ? `Note: ${v.note}` : null,
@@ -120,7 +120,7 @@ export function validatePayment(body: Record<string, unknown>, roster: Iterable<
   if (!player) return { ok: false, error: "Pick a player from the list." };
   const to = body.to === undefined || body.to === null || body.to === "" ? null : rosterName(body.to, roster);
   if (to === null && body.to) return { ok: false, error: "Pick who was paid from the list." };
-  if (to && to === player) return { ok: false, error: "Paying yourself does not count, sadly." };
+  if (to && to === player) return { ok: false, error: "You can't record a payment to yourself." };
   const raw = typeof body.amount === "string" ? Number(body.amount.replace(/[£,\s]/g, "")) : body.amount;
   if (typeof raw !== "number" || !Number.isFinite(raw)) return { ok: false, error: "Enter an amount in pounds." };
   const amount = Math.round(raw * 100) / 100;
@@ -137,13 +137,13 @@ export function validatePayment(body: Record<string, unknown>, roster: Iterable<
 export type PaymentContext = { payer: string | null; balance: number | null };
 export function buildPaymentMessage(v: PaymentValue, ctx: PaymentContext): Built<PaymentChange> {
   const to = v.to ?? ctx.payer;
-  const summary = `${v.player} paid ${pounds(v.amount)}${to ? ` to ${to}` : ""} · ${fmtDay(v.date)}`;
+  const summary = `${v.player} paid ${fmtMoney(v.amount)}${to ? ` to ${to}` : ""} · ${fmtDay(v.date)}`;
   const after = ctx.balance === null ? null : Math.round((ctx.balance - v.amount) * 100) / 100;
   const lines = [
     "PAYMENT",
     summary,
     to ? `From ${v.player} to ${to}${ctx.payer && to !== ctx.payer ? ` (not ${ctx.payer}, who is down as this season's pitch payer; check who should be credited)` : ""}` : `Recipient not given${ctx.payer ? "" : " and no pitch payer is named for this season"}.`,
-    ctx.balance === null ? null : ctx.balance > 0.01 ? `Owed before this: ${pounds(ctx.balance)}${after !== null ? ` → ${after > 0.01 ? `${pounds(after)} still to pay` : after < -0.01 ? `${pounds(-after)} overpaid` : "settled"}` : ""}` : `Nothing was outstanding for ${v.player}${ctx.balance < -0.01 ? ` (already ${pounds(-ctx.balance)} in credit)` : ""}. Check this one.`,
+    ctx.balance === null ? null : ctx.balance > 0.01 ? `Owed before this: ${fmtMoney(ctx.balance)}${after !== null ? ` → ${after > 0.01 ? `${fmtMoney(after)} still to pay` : after < -0.01 ? `${fmtMoney(-after)} overpaid` : "settled"}` : ""}` : `Nothing was outstanding for ${v.player}${ctx.balance < -0.01 ? ` (already ${fmtMoney(-ctx.balance)} in credit)` : ""}. Check this one.`,
     v.note ? `Reference: ${v.note}` : null,
     `Submitted by ${v.submittedBy}`,
   ].filter((l): l is string => l !== null);
@@ -156,7 +156,7 @@ export function validatePlayer(body: Record<string, unknown>, roster: Iterable<s
   const name = clean(body.name, 40).replace(/\s*-\s*/g, "-");
   if (name.length < 2) return { ok: false, error: "Add the player's name." };
   if (!/^\p{L}[\p{L}\p{M}' .-]*$/u.test(name) || !/\p{L}.*\p{L}/u.test(name)) return { ok: false, error: "Names are letters, spaces, apostrophes and hyphens." };
-  if (!name.includes(" ")) return { ok: false, error: "First name and surname, please. Two Toms is how the records get muddled." };
+  if (!name.includes(" ")) return { ok: false, error: "Enter a first name and surname." };
   const clash = rosterName(name, roster);
   if (clash) return { ok: false, error: `${clash} is already in the squad.` };
   const nickname = clean(body.nickname, 24);

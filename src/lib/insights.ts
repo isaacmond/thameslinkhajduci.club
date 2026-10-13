@@ -28,7 +28,7 @@ export function insights(data: ClubData): Insight[] {
   const streak = currentStreak(data.matches);
   if (streak && streak.length >= 3) out.push({ key: "streak", text: streak.type === "L" ? `${streak.length} defeats in a row` : streak.type === "W" ? `${streak.length} wins in a row` : `${streak.length} draws in a row`, href: "/records", tone: streak.type === "W" ? "ok" : streak.type === "L" ? "bad" : "late", weight: 60 + streak.length * 5 });
   const current = data.seasons.find((s) => s.isCurrent);
-  if (current) { const p = pace(data, current.id); if (p && p.games >= 2 && p.of > 1) out.push({ key: "pace", text: p.bestStart ? `${p.pts} points from ${p.games} games, the club's best start to a season` : p.worstStart ? `${p.pts} points from ${p.games} games, the slowest start to a season` : `${p.pts} points from ${p.games} games, the ${p.tied ? "joint " : ""}${ordinal(p.rank)} best start of ${p.of} seasons`, href: `/seasons/${current.id.toLowerCase()}`, tone: p.bestStart ? "ok" : p.worstStart ? "bad" : "muted", weight: p.bestStart || p.worstStart ? 85 : 40 }); }
+  if (current) { const p = pace(data, current.id); const line = paceLine(p); if (p && line) out.push({ key: "pace", text: line, href: `/seasons/${current.id.toLowerCase()}`, tone: p.bestStart ? "ok" : p.worstStart ? "bad" : "muted", weight: p.bestStart || p.worstStart ? 85 : 40 }); }
   for (const x of leaderboard(recent, "goals").slice(0, 3)) {
     const st = playerStreaks(data, x.player.name);
     if (st.scoringRun >= 3) out.push({ key: `run-${x.player.slug}`, text: `${x.player.name} has scored in ${st.scoringRun} matches in a row`, href: `/squad/${x.player.slug}`, tone: "ok", weight: 65 + st.scoringRun * 3 });
@@ -47,6 +47,15 @@ export function insights(data: ClubData): Insight[] {
 
 const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][(n % 100 - 20) % 10] ?? ["th", "st", "nd", "rd"][n % 100] ?? "th"}`;
 
+/** One line on how a season's start stacks up against every previous one at the same point, shared by the home page and the season page. */
+export function paceLine(p: ReturnType<typeof pace>): string | null {
+  if (!p || p.games < 2 || p.of < 2) return null;
+  const after = `${p.pts} point${p.pts === 1 ? "" : "s"} from ${p.games} match${p.games === 1 ? "" : "es"}`;
+  if (p.bestStart) return `${after}, the club's best start to a season`;
+  if (p.worstStart) return `${after}, the club's slowest start to a season`;
+  return `${after}, the ${p.tied ? "joint " : ""}${ordinal(p.rank)} best start of ${p.of} seasons`;
+}
+
 /** Sentences for one player's page. */
 export function playerInsights(data: ClubData, p: Player): string[] {
   const out: string[] = [];
@@ -63,6 +72,6 @@ export function playerInsights(data: ClubData, p: Player): string[] {
     if (gc.share !== null && gc.share >= 30) out.push(`Scored ${gc.share}% of the team's goals in the matches ${first} played.`);
   }
   const up = upcomingMilestones([p], 3)[0];
-  if (up) out.push(`${up.away} ${up.kind === "apps" ? "appearance" : up.kind === "goals" ? "goal" : up.kind === "assists" ? "assist" : "award"}${up.away === 1 ? "" : "s"} short of ${up.target}.`);
+  if (up) out.push(`${up.away} ${up.kind === "apps" ? "appearance" : up.kind === "goals" ? "goal" : up.kind === "assists" ? "assist" : "man of the match award"}${up.away === 1 ? "" : "s"} short of ${up.target}.`);
   return out.slice(0, 4);
 }

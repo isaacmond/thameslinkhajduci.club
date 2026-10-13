@@ -24,7 +24,7 @@ export default async function AccountPage() {
   if (!authEnabled()) {
     return (
       <PageTransition><div className="space-y-6">
-        <PageHeader eyebrow="Members" title="Sign-in is not switched on yet" sub="The club admin still has to finish connecting WorkOS. Until then, use the Submit page and the admin will apply your changes." />
+        <PageHeader eyebrow="Members" title="Sign-in is not switched on yet" sub="The club admin still has to finish setting it up. Until then, use the Submit page and the admin will apply your changes." />
         <Link href="/submit" className="link">Add a result</Link>
       </div></PageTransition>
     );
@@ -35,7 +35,7 @@ export default async function AccountPage() {
   if (!member) {
     return (
       <PageTransition><div className="space-y-6">
-        <PageHeader eyebrow="Members" title="Not on the team sheet" sub={<>You are signed in as <span className="text-ink">{user.email}</span>, but that address is not on the club list. Ask Isaac to add it, or sign in with a different one.</>} />
+        <PageHeader eyebrow="Members" title="Not on the members list" sub={<>You are signed in as <span className="text-ink">{user.email}</span>, but that address is not on the club list. Ask Isaac to add it, or sign in with a different one.</>} />
         <div className="card flex flex-wrap items-center gap-4 p-5"><UserRoundX size={20} className="text-muted" aria-hidden /><p className="text-sm text-muted">Anyone can still use the <Link href="/submit" className="link">Submit page</Link>; the admin approves those.</p><span className="ml-auto"><SignOut /></span></div>
       </div></PageTransition>
     );
@@ -55,7 +55,7 @@ export default async function AccountPage() {
       {!live && <p className="card border-gold/40 p-4 text-sm text-muted">Saving is not switched on yet: the records database is not connected. You can look, but the save button will tell you the same.</p>}
       <ProfileForm initial={initial} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {([["Submit a score", "/submit", "Recorded as soon as you send it."], ["Log a payment", `/submit?type=payment&player=${encodeURIComponent(member.player)}`, "Straight onto the money page."], ["Add a player", "/submit?type=player", "New signings join the roster instantly."]] as const).map(([t, href, sub]) => (
+        {([["Add a result", "/submit", "Recorded as soon as you send it."], ["Record a payment", `/submit?type=payment&player=${encodeURIComponent(member.player)}`, "Straight onto the money page."], ["Add a player", "/submit?type=player", "New signings join the squad instantly."]] as const).map(([t, href, sub]) => (
           <Link key={href} href={href} className="card focus-ring block p-4 transition-shadow hover:shadow-lg"><p className="display text-2xl leading-none text-ink">{t}</p><p className="mt-1 text-xs text-muted">{sub}</p></Link>
         ))}
       </div>

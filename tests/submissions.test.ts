@@ -23,7 +23,7 @@ describe("ringers on the score form", () => {
   it.each([
     [{ ringers: ["A"] }, /letters/],
     [{ ringers: ["Al3x"] }, /letters/],
-    [{ ringers: ["A", "B", "C", "D", "E"].map((x) => x + "lex") }, /most we will admit/],
+    [{ ringers: ["A", "B", "C", "D", "E"].map((x) => x + "lex") }, /No more than \d+ ringers/],
   ])("rejects %j", (extra, msg) => {
     const r = validateScore({ ours: 1, theirs: 1, played: ["Phil Knott"], submittedBy: "Phil", ...extra }, (n) => roster.includes(n));
     expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(msg);
@@ -68,7 +68,7 @@ describe("payments", () => {
   it("builds a message that says what was owed and what is left, and a change that names the recipient", () => {
     const v = { player: "Phil Knott", to: null, amount: 10, date: "2026-09-03", note: "", submittedBy: "Phil" };
     const m = buildPaymentMessage(v, { payer: "Isaac Mond", balance: 11.42 });
-    expect(m.summary).toBe("Phil Knott paid £10.00 to Isaac Mond · Thu, 3 Sept 2026");
+    expect(m.summary).toBe("Phil Knott paid £10.00 to Isaac Mond · Thu 3 Sep 2026");
     expect(m.text).toContain("Owed before this: £11.42 → £1.42 still to pay");
     expect(m.text).toContain("From Phil Knott to Isaac Mond");
     expect(m.subject).toMatch(/^Payment: /);
@@ -98,9 +98,9 @@ describe("scores", () => {
     if (!r.ok) return;
     expect(r.value.played.sort()).toEqual(["Isaac Mond", "Phil Knott", "Seb Burgess"]);
     const m = buildScoreMessage(r.value, fixture, "Tue 8 Sept");
-    expect(m.summary).toBe("Hajduci 3–1 Inter Islington · S8 GW2 · Tue 8 Sept");
+    expect(m.summary).toBe("Hajduci 3–1 Inter Islington · Season 8 · GW2 · Tue 8 Sept");
     expect(m.text).toContain("Scorers: Seb Burgess ×2, Phil Knott");
-    expect(m.text).toContain("MOTM: Seb Burgess");
+    expect(m.text).toContain("Man of the match: Seb Burgess");
     expect(m.change).toMatchObject({ matchId: "s8-gw2", ours: 3, theirs: 1, motm: "Seb Burgess", comment: "Late winner", scorers: { "Seb Burgess": 2, "Phil Knott": 1 } });
   });
   it.each([
@@ -124,8 +124,8 @@ describe("scores", () => {
     if (!r.ok) return;
     expect(r.value).toMatchObject({ forfeit: true, scorers: {}, assists: {}, motm: null, played: ["Isaac Mond", "Phil Knott"] });
     const m = buildScoreMessage(r.value, { ...fixture, matchCost: 79.95 }, "Tue 15 Sept");
-    expect(m.summary).toBe("Forfeit v Inter Islington · S8 GW2 · Tue 15 Sept");
-    expect(m.subject).toBe("Forfeit: Forfeit v Inter Islington · S8 GW2 · Tue 15 Sept");
+    expect(m.summary).toBe("Forfeit v Inter Islington · Season 8 · GW2 · Tue 15 Sept");
+    expect(m.subject).toBe("Forfeit: Forfeit v Inter Islington · Season 8 · GW2 · Tue 15 Sept");
     expect(m.text.split("\n")).toEqual(["FORFEIT", m.summary, "Awarded 0–8. Does not count for records.", "Paying for it: Isaac Mond, Phil Knott · £39.98 each of £79.95", "Note: Turned up at 8.10", "Submitted by Isaac"]);
     expect(m.change).toEqual({ matchId: "s8-gw2", ours: 0, theirs: 8, scorers: {}, assists: {}, played: ["Isaac Mond", "Phil Knott"], motm: null, comment: "Turned up at 8.10", forfeit: true });
   });
@@ -150,7 +150,7 @@ describe("new players", () => {
   });
   it.each([
     [{ name: "T", submittedBy: "Me" }, /name/],
-    [{ name: "Tom", submittedBy: "Me" }, /First name and surname/],
+    [{ name: "Tom", submittedBy: "Me" }, /first name and surname/],
     [{ name: "phil KNOTT", submittedBy: "Me" }, /already in the squad/],
     [{ name: "Tom Smith", shirt: 10, submittedBy: "Me" }, /Phil Knott's shirt/],
     [{ name: "Tom Smith", shirt: 100, submittedBy: "Me" }, /1 to 99/],

@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Data", description: "Download Thames
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const SEVERITY_UI: Record<Severity, { tone: "loss" | "default"; icon: React.ReactNode; blurb: string }> = {
   high: { tone: "loss", icon: <TriangleAlert size={16} className="text-loss" aria-hidden />, blurb: "A number on the site is wrong until these are fixed." },
-  medium: { tone: "default", icon: <CircleAlert size={16} className="text-muted" aria-hidden />, blurb: "Missing or ignored: the site copes, but quietly." },
+  medium: { tone: "default", icon: <CircleAlert size={16} className="text-muted" aria-hidden />, blurb: "Missing or ignored data." },
   low: { tone: "default", icon: <Info size={16} className="text-muted" aria-hidden />, blurb: "Tidy-ups. Nothing is counted wrongly." },
 };
 
@@ -29,12 +29,12 @@ export default async function DataPage() {
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="card min-w-0 p-5"><p className="eyebrow">Source of truth</p><p className="display mt-1 text-2xl leading-none text-ink">The records database</p><a href="/api/export?format=xlsx" className="link mt-1 inline-flex items-center gap-1 text-sm"><Download size={14} aria-hidden />Download it all as a spreadsheet</a></div>
-        <div className="card min-w-0 p-5"><p className="eyebrow">Last read</p><p className="display mt-1 text-2xl leading-none text-ink">{readAt}</p><p className="mt-1 text-xs text-muted">Refreshed every minute</p></div>
+        <div className="card min-w-0 p-5"><p className="eyebrow">Last updated</p><p className="display mt-1 text-2xl leading-none text-ink">{readAt}</p><p className="mt-1 text-xs text-muted">Refreshed every minute</p></div>
         <div className="card min-w-0 p-5"><p className="eyebrow">In the dataset</p><p className="display mt-1 text-2xl leading-none text-ink">{data.matches.length} fixtures · {data.players.length} players</p><p className="mt-1 text-xs text-muted">{data.matches.filter((m) => m.played).length} played, {data.allTime.goalsFor + data.allTime.goalsAgainst} goals</p></div>
       </section>
 
       <section className="min-w-0" aria-labelledby="records-health">
-        <SectionTitle id="records-health" sub={`Checked against the records on the last read: scorers v goals, assists, MOTM, appearance marks, overdue scores, dates, Money names. ${health.issues.length ? `${health.issues.length} thing${health.issues.length === 1 ? "" : "s"} to look at.` : "Nothing to report."}`} right={<div className="flex flex-wrap gap-2">{SEVERITIES.map((s) => <Tag key={s} tone={health.counts[s] ? SEVERITY_UI[s].tone : "default"}>{health.counts[s]} {SEVERITY_LABEL[s].toLowerCase()}</Tag>)}</div>}>Records health</SectionTitle>
+        <SectionTitle id="records-health" sub={`Checked against the records on the last update: scorers against goals, assists, man of the match, appearances, overdue scores, dates and payment names. ${health.issues.length ? `${health.issues.length} thing${health.issues.length === 1 ? "" : "s"} to look at.` : "Nothing to report."}`} right={<div className="flex flex-wrap gap-2">{SEVERITIES.map((s) => <Tag key={s} tone={health.counts[s] ? SEVERITY_UI[s].tone : "default"}>{health.counts[s]} {SEVERITY_LABEL[s].toLowerCase()}</Tag>)}</div>}>Records health</SectionTitle>
         {health.issues.length === 0 ? (
           <Callout icon={<CircleCheck size={18} className="text-accent" />}>
             <span className="font-medium text-ink">All clear.</span> Scorers add up, every man of the match played, and every past fixture has a result.

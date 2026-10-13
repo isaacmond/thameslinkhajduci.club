@@ -5,7 +5,7 @@ import { ViewTransition } from "react";
 import clsx from "clsx";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
-import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref } from "@/lib/stats";
+import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref, signed } from "@/lib/stats";
 import { playerInsights } from "@/lib/insights";
 import { Avatar, Breadcrumb, FormStrip, MotmStar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
@@ -121,8 +121,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <div className="card p-6">
             <SectionTitle sub="How often the team wins with and without them">With and without</SectionTitle>
             <dl className="grid grid-cols-2 gap-3 text-center">
-              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">With {first}</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withGames} matches<span className="mt-0.5 block">Goal difference {imp.gdWith ?? "–"} a game</span></dd></div>
-              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Without</dt><dd className="display mt-1.5 text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withoutGames} matches<span className="mt-0.5 block">Goal difference {imp.gdWithout ?? "–"} a game</span></dd></div>
+              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">With {first}</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withGames} {imp.withGames === 1 ? "match" : "matches"}<span className="mt-0.5 block">Goal difference {imp.gdWith === null ? "–" : signed(imp.gdWith)} a game</span></dd></div>
+              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Without</dt><dd className="display mt-1.5 text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withoutGames} {imp.withoutGames === 1 ? "match" : "matches"}<span className="mt-0.5 block">Goal difference {imp.gdWithout === null ? "–" : signed(imp.gdWithout)} a game</span></dd></div>
             </dl>
             {delta !== null && imp.withGames >= 3 && imp.withoutGames >= 3 && (
               <p className="mt-3 text-sm text-muted">{Math.abs(delta) > 5 ? <>The team&apos;s win rate is {Math.abs(delta)} points {delta > 0 ? "higher" : "lower"} with {first} playing.</> : <>About the same either way.</>}</p>
@@ -132,7 +132,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             <SectionTitle sub="Most matches together, and the win rate">Played most with</SectionTitle>
             {partners.length ? (
               <ul className="space-y-2 text-sm">
-                {partners.map((x) => <li key={x.other} className="flex items-center gap-2"><PlayerLink name={x.other} player={byName.get(x.other)} avatar className="min-w-0 truncate" /><span className="ml-auto shrink-0 text-xs text-muted">{x.shared} games</span><span className="tabular w-12 shrink-0 text-right font-semibold text-ink">{x.winRate}%</span></li>)}
+                {partners.map((x) => <li key={x.other} className="flex items-center gap-2"><PlayerLink name={x.other} player={byName.get(x.other)} avatar className="min-w-0 truncate" /><span className="ml-auto shrink-0 text-xs text-muted">{x.shared} {x.shared === 1 ? "match" : "matches"}</span><span className="tabular w-12 shrink-0 text-right font-semibold text-ink">{x.winRate}%</span></li>)}
               </ul>
             ) : <p className="text-sm text-muted">Not enough matches yet.</p>}
           </div>
@@ -147,7 +147,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         <section className={clsx("grid grid-cols-1 gap-6", n >= 2 && "md:grid-cols-2", n >= 3 && "lg:grid-cols-3")}>
           {hatTricks.length > 0 && <div className="card p-6"><SectionTitle>Hat-tricks</SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
           {motms.length > 0 && <div className="card p-6"><SectionTitle>Man of the match</SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
-          {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-6"><SectionTitle sub="From Season 8">Pitch fees</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Charged</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Paid</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-muted">{money.balance > 0.01 ? <><Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Record a payment</Link> · </> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch hire. ` : "All paid up. "}<Link href="/money" className="link">Money</Link></p></div>}
+          {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-6"><SectionTitle sub="From Season 8">Pitch fees</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Charged</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Paid</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-muted">{money.balance > 0.01 ? <><Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Record a payment</Link> · </> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch fees. ` : "All paid up. "}<Link href="/money" className="link">Money</Link></p></div>}
         </section>
       ); })()}
 

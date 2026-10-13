@@ -2,6 +2,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { CalendarPlus, Save, Trash2 } from "lucide-react";
 import { deleteFixtureAction, saveFixtureAction, saveSeasonAction, type ActionState } from "@/app/actions/admin";
+import { fmtMoney } from "@/lib/stats";
 import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 
@@ -47,9 +48,9 @@ function SeasonForm({ s, roster }: { s?: AdminSeason; roster: string[] }) {
       <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue</span><input name="venue" defaultValue={s?.venue ?? ""} className={inputClass} /></label>
       <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue link</span><input name="venueUrl" type="url" defaultValue={s?.venueUrl ?? ""} placeholder="https://www.playfootball.net/venues/whitechapel" className={inputClass} /><span className="text-[11px] text-muted">Linked from the fixture page and the reminder email.</span></label>
       <label className={field}><span className="eyebrow">Period</span><input name="period" defaultValue={s?.period ?? ""} placeholder="Jan–Apr 2027" className={inputClass} /><span className="min-h-[1.25rem] text-[11px] text-muted" /></label>
-      <label className={field}><span className="eyebrow">Pitch £ per game</span><input name="pitchCost" defaultValue={s?.pitchCost?.toFixed(2) ?? ""} inputMode="decimal" placeholder="79.95" className={`${inputClass} tabular`} /><span className="min-h-[1.25rem] text-[11px] text-muted">Used for new fixtures; each fixture can still be changed.</span></label>
+      <label className={field}><span className="eyebrow">Pitch £ per match</span><input name="pitchCost" defaultValue={s?.pitchCost?.toFixed(2) ?? ""} inputMode="decimal" placeholder="79.95" className={`${inputClass} tabular`} /><span className="min-h-[1.25rem] text-[11px] text-muted">Used for new fixtures; each fixture can still be changed.</span></label>
       <div className={field}><Select label="Pitch paid by" name="paidBy" defaultValue={s?.paidBy ?? ""} options={[{ value: "", label: "Nobody yet" }, ...roster.map((r) => ({ value: r, label: r }))]} /><span className="min-h-[1.25rem] text-[11px] text-muted" /></div>
-      <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-ink tabular">{s ? `£${s.seasonCost.toFixed(2)}` : "–"} <span className="ml-2 text-xs text-muted">{s ? `${s.fixtures} game${s.fixtures === 1 ? "" : "s"} × pitch` : "price per game × games"}</span></p><span className="min-h-[1.25rem] text-[11px] text-muted" /></div>
+      <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-ink tabular">{s ? fmtMoney(s.seasonCost) : "–"} <span className="ml-2 text-xs text-muted">{s ? `${s.fixtures} match${s.fixtures === 1 ? "" : "es"} × pitch` : "price per match × matches"}</span></p><span className="min-h-[1.25rem] text-[11px] text-muted" /></div>
       <div className="flex items-end gap-3 pb-[1.25rem] sm:col-span-2">
         <button type="submit" disabled={pending} className={btn("primary")}><Save size={16} aria-hidden />{pending ? "Saving…" : s ? "Save season" : "Create season"}</button>
         {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}

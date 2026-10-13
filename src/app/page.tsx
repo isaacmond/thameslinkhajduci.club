@@ -184,7 +184,7 @@ export default async function Home() {
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
           {rec.biggestWin && <RecordCard compact label="Biggest win" value={scoreline(rec.biggestWin)} sub={`v ${rec.biggestWin.opponent} · ${fmtDate(rec.biggestWin.date)}`} href={`/matches/${rec.biggestWin.id}`} />}
           {rec.heaviestDefeat && <RecordCard compact label="Heaviest defeat" value={scoreline(rec.heaviestDefeat)} sub={`v ${rec.heaviestDefeat.opponent} · ${fmtDate(rec.heaviestDefeat.date)}`} href={`/matches/${rec.heaviestDefeat.id}`} />}
-          {rec.longestUnbeaten && <RecordCard compact label="Longest unbeaten run" value={<>{rec.longestUnbeaten.length} <span className="text-2xl text-muted">matches</span></>} sub={`${fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} to ${fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}`} href="/records" />}
+          {rec.longestUnbeaten && <RecordCard compact label="Longest unbeaten run" value={<>{rec.longestUnbeaten.length} <span className="text-2xl text-muted">{rec.longestUnbeaten.length === 1 ? "match" : "matches"}</span></>} sub={`${fmtDate(rec.longestUnbeaten.start.date)} – ${fmtDate(rec.longestUnbeaten.end.date)}`} href="/records" />}
         </div>
       </section>
 

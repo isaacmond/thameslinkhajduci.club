@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { Match } from "@/lib/types";
-import { gwLabel, scoreline } from "@/lib/stats";
+import { gwLabel, scoreline, signed } from "@/lib/stats";
 
 /* The site-wide result colours, from the theme tokens. Kept here so this stays a server component and the opponent page ships no chart library for a handful of bars. */
 const FILL = { W: "var(--color-win)", D: "var(--color-draw)", L: "var(--color-loss)" } as const;
@@ -14,7 +14,6 @@ type Kind = keyof typeof FILL;
 const gdOf = (m: Match) => (m.ourGoals ?? 0) - (m.theirGoals ?? 0);
 const kindOf = (gd: number): Kind => (gd > 0 ? "W" : gd < 0 ? "L" : "D");
 /** "+3", "−2" (a real minus sign, which screen readers voice) or "0". */
-const fmtGd = (gd: number) => (gd > 0 ? `+${gd}` : gd < 0 ? `−${-gd}` : "0");
 
 /** One bar per counted meeting, oldest first: up in green for wins, down in red for defeats, a tick on the baseline for draws. Inline SVG stretched to the card (preserveAspectRatio none), with the numbers and labels in HTML underneath so they never scale down with it. */
 export function GoalDiffBars({ matches, opponent }: { matches: Match[]; opponent: string }) {
@@ -27,7 +26,7 @@ export function GoalDiffBars({ matches, opponent }: { matches: Match[]; opponent
   const showLabels = n <= 8;
   const won = gds.filter((g) => g > 0).length, lost = gds.filter((g) => g < 0).length, drawn = n - won - lost;
   const results = new Set(gds.map(kindOf));
-  const summary = `Goal difference in ${n} meetings with ${opponent}, won ${won}, drew ${drawn}, lost ${lost}: ${matches.map((m, i) => `${m.seasonId} ${gwLabel(m)} ${fmtGd(gds[i])}`).join(", ")}`;
+  const summary = `Goal difference in ${n} meetings with ${opponent}, won ${won}, drew ${drawn}, lost ${lost}: ${matches.map((m, i) => `${m.seasonId} ${gwLabel(m)} ${signed(gds[i])}`).join(", ")}`;
 
   return (
     <div className="mx-auto" style={{ maxWidth: n * SLOT }}>
@@ -37,7 +36,7 @@ export function GoalDiffBars({ matches, opponent }: { matches: Match[]; opponent
           const gd = gds[i], kind = kindOf(gd), h = Math.abs(gd) * unit;
           return (
             <g key={m.id} className="transition-opacity hover:opacity-80">
-              <title>{`${m.seasonId} ${gwLabel(m)} · ${scoreline(m)} v ${m.opponent} · ${fmtGd(gd)}`}</title>
+              <title>{`${m.seasonId} ${gwLabel(m)} · ${scoreline(m)} v ${m.opponent} · ${signed(gd)}`}</title>
               <rect x={i} y={0} width={1} height={H} fill="transparent" />
               {kind === "D" ? (
                 <rect x={i + 0.25} y={base - TICK / 2} width={0.5} height={TICK} fill={FILL.D} />
@@ -53,7 +52,7 @@ export function GoalDiffBars({ matches, opponent }: { matches: Match[]; opponent
           const kind = kindOf(gds[i]);
           return (
             <div key={m.id} className="min-w-0 px-0.5">
-              <span className={clsx("tabular block text-xs font-semibold leading-none", TEXT[kind])}>{fmtGd(gds[i])}</span>
+              <span className={clsx("tabular block text-xs font-semibold leading-none", TEXT[kind])}>{signed(gds[i])}</span>
               {showLabels && <span className="mt-0.5 block text-[10px] leading-tight text-muted">{m.seasonId} {gwLabel(m)}</span>}
             </div>
           );

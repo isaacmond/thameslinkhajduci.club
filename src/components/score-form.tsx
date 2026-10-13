@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import clsx from "clsx";
 import { Check, ClipboardList, Minus, Plus, Send, UserPlus, X } from "lucide-react";
 import { pickRegulars } from "@/lib/ringers";
+import { fmtDate, fmtMoney } from "@/lib/stats";
 import { FormStatus, inputClass, Select, Switch } from "./controls";
 import { btn } from "./button";
 import { SummaryCard } from "./summary-card";
@@ -24,7 +25,6 @@ const sameSet = (a: Set<string>, b: string[]) => a.size === b.length && b.every(
 const isForfeit = (f: SubmitFixture | undefined) => /forfeit/i.test(f?.type ?? "");
 /** The league's usual award when a side does not turn up. */
 const AWARDED = { ours: 0, theirs: 8 };
-const pounds = (n: number) => `£${n.toFixed(2)}`;
 
 function Counter({ value, onChange, max = 30, label }: { value: number; onChange: (v: number) => void; max?: number; label: string }) {
   return (
@@ -36,8 +36,8 @@ function Counter({ value, onChange, max = 30, label }: { value: number; onChange
   );
 }
 
-/** Short date for the board's time column ("4 Sept"), or a shrug when the fixture has none. */
-const shortDate = (iso: string | null) => (iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "TBC");
+/** Short date for the board's time column ("4 Sep"), or "TBC" when the fixture has none. */
+const shortDate = (iso: string | null) => fmtDate(iso, { day: "numeric", month: "short" });
 
 export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = null }: { fixtures: SubmitFixture[]; roster: string[]; initialMatch?: string; webhook: boolean; signedIn?: SignedIn | null }) {
   const first = fixtures.find((f) => f.id === initialMatch) ?? fixtures.find((f) => !f.played) ?? fixtures[0];
@@ -141,16 +141,16 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
 
       {forfeit ? (
         <div className="card p-5 sm:p-6">
-          <SectionTitle sub={`Tick who shares the ${pitch > 0 ? `${pounds(pitch)} ` : ""}pitch fee.`}>Pitch charges</SectionTitle>
+          <SectionTitle sub={`Tick who shares the ${pitch > 0 ? `${fmtMoney(pitch)} ` : ""}pitch fee.`}>Pitch fees</SectionTitle>
           <p className={clsx("mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-3 py-2 text-xs", played.size ? "border-ink/10 bg-sunken/60 text-ink/90" : "border-ink/10 bg-sunken/40 text-muted")} role="status">
-            <span>{played.size ? <>{played.size} player{played.size === 1 ? "" : "s"}{pitch > 0 && <>, <span className="text-ink">{pounds(each)} each</span></>}.</> : <>No one ticked{fx?.seasonId !== "FR" ? ", so the pitch stays with whoever booked it" : ""}.</>}</span>
+            <span>{played.size ? <>{played.size} player{played.size === 1 ? "" : "s"}{pitch > 0 && <>, <span className="text-ink">{fmtMoney(each)} each</span></>}.</> : <>No one ticked{fx?.seasonId !== "FR" ? ", so the pitch stays with whoever paid for it" : ""}.</>}</span>
             {fx && fx.expected.length > 0 && !sameSet(played, fx.expected) && <button type="button" onClick={() => setPlayed(new Set(fx.expected))} className="focus-ring link ml-auto text-xs">Tick the whole team sheet</button>}
           </p>
           <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
             {roster.map((n) => { const on = played.has(n); return (
               <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "chip-on" : "chip-off border-ink/10")}>
                 <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
-                {on && pitch > 0 && <span className="tabular shrink-0 text-xs text-muted">{pounds(each)}</span>}
+                {on && pitch > 0 && <span className="tabular shrink-0 text-xs text-muted">{fmtMoney(each)}</span>}
               </li>); })}
           </ul>
         </div>
@@ -190,7 +190,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           </div>
           {ringers.length > 0 && (
             <p className="mt-3 rounded-lg bg-sunken/60 px-3 py-2 text-xs text-ink/90" role="status">
-              {heads} players{pitch > 0 && <>, {pounds(perHead)} each</>}. {ringers.join(", ")}{ringers.length === 1 ? "'s" : "'"} {pitch > 0 ? pounds(levyTotal) : "share"} {regulars.length ? <>is split between {regulars.length} regular{regulars.length === 1 ? "" : "s"} who {regulars.length === 1 ? "wasn\u2019t" : "weren\u2019t"} playing{pitch > 0 && <>, <span className="text-ink">{pounds(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>stays with whoever booked the pitch.</>}
+              {heads} players{pitch > 0 && <>, {fmtMoney(perHead)} each</>}. {ringers.join(", ")}{ringers.length === 1 ? "'s" : "'"} {pitch > 0 ? fmtMoney(levyTotal) : "share"} {regulars.length ? <>is split between {regulars.length} regular{regulars.length === 1 ? "" : "s"} who {regulars.length === 1 ? "wasn't" : "weren't"} playing{pitch > 0 && <>, <span className="text-ink">{fmtMoney(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>stays with whoever paid for the pitch.</>}
             </p>
           )}
         </div>

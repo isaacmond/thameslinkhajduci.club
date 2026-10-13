@@ -62,7 +62,7 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
     const top = (key: "apps" | "goals") => { const best = [...perPlayer.entries()].sort((a, b) => b[1][key] - a[1][key] || (order.get(a[0]) ?? 1e9) - (order.get(b[0]) ?? 1e9))[0]; return best && best[1][key] > 0 ? `${best[0]} (${best[1][key]})` : null; };
     const base: SeasonSummary = { played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, topScorer: top("goals"), mostApps: top("apps"), seasonCost: matches.reduce((t, m) => t + m.matchCost, 0) || num(s.seasonCost), paidBy: s.paidBy };
     const season: Season = { id: s.id, number: s.number, title: s.title, venue: s.venue, venueUrl: s.venueUrl ?? null, period: s.period, matches, summary: recomputeSummary(matches, base), players: roster, isCurrent: false, isComplete: seasonComplete(matches) };
-    if (isFriendlies) { if (matches.length) { season.venue = season.venue || "Various venues"; season.period = season.period || "Whenever we fancy"; friendlies = season; } }
+    if (isFriendlies) { if (matches.length) { season.venue = season.venue || "Various venues"; season.period = season.period || "Various dates"; friendlies = season; } }
     else if (matches.length) seasons.push(season);
   }
 

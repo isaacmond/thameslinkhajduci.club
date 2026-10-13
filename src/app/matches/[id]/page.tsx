@@ -121,7 +121,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         // A forfeit's line-up is the bill: who was responsible, and what the pitch cost each of them.
         const lineupCard = isForfeit && m.played ? (
           <div className="card p-6">
-            <SectionTitle sub={lineup.length ? `${lineup.length} players share the ${fmtMoney(m.matchCost)} pitch, ${fmtMoney(m.costPerPlayer)} each.` : "No one was charged for the pitch."}>Pitch charges</SectionTitle>
+            <SectionTitle sub={lineup.length ? `${lineup.length} players share the ${fmtMoney(m.matchCost)} pitch, ${fmtMoney(m.costPerPlayer)} each.` : "No one was charged for the pitch."}>Pitch fees</SectionTitle>
             {lineup.length > 0 && <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">{lineup.map((l) => <li key={l.player} className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-sunken/60 px-3 py-2"><PlayerLink name={l.player} player={byName.get(l.player)} avatar className="min-w-0 truncate text-sm" /><span className="tabular shrink-0 text-xs text-muted">{fmtMoney(l.cost)}</span></li>)}</ul>}
             <p className="mt-4 text-xs text-muted"><Link href={`/submit?match=${m.id}`} className="link">Edit the forfeit</Link></p>
           </div>
@@ -190,7 +190,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 {m.levy && (
                   <div>
                     <dt className="eyebrow">Ringer levy</dt>
-                    <dd className="mt-1 text-ink">{m.levy.ringers.join(", ")} {m.levy.ringers.length === 1 ? "was a ringer" : "were ringers"} for the night. Their {fmtMoney(m.levy.total)} share of the pitch is split between {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} who {m.levy.payers.length === 1 ? "wasn\u2019t" : "weren\u2019t"} playing, {fmtMoney(m.levy.each)} each.</dd>
+                    <dd className="mt-1 text-ink">{m.levy.ringers.join(", ")} {m.levy.ringers.length === 1 ? "was a ringer" : "were ringers"} for the night. Their {fmtMoney(m.levy.total)} share of the pitch is split between {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} who {m.levy.payers.length === 1 ? "wasn't" : "weren't"} playing, {fmtMoney(m.levy.each)} each.</dd>
                     <dd className="mt-1 text-xs text-muted">{m.levy.payers.join(", ")}</dd>
                   </div>
                 )}

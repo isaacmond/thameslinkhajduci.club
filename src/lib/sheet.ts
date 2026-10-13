@@ -308,7 +308,7 @@ export function parseWorkbook(buf: ArrayBuffer): ClubData {
   for (const name of wb.SheetNames) {
     const grid = sheetToGrid(wb.Sheets[name]);
     if (/^S\d+$/i.test(name.trim())) { const s = parseSeasonTab(name.trim().toUpperCase(), grid); if (s && s.matches.length) seasons.push(s); }
-    else if (/^friendl(y|ies)$/i.test(name.trim())) { const f = parseSeasonTab("FR", grid, { friendlies: true }); if (f && f.matches.length) { f.venue = f.venue || "Various venues"; f.period = f.period || "Whenever we fancy"; friendlies = f; } }
+    else if (/^friendl(y|ies)$/i.test(name.trim())) { const f = parseSeasonTab("FR", grid, { friendlies: true }); if (f && f.matches.length) { f.venue = f.venue || "Various venues"; f.period = f.period || "Various dates"; friendlies = f; } }
     else if (/^(squad|players|profiles)$/i.test(name.trim())) extras = parseSquadTab(grid);
     else if (/^money$/i.test(name.trim())) money = parseMoney(grid);
     else if (/^payments$/i.test(name.trim())) payments = parsePayments(grid);

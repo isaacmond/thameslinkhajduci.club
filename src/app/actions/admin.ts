@@ -153,7 +153,7 @@ export async function saveSquadAction(_prev: ActionState, form: FormData): Promi
   if (m.played) return fail("That game has been played; the line-up is recorded with the result.");
   const roster = new Set([...data.players.map((p) => p.name), ...data.seasons.flatMap((x) => x.players)]);
   const players = form.getAll("players").map(String).filter((p) => roster.has(p));
-  if (players.length > 14) return fail("Fourteen is a lot of people for six-a-side.");
+  if (players.length > 14) return fail("No more than 14 players on a team sheet.");
   await saveSquad(matchId, players, clean(form.get("note"), 400) || null, s.email);
   revalidatePath("/admin"); revalidatePath(`/matches/${matchId}`);
   log("squad.saved", { matchId, players: players.length, by: s.member.player });

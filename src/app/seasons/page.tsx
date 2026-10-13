@@ -23,8 +23,8 @@ export default async function SeasonsPage() {
     <div className="space-y-10">
       <PageHeader eyebrow="History" title="Seasons" sub={`${data.seasons.length} league seasons across ${new Set(data.seasons.map((s) => s.venue)).size} venues.`} />
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="card p-6"><SectionTitle sub="Wins, draws and defeats">Results</SectionTitle><WDLBySeason data={series} /></div>
-        <div className="card p-6"><SectionTitle sub="Scored and conceded per game">Goals</SectionTitle><GoalsBySeason data={series} /></div>
+        <div className="card p-6"><SectionTitle sub="Won, drawn and lost">Results</SectionTitle><WDLBySeason data={series} /></div>
+        <div className="card p-6"><SectionTitle sub="Scored and conceded a game">Goals</SectionTitle><GoalsBySeason data={series} /></div>
         {progression.length > 0 && (
           <div className="card p-6"><SectionTitle sub={raceSeason ? `Season ${raceSeason.number} highlighted against the rest` : "Cumulative points"}>Points</SectionTitle><PointsRaceChart series={progression} current={raceSeason?.id ?? null} /></div>
         )}
@@ -60,7 +60,7 @@ export default async function SeasonsPage() {
             <span className="display flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-sunken text-2xl italic leading-none text-ink">F</span>
             <div>
               <h2 className="display text-2xl leading-none text-ink"><Link href="/seasons/friendlies" className="focus-ring rounded hover:text-accent">Friendlies</Link></h2>
-              <p className="mt-1 text-xs text-muted">{data.friendlies.matches.length} game{data.friendlies.matches.length === 1 ? "" : "s"} outside the league</p>
+              <p className="mt-1 text-xs text-muted">{data.friendlies.matches.length} match{data.friendlies.matches.length === 1 ? "" : "es"} outside the league</p>
             </div>
           </div>
           <div className="flex items-center gap-3"><FormStrip matches={[...data.friendlies.matches].filter((m) => m.played).slice(-8)} size="sm" /><Link href="/seasons/friendlies" className={btn("secondary", "xs")}>View <ArrowRight size={14} aria-hidden /></Link></div>

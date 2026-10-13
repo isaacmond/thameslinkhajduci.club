@@ -30,7 +30,7 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Scope">
-          <button type="button" onClick={() => setScope("all")} aria-pressed={scope === "all"} className={chipToggle(scope === "all")}>All-time</button>
+          <button type="button" onClick={() => setScope("all")} aria-pressed={scope === "all"} className={chipToggle(scope === "all")}>All time</button>
           {seasons.map((s) => <button key={s} type="button" onClick={() => setScope(s)} aria-pressed={scope === s} className={chipToggle(scope === s)}>{s}</button>)}
         </div>
         <Switch className="ml-auto" checked={minApps} onChange={setMinApps} label="Hide players with fewer than 5 appearances" />
@@ -52,9 +52,9 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
               <tr key={r.slug}>
                 <td className="hidden !static text-muted sm:table-cell">{i + 1}</td>
                 <td className="sticky-col"><Link href={`/squad/${r.slug}`} className="link block max-w-[8rem] truncate font-medium text-ink sm:max-w-none">{r.name}</Link></td>
-                <td className="num">{r.apps}</td><td className="num font-semibold text-ink">{r.goals}</td><td className="num">{r.assists}</td><td className="num" title={`${r.goals} goals over ${r.gpgGames} games with scorers logged`}>{r.goalsPerGame.toFixed(2)}</td><td className="num hidden md:table-cell" title={`${r.assists} assists over ${r.apgGames} games with assists logged`}>{r.assistsPerGame.toFixed(2)}</td>
+                <td className="num">{r.apps}</td><td className="num font-semibold text-ink">{r.goals}</td><td className="num">{r.assists}</td><td className="num" title={`${r.goals} goal${r.goals === 1 ? "" : "s"} over ${r.gpgGames} match${r.gpgGames === 1 ? "" : "es"} with scorers recorded`}>{r.goalsPerGame.toFixed(2)}</td><td className="num hidden md:table-cell" title={`${r.assists} assist${r.assists === 1 ? "" : "s"} over ${r.apgGames} match${r.apgGames === 1 ? "" : "es"} with assists recorded`}>{r.assistsPerGame.toFixed(2)}</td>
                 <td className="num hidden md:table-cell">{r.motm || ""}</td>
-                <td className="num text-accent">{r.wins}</td><td className="num hidden text-draw md:table-cell">{r.draws}</td><td className="num text-loss">{r.losses}</td>
+                <td className="num text-win">{r.wins}</td><td className="num hidden text-draw md:table-cell">{r.draws}</td><td className="num text-loss">{r.losses}</td>
                 <td className="num hidden md:table-cell">{r.ppg.toFixed(2)}</td><td className="num font-semibold text-ink">{r.winRate.toFixed(1)}%</td>
               </tr>
             ))}

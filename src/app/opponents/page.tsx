@@ -23,7 +23,7 @@ export default async function OpponentsPage() {
   return (
     <PageTransition>
     <div className="space-y-10">
-      <PageHeader eyebrow="Head to head" title="Opponents" sub="Every team we have played in the league, most frequent first." />
+      <PageHeader eyebrow="Head to head" title="Opponents" sub="Every team the club has played in the league, most frequent first." />
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Opponents summary">
         <Stat label="Opponents" value={opps.length} sub="in the league" />

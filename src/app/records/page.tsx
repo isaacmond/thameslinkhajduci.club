@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Records", description: "Thameslink H
 
 const season = (id: string) => (id === "FR" ? "Friendly" : `Season ${id.replace(/^S/, "")}`);
 const matchSub = (m: Match) => <>v {m.opponent} · <span className="nowrap">{fmtDate(m.date)}</span></>;
-const streakSub = (s: Streak) => <><span className="nowrap">{fmtDate(s.start.date, { day: "numeric", month: "short", year: "numeric" })}</span> to <span className="nowrap">{fmtDate(s.end.date, { day: "numeric", month: "short", year: "numeric" })}</span></>;
+const streakSub = (s: Streak) => <><span className="nowrap">{fmtDate(s.start.date, { day: "numeric", month: "short", year: "numeric" })}</span> – <span className="nowrap">{fmtDate(s.end.date, { day: "numeric", month: "short", year: "numeric" })}</span></>;
 
 export default async function RecordsPage() {
   const data = await getData();
@@ -49,10 +49,10 @@ export default async function RecordsPage() {
 
       <section><SectionTitle right={cur ? <Tag tone={cur.type === "W" ? "win" : cur.type === "L" ? "loss" : "default"} className="tabular" >Current run · {cur.length} {cur.type === "W" ? "win" : cur.type === "L" ? "defeat" : "draw"}{cur.length === 1 ? "" : "s"}</Tag> : undefined}>Runs</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {r.longestWin && <RecordCard label="Longest winning run" value={<>{r.longestWin.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWin)} />}
-          {r.longestUnbeaten && <RecordCard label="Longest unbeaten run" value={<>{r.longestUnbeaten.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestUnbeaten)} />}
-          {r.longestLosing && <RecordCard label="Longest losing run" value={<>{r.longestLosing.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestLosing)} />}
-          {r.longestWinless && <RecordCard label="Longest winless run" value={<>{r.longestWinless.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWinless)} />}
+          {r.longestWin && <RecordCard label="Longest winning run" value={<>{r.longestWin.length} <span className="text-2xl text-muted">{r.longestWin.length === 1 ? "match" : "matches"}</span></>} sub={streakSub(r.longestWin)} />}
+          {r.longestUnbeaten && <RecordCard label="Longest unbeaten run" value={<>{r.longestUnbeaten.length} <span className="text-2xl text-muted">{r.longestUnbeaten.length === 1 ? "match" : "matches"}</span></>} sub={streakSub(r.longestUnbeaten)} />}
+          {r.longestLosing && <RecordCard label="Longest losing run" value={<>{r.longestLosing.length} <span className="text-2xl text-muted">{r.longestLosing.length === 1 ? "match" : "matches"}</span></>} sub={streakSub(r.longestLosing)} />}
+          {r.longestWinless && <RecordCard label="Longest winless run" value={<>{r.longestWinless.length} <span className="text-2xl text-muted">{r.longestWinless.length === 1 ? "match" : "matches"}</span></>} sub={streakSub(r.longestWinless)} />}
         </div>
       </section>
 
@@ -82,7 +82,7 @@ export default async function RecordsPage() {
         <div className="card overflow-hidden"><div className="p-6 pb-2"><SectionTitle sub="Played every match of a season">Ever-presents</SectionTitle></div>
           {everPresent.length ? (
             <div className="scroll-x overflow-x-auto">
-              <table className="stats w-full"><thead><tr><th>Player</th><th>Season</th><th className="num">Games</th></tr></thead><tbody>{everPresent.map((e) => <tr key={`${e.player.slug}-${e.season.id}`}><td className="h-16"><PlayerLink name={e.player.name} player={e.player} avatar /></td><td><Link href={`/seasons/${e.season.id.toLowerCase()}`} className="link">{season(e.season.id)}</Link><span className="block text-xs text-muted">{e.season.period}</span></td><td className="num">{e.n}</td></tr>)}</tbody></table>
+              <table className="stats w-full"><thead><tr><th>Player</th><th>Season</th><th className="num">Matches</th></tr></thead><tbody>{everPresent.map((e) => <tr key={`${e.player.slug}-${e.season.id}`}><td className="h-16"><PlayerLink name={e.player.name} player={e.player} avatar /></td><td><Link href={`/seasons/${e.season.id.toLowerCase()}`} className="link">{season(e.season.id)}</Link><span className="block text-xs text-muted">{e.season.period}</span></td><td className="num">{e.n}</td></tr>)}</tbody></table>
             </div>
           ) : <Empty inset>No one has played every match of a season yet.</Empty>}
         </div>

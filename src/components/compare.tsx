@@ -28,21 +28,21 @@ interface Metric { key: string; label: string; value: (p: ComparePlayer) => numb
 const METRICS: Metric[] = [
   { key: "apps", label: "Appearances", value: (p) => p.apps, fmt: String, sub: (p) => (p.debut ? `since ${fmtDate(p.debut, { month: "short", year: "numeric" })}` : null) },
   { key: "goals", label: "Goals", value: (p) => p.goals, fmt: String },
-  { key: "assists", label: "Assists", value: (p) => p.assists, fmt: String, sub: () => "self-reported" },
-  { key: "gpg", label: "Goals per game", value: (p) => (p.gpgGames ? p.goalsPerGame : null), fmt: (v) => v.toFixed(2), sub: (p) => (p.gpgGames ? `${p.gpgGames} game${p.gpgGames === 1 ? "" : "s"} with scorers logged` : "no scorers logged") },
-  { key: "apg", label: "Assists per game", value: (p) => (p.apgGames ? p.assistsPerGame : null), fmt: (v) => v.toFixed(2), sub: (p) => (p.apgGames ? `${p.apgGames} game${p.apgGames === 1 ? "" : "s"} with assists logged` : "no assists logged") },
-  { key: "win", label: "Win rate", value: (p) => (p.wins + p.draws + p.losses ? p.winRate : null), fmt: (v) => `${Math.round(v)}%`, sub: (p) => `${p.wins}-${p.draws}-${p.losses}` },
+  { key: "assists", label: "Assists", value: (p) => p.assists, fmt: String },
+  { key: "gpg", label: "Goals a game", value: (p) => (p.gpgGames ? p.goalsPerGame : null), fmt: (v) => v.toFixed(2), sub: (p) => (p.gpgGames ? `${p.gpgGames} match${p.gpgGames === 1 ? "" : "es"} with scorers` : "no scorers recorded") },
+  { key: "apg", label: "Assists a game", value: (p) => (p.apgGames ? p.assistsPerGame : null), fmt: (v) => v.toFixed(2), sub: (p) => (p.apgGames ? `${p.apgGames} match${p.apgGames === 1 ? "" : "es"} with assists` : "no assists recorded") },
+  { key: "win", label: "Win rate", value: (p) => (p.wins + p.draws + p.losses ? p.winRate : null), fmt: (v) => `${Math.round(v)}%`, sub: (p) => `${p.wins}–${p.draws}–${p.losses}` },
   { key: "motm", label: "Man of the match", value: (p) => p.motm, fmt: String },
   { key: "att", label: "Attendance", value: (p) => (p.attendancePossible ? p.attendancePct : null), fmt: (v) => `${v}%`, sub: (p) => (p.attendancePossible ? `${p.attendanceApps} of ${p.attendancePossible} possible` : "not on a season roster") },
-  { key: "run", label: "Longest scoring run", value: (p) => p.longestScoringRun, fmt: String, sub: (p) => (p.longestScoringRun ? `${p.longestScoringRun} game${p.longestScoringRun === 1 ? "" : "s"} in a row` : "never scored in consecutive games") },
-  { key: "gwins", label: "Goals in wins", value: (p) => (p.goals ? Math.round((p.goalsInWins / p.goals) * 100) : null), fmt: (v) => `${v}%`, sub: (p) => (p.goals ? `${p.goalsInWins} of ${p.goals} goals${p.consolation ? `, ${p.consolation} consolation` : ""}` : "no goals to place") },
+  { key: "run", label: "Longest scoring run", value: (p) => p.longestScoringRun, fmt: String, sub: (p) => (p.longestScoringRun ? `${p.longestScoringRun} match${p.longestScoringRun === 1 ? "" : "es"} in a row` : "never scored in consecutive matches") },
+  { key: "gwins", label: "Goals in wins", value: (p) => (p.goals ? Math.round((p.goalsInWins / p.goals) * 100) : null), fmt: (v) => `${v}%`, sub: (p) => (p.goals ? `${p.goalsInWins} of ${p.goals} goals${p.consolation ? `, ${p.consolation} in defeats` : ""}` : "no goals to place") },
 ];
 
 const firstName = (n: string) => n.split(" ")[0];
 /** First name unless the two share one, in which case the full name does the disambiguating. */
 const short = (p: ComparePlayer, other: ComparePlayer) => (firstName(p.name) === firstName(other.name) ? p.name : firstName(p.name));
 const winPct = (xs: CompareMatch[]) => (xs.length ? Math.round((xs.filter((m) => m.result === "W").length / xs.length) * 100) : null);
-const wdl = (xs: CompareMatch[]) => `${xs.filter((m) => m.result === "W").length}-${xs.filter((m) => m.result === "D").length}-${xs.filter((m) => m.result === "L").length}`;
+const wdl = (xs: CompareMatch[]) => `${xs.filter((m) => m.result === "W").length}–${xs.filter((m) => m.result === "D").length}–${xs.filter((m) => m.result === "L").length}`;
 
 interface Tally { a: number; b: number; ties: number; total: number }
 function tally(a: ComparePlayer, b: ComparePlayer): Tally {
@@ -96,14 +96,14 @@ function Head({ p, other, align, tone }: { p: ComparePlayer; other: ComparePlaye
     <div className={clsx("flex min-w-0 flex-col gap-3", right ? "items-end text-right" : "items-start text-left")}>
       {p.photo ? <Avatar name={p.name} photo={p.photo} size={88} shirt={p.shirt} priority /> : <Shirt number={p.shirt} name={p.name} className="h-[88px] w-20" />}
       <div className="min-w-0">
-        <p className="eyebrow truncate">{p.positions.length ? p.positions.join(" · ") : "Squad player"}{p.shirt !== null ? ` · ${p.shirt}` : ""}</p>
+        <p className="eyebrow truncate">{p.positions.length ? p.positions.join(" · ") : "Squad player"}{p.shirt !== null ? ` · Number ${p.shirt}` : ""}</p>
         <h2 className="display break-words text-2xl leading-none text-ink sm:text-5xl">{p.name}</h2>
         {p.nickname && <p className="mt-0.5 truncate text-sm italic text-muted">“{p.nickname}”</p>}
         <div className={clsx("mt-2 flex flex-wrap gap-1.5", right && "justify-end")}>
           <Tag>Debut {fmtDate(p.debut, { month: "short", year: "numeric" })}</Tag>
           </div>
         <Link href={`/squad/${p.slug}`} className="link focus-ring mt-2 inline-block rounded text-sm">Profile</Link>
-        <span className="sr-only">{tone === "lead" ? `Leads ${short(other, p)} on more categories` : tone === "trail" ? `Trails ${short(other, p)} on more categories` : "Level on categories"}</span>
+        <span className="sr-only">{tone === "lead" ? `Leads ${short(other, p)} in more categories` : tone === "trail" ? `Trails ${short(other, p)} in more categories` : "Level on categories"}</span>
       </div>
     </div>
   );
@@ -150,7 +150,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
     window.history.replaceState(null, "", url.toString());
   }, [a, b]);
 
-  const options = players.map((p) => ({ value: p.slug, label: `${p.name} · ${p.apps} app${p.apps === 1 ? "" : "s"}` }));
+  const options = players.map((p) => ({ value: p.slug, label: `${p.name} · ${p.apps} appearance${p.apps === 1 ? "" : "s"}` }));
   // Picking the other side's player swaps them rather than comparing someone with himself.
   const pickA = (v: string) => { if (v === b) setB(a); setA(v); };
   const pickB = (v: string) => { if (v === a) setA(b); setB(v); };
@@ -173,7 +173,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
   const shared = seasonRows.filter((r) => (r.a?.apps ?? 0) > 0 && (r.b?.apps ?? 0) > 0).length;
   const sA = short(A, B), sB = short(B, A);
   const toneA = t.a > t.b ? "lead" : t.b > t.a ? "trail" : "level", toneB = t.b > t.a ? "lead" : t.a > t.b ? "trail" : "level";
-  const shareText = `${A.name} v ${B.name}: ${A.goals} goal${A.goals === 1 ? "" : "s"} in ${A.apps} app${A.apps === 1 ? "" : "s"} against ${B.goals} in ${B.apps}. ${line}`;
+  const shareText = `${A.name} v ${B.name}: ${A.goals} goal${A.goals === 1 ? "" : "s"} in ${A.apps} appearance${A.apps === 1 ? "" : "s"} against ${B.goals} in ${B.apps}. ${line}`;
   const cell = (label: string, xs: CompareMatch[], highlight = false) => {
     const pct = winPct(xs);
     return (

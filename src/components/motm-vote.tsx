@@ -41,7 +41,7 @@ export function MotmVote({ token, voter, candidates, current, pick }: { token: s
                 className={clsx("focus-ring flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed", picked ? "border-gold/60 bg-gold/15 text-gold" : suggested ? "border-accent/60 bg-accent/10 text-ink hover:bg-accent/20" : me ? "border-ink/5 bg-ink/[0.02] text-muted/60" : "border-ink/10 bg-ink/5 text-ink hover:bg-ink/10")}>
                 <span className={clsx("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2", picked ? "border-gold bg-gold text-paper" : "border-ink/25")} aria-hidden>{picked ? <Check size={14} /> : null}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold">{c.player}{me && <span className="ml-2 text-xs font-normal text-muted">(you, sadly ineligible)</span>}</span>
+                  <span className="block truncate font-semibold">{c.player}{me && <span className="ml-2 text-xs font-normal text-muted">(you)</span>}</span>
                   {did(c) && <span className="block text-xs text-muted">{did(c)}</span>}
                 </span>
                 {busy === c.player && <span className="text-xs text-muted">Saving…</span>}

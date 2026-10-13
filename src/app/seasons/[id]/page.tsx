@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, goalRace, leaderboard, pace, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
+import { paceLine } from "@/lib/insights";
 import { Breadcrumb, Empty, LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffTimeline } from "@/components/charts";
 import { GoalRaceChart } from "@/components/charts-race";
@@ -18,22 +19,13 @@ export async function generateStaticParams() {
   return [...data.seasons.map((s) => ({ id: s.id.toLowerCase() })), ...(data.friendlies ? [{ id: "friendlies" }] : [])];
 }
 type Data = Awaited<ReturnType<typeof getData>>;
-const ordinal = (n: number) => { const s = ["th", "st", "nd", "rd"], v = n % 100; return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`; };
-/** One line on how the current season's start stacks up against every previous one at the same point. */
-function paceLine(p: ReturnType<typeof pace>): string | null {
-  if (!p || p.games < 2 || p.of < 2) return null;
-  const after = `${p.pts} point${p.pts === 1 ? "" : "s"} from ${p.games} games`;
-  if (p.bestStart) return `${after}, the club's best start to a season.`;
-  if (p.worstStart) return `${after}, the slowest start to a season so far.`;
-  return `${after}, the ${p.tied ? "joint " : ""}${ordinal(p.rank)} best start of ${p.of} seasons.`;
-}
 const findSeason = (data: Data, id: string) => (/^(friendlies|fr)$/i.test(id) ? data.friendlies : data.seasons.find((x) => x.id === id.toUpperCase())) ?? null;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const data = await getData();
   const s = findSeason(data, id);
   if (!s) notFound();
-  if (s.id === "FR") return { title: "Friendlies", description: "Thameslink Hajduci's games outside the league." };
+  if (s.id === "FR") return { title: "Friendlies", description: "Thameslink Hajduci's matches outside the league." };
   return { title: `Season ${s.number}`, description: `${s.title}: W${s.summary.won} D${s.summary.drawn} L${s.summary.lost}.` };
 }
 
@@ -46,7 +38,7 @@ function FriendliesPage({ s }: { s: NonNullable<Data["friendlies"]> }) {
     <PageTransition>
     <div className="space-y-10">
       <Breadcrumb items={[{ href: "/seasons", label: "Seasons" }, { label: "Friendlies" }]} />
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title="Friendlies" sub="Games outside the league." />
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title="Friendlies" sub="Matches outside the league." />
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Friendlies summary">
         <Stat label="Played" value={played.length} />
         <Stat label="Won" value={w} />
@@ -92,7 +84,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
     <PageTransition>
     <div className="space-y-10">
       <Breadcrumb items={[{ href: "/seasons", label: "Seasons" }, { label: `Season ${s.number}` }]} />
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="accent">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{s.summary.paidBy && <> Pitch paid for by {s.summary.paidBy}.</>}{paceNote && <> {paceNote}</>}</>}
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="accent">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{s.summary.paidBy && <> Pitch paid for by {s.summary.paidBy}.</>}{paceNote && <> {paceNote}.</>}</>}
         right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className={btn("secondary", "xs")}><ChevronLeft size={14} aria-hidden />Season {prev.number}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className={btn("secondary", "xs")}>Season {next.number}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section aria-label="Season summary">
@@ -151,7 +143,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
       })()}
 
       <section className="card overflow-hidden">
-        <div className="p-6 pb-2"><SectionTitle sub={`${players.length} players${hasMoney ? " · cost is each player's share of pitch hire" : ""}`}>Squad</SectionTitle></div>
+        <div className="p-6 pb-2"><SectionTitle sub={`${players.length} players${hasMoney ? " · cost is each player's share of pitch fees" : ""}`}>Squad</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
           <table className="stats w-full md:min-w-[640px]">
             <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num hidden md:table-cell">Per game</th><th className="num hidden md:table-cell" title="Man of the match">MOTM</th><th className="num hidden sm:table-cell">W</th><th className="num hidden sm:table-cell">D</th><th className="num hidden sm:table-cell">L</th><th className="num hidden sm:table-cell">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>

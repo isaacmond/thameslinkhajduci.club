@@ -109,7 +109,7 @@ export function FormStrip({ matches, size = "md" }: { matches: (Match | MatchLit
   return (
     <div className="flex gap-1" aria-label="Recent form">
       {matches.map((m) => <Link key={m.id} href={`/matches/${m.id}`} title={`${fmtDate(m.date)} · ${m.opponent} ${scoreline(m)}`} className="focus-ring -m-1 rounded-full p-1"><ResultPill result={m.result} size={size} /></Link>)}
-      {!matches.length && <span className="text-xs text-muted">No games yet</span>}
+      {!matches.length && <span className="text-xs text-muted">No matches yet</span>}
     </div>
   );
 }
