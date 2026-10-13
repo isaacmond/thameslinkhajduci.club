@@ -38,9 +38,9 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
         <table className="stats w-full md:min-w-[820px]">
           <thead>
             <tr>
-              <th className="hidden w-8 sm:table-cell">#</th>
-              {COLS.map((c) => (
-                <th key={c.key} className={clsx(c.num && "num", c.hide)} aria-sort={sort.key === c.key ? (sort.dir === -1 ? "descending" : "ascending") : undefined}>
+              <th className="hidden w-8 !static sm:table-cell">#</th>
+              {COLS.map((c, ci) => (
+                <th key={c.key} className={clsx(c.num && "num", c.hide, ci === 0 && "sticky-col")} aria-sort={sort.key === c.key ? (sort.dir === -1 ? "descending" : "ascending") : undefined}>
                   <button type="button" onClick={() => click(c.key)} title={c.title} className={clsx("focus-ring inline-flex items-center gap-1 rounded uppercase tracking-[0.16em] hover:text-ink", sort.key === c.key && "text-accent")}>{c.label}<span aria-hidden className="text-[9px]">{sort.key === c.key ? (sort.dir === -1 ? "▼" : "▲") : ""}</span></button>
                 </th>
               ))}
@@ -49,8 +49,8 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.slug}>
-                <td className="hidden text-muted sm:table-cell">{i + 1}</td>
-                <td><Link href={`/squad/${r.slug}`} className="link block max-w-[8rem] truncate font-medium text-ink sm:max-w-none">{r.name}</Link></td>
+                <td className="hidden !static text-muted sm:table-cell">{i + 1}</td>
+                <td className="sticky-col"><Link href={`/squad/${r.slug}`} className="link block max-w-[8rem] truncate font-medium text-ink sm:max-w-none">{r.name}</Link></td>
                 <td className="num">{r.apps}</td><td className="num font-semibold text-ink">{r.goals}</td><td className="num">{r.assists}</td><td className="num" title={`${r.goals} goals over ${r.gpgGames} games with scorers logged`}>{r.goalsPerGame.toFixed(2)}</td><td className="num hidden md:table-cell" title={`${r.assists} assists over ${r.apgGames} games with assists logged`}>{r.assistsPerGame.toFixed(2)}</td>
                 <td className="num hidden md:table-cell">{r.motm || ""}</td>
                 <td className="num text-accent">{r.wins}</td><td className="num hidden text-draw md:table-cell">{r.draws}</td><td className="num text-loss">{r.losses}</td>

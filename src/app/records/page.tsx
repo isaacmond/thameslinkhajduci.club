@@ -56,7 +56,7 @@ export default async function RecordsPage() {
           {r.highestScoring && <Card label="Highest-scoring match" value={`${r.highestScoring.ourGoals! + r.highestScoring.theirGoals!} goals`} sub={<>{scoreline(r.highestScoring)} {matchSub(r.highestScoring)}</>} href={`/matches/${r.highestScoring.id}`} />}
           {r.mostGoalsScored && <Card label="Most goals scored" value={r.mostGoalsScored.ourGoals} sub={<>{scoreline(r.mostGoalsScored)} {matchSub(r.mostGoalsScored)}</>} href={`/matches/${r.mostGoalsScored.id}`} />}
           {r.mostConceded && <Card label="Most conceded" value={r.mostConceded.theirGoals} sub={<>{scoreline(r.mostConceded)} {matchSub(r.mostConceded)}</>} href={`/matches/${r.mostConceded.id}`} />}
-          <Card label="Clean sheets" value={r.cleanSheets.length} sub={r.cleanSheets.length ? <>{r.cleanSheets.slice(0, 3).map((m) => <Link key={m.id} href={`/matches/${m.id}`} className="link mr-2">{scoreline(m)} v {m.opponent}</Link>)}</> : undefined} />
+          <Card label="Clean sheets" value={r.cleanSheets.length} sub={r.cleanSheets.length ? <>{r.cleanSheets.slice(0, 3).map((m) => <Link key={m.id} href={`/matches/${m.id}`} className="mr-2 text-muted transition-colors hover:text-accent">{scoreline(m)} v {m.opponent}</Link>)}</> : undefined} />
           {best && <Card label="Best season" value={season(best.id)} sub={<>{ppg(best.summary).toFixed(2)} points a game · won {best.summary.won}, drew {best.summary.drawn}, lost {best.summary.lost}</>} href={`/seasons/${best.id.toLowerCase()}`} />}
           {worst && <Card label="Toughest season" value={season(worst.id)} sub={<>{ppg(worst.summary).toFixed(2)} points a game · won {worst.summary.won}, drew {worst.summary.drawn}, lost {worst.summary.lost}</>} href={`/seasons/${worst.id.toLowerCase()}`} />}
         </div>
@@ -91,7 +91,7 @@ export default async function RecordsPage() {
             <div className="scroll-x overflow-x-auto">
               <table className="stats w-full table-fixed">
                 <thead><tr><th className="w-[42%]">Player</th><th className="num w-16">Goals</th><th>Match</th></tr></thead>
-                <tbody>{r.hatTricks.map((h) => <tr key={`${h.match.id}-${h.player}`}><td className="h-16 truncate"><PlayerLink name={h.player} player={byName.get(h.player)} avatar /></td><td className="num font-semibold">{h.goals}</td><td className="truncate"><Link href={`/matches/${h.match.id}`} className="link block max-w-full truncate align-bottom" title={`${scoreline(h.match)} v ${h.match.opponent}`}>{scoreline(h.match)} v {h.match.opponent}</Link><span className="block text-xs text-muted">{fmtDate(h.match.date)}</span></td></tr>)}</tbody>
+                <tbody>{r.hatTricks.map((h) => <tr key={`${h.match.id}-${h.player}`}><td className="h-16"><PlayerLink name={h.player} player={byName.get(h.player)} avatar /></td><td className="num font-semibold">{h.goals}</td><td className="truncate"><Link href={`/matches/${h.match.id}`} className="link block max-w-full truncate align-bottom" title={`${scoreline(h.match)} v ${h.match.opponent}`}>{scoreline(h.match)} v {h.match.opponent}</Link><span className="block text-xs text-muted">{fmtDate(h.match.date)}</span></td></tr>)}</tbody>
               </table>
             </div>
           ) : <p className="px-6 pb-6 text-sm text-muted">No hat-tricks yet.</p>}

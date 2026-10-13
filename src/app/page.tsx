@@ -106,7 +106,7 @@ export default async function Home() {
               <Link href={seasonHref(current.id)} className="focus-ring inline-flex items-center gap-1 rounded text-sm font-medium text-accent hover:underline">{current.period} <ArrowRight size={14} aria-hidden /></Link>
             </header>
             <RecordStrip s={current.summary} animate />
-            <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div><p className="eyebrow mb-3">Appearances</p><LeaderList items={sApps} color="bg-ink" emptyText="The season hasn't started yet" /></div>
               <div><p className="eyebrow mb-3">Goals</p><LeaderList items={sScorers} emptyText="No goals yet this season" /></div>
             </div>
@@ -118,7 +118,7 @@ export default async function Home() {
             <span className="text-sm text-muted">{data.seasons.length} seasons since {since}</span>
           </header>
           <RecordStrip s={data.allTime} animate />
-          <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <div><p className="eyebrow mb-3">Most appearances</p><LeaderList items={topApps} color="bg-ink" /></div>
             <div><p className="eyebrow mb-3">Top scorers</p><LeaderList items={topScorers} /></div>
           </div>

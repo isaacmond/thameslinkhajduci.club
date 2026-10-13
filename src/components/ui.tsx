@@ -87,7 +87,7 @@ export function Avatar({ name, photo, size = 40, shirt, priority = false }: { na
   return (
     <span className="relative inline-flex shrink-0 align-middle" style={{ width: size, height: size }}>
       {photo ? (
-        <Image src={photo} alt="" width={size} height={size} className="h-full w-full rounded-full object-cover ring-1 ring-ink/10" unoptimized={photo.startsWith("http")} priority={priority} />
+        <Image src={photo} alt="" width={size} height={size} className="block h-full w-full rounded-full object-cover ring-1 ring-ink/10" unoptimized={photo.startsWith("http")} priority={priority} />
       ) : (
         <span className="flex h-full w-full items-center justify-center rounded-full bg-sunken font-semibold text-muted ring-1 ring-ink/10" style={{ fontSize: size * 0.36 }} aria-hidden>{initials(name)}</span>
       )}
@@ -98,9 +98,9 @@ export function Avatar({ name, photo, size = 40, shirt, priority = false }: { na
 
 export function PlayerLink({ name, player, className, avatar = false }: { name: string; player?: Player; className?: string; avatar?: boolean }) {
   return (
-    <Link href={`/squad/${player?.slug ?? slugify(name)}`} className={clsx("focus-ring inline-flex items-center gap-2 rounded font-medium text-ink transition-colors hover:text-accent", className)}>
+    <Link href={`/squad/${player?.slug ?? slugify(name)}`} className={clsx("focus-ring inline-flex min-w-0 max-w-full items-center gap-2 rounded font-medium text-ink transition-colors hover:text-accent", className)}>
       {avatar && <Avatar name={name} photo={player?.extra.photo} size={28} />}
-      {player?.extra.nickname ? <span>{name} <span className="font-normal italic text-muted">“{player.extra.nickname}”</span></span> : name}
+      <span className="min-w-0 truncate">{name}{player?.extra.nickname && <> <span className="font-normal italic text-muted">“{player.extra.nickname}”</span></>}</span>
     </Link>
   );
 }

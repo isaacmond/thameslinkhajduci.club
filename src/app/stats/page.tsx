@@ -68,7 +68,7 @@ export default async function StatsPage() {
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full">
               <thead><tr><th>Pair</th><th className="num">Matches</th><th className="num">Won</th><th className="num">Goals a game</th></tr></thead>
-              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal min-w-[10rem]"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-muted sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className="num font-semibold">{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
+              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal lg:!whitespace-nowrap"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1 lg:flex-nowrap"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-muted sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className="num font-semibold">{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
             </table>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default async function StatsPage() {
           <SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Played five or more times without a win">Yet to beat</SectionTitle>
           {notBeaten.length ? (
             <ul className="space-y-2 text-sm">
-              {notBeaten.map((o) => <li key={o.key} className="flex items-baseline gap-3"><Link href={`/opponents/${o.slug}`} className="link min-w-0 truncate font-medium text-ink" title={o.opponent}>{o.opponent}</Link><span className="ml-auto shrink-0 text-xs text-muted">{o.played} played</span><span className="tabular shrink-0 text-xs text-muted">drew {o.drawn}, lost {o.lost}</span><span className="tabular w-10 shrink-0 text-right text-xs font-semibold text-ink">{signed(o.gf - o.ga)}</span></li>)}
+              {notBeaten.map((o) => <li key={o.key} className="flex items-baseline gap-3"><Link href={`/opponents/${o.slug}`} className="focus-ring min-w-0 truncate rounded font-medium text-ink transition-colors hover:text-accent" title={o.opponent}>{o.opponent}</Link><span className="ml-auto shrink-0 text-xs text-muted">{o.played} played</span><span className="tabular shrink-0 text-xs text-muted">drew {o.drawn}, lost {o.lost}</span><span className="tabular w-10 shrink-0 text-right text-xs font-semibold text-ink">{signed(o.gf - o.ga)}</span></li>)}
             </ul>
           ) : <p className="text-sm text-muted">Every team played five or more times has been beaten at least once.</p>}
         </div>
@@ -86,7 +86,7 @@ export default async function StatsPage() {
           <div className="scroll-x overflow-x-auto sm:max-h-[560px] sm:overflow-auto">
             <table className="stats w-full">
               <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th><th className="hidden md:table-cell">Seasons</th></tr></thead>
-              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[14rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td><td className="hidden !whitespace-normal max-w-[7rem] text-xs leading-relaxed text-muted md:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
+              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[14rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td><td className="hidden whitespace-nowrap text-xs text-muted md:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
             </table>
           </div>
         </div>

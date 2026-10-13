@@ -61,13 +61,13 @@ body {
 }
 ::selection { background: color-mix(in srgb, var(--color-accent) 22%, transparent); }
 
+@layer components {
 /* type */
 .display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; }
 .eyebrow { font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-muted); font-weight: 600; }
 .tabular { font-variant-numeric: tabular-nums; }
 .nowrap { white-space: nowrap; }
 
-@layer components {
 /* surfaces */
 .card { background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-ink) 9%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); }
 .card-solid { background: var(--color-accent); color: var(--color-paper); border-radius: var(--radius-xl); }
@@ -81,12 +81,12 @@ body {
 .result-D { background: color-mix(in srgb, var(--color-draw) 14%, transparent); color: var(--color-draw); border-color: color-mix(in srgb, var(--color-draw) 35%, transparent); }
 .result-L { background: color-mix(in srgb, var(--color-loss) 13%, transparent); color: var(--color-loss); border-color: color-mix(in srgb, var(--color-loss) 33%, transparent); }
 .result-X { background: color-mix(in srgb, var(--color-ink) 5%, transparent); color: var(--color-muted); }
-}
 
 /* links and focus */
 .link { color: var(--color-accent); text-decoration: none; }
 .link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .focus-ring:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+}
 
 /* tables */
 table.stats { width: 100%; border-collapse: separate; border-spacing: 0; }
@@ -99,16 +99,26 @@ table.stats .link, table.stats a.text-ink { color: var(--color-ink); }
 table.stats .link:hover { color: var(--color-accent); }
 table.stats th:first-child, table.stats td:first-child { position: sticky; left: 0; z-index: 1; background: var(--color-surface); }
 table.stats th:first-child { z-index: 2; }
+/* a named sticky column (when the first column is hidden on phones) */
+.sticky-col { position: sticky; left: 0; z-index: 1; background: var(--color-surface); }
+th.sticky-col { z-index: 2; }
 /* bigger hit areas for dense table links and sort buttons without changing the visual */
 table.stats td a { padding: 0.3rem 0; margin: -0.3rem 0; }
 table.stats td a:not(.inline-flex) { display: inline-block; }
-table.stats td a.inline-flex { vertical-align: middle; }
+table.stats td a, table.stats td > .inline-flex, table.stats td > span.flex { vertical-align: middle; }
 table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
 @media (max-width: 639px) { table.stats th, table.stats td { padding-left: 0.5rem; padding-right: 0.5rem; } }
 
-/* horizontal scrollers: a soft edge while there is more to see */
-.scroll-x { position: relative; }
-.scroll-x.can-scroll:not(.at-end)::after { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 2.5rem; pointer-events: none; background: linear-gradient(to left, var(--color-surface), transparent); }
+/* horizontal scrollers: a soft shadow on whichever edge has more to see (covers ride along with the content, shadows stay put) */
+.scroll-x {
+  position: relative;
+  background:
+    linear-gradient(to right, var(--color-surface) 30%, transparent) left / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--color-surface) 30%, transparent) right / 2.5rem 100% no-repeat local,
+    linear-gradient(to right, color-mix(in srgb, var(--color-ink) 12%, transparent), transparent) left / 1rem 100% no-repeat scroll,
+    linear-gradient(to left, color-mix(in srgb, var(--color-ink) 12%, transparent), transparent) right / 1rem 100% no-repeat scroll;
+  background-color: var(--color-surface);
+}
 .scroll-x, pre { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-ink) 25%, transparent) transparent; }
 .scroll-x::-webkit-scrollbar, pre::-webkit-scrollbar { height: 8px; }
 .scroll-x::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-ink) 25%, transparent); border-radius: 999px; }
