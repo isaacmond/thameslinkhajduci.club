@@ -107,7 +107,13 @@ table.stats td a { padding: 0.3rem 0; margin: -0.3rem 0; }
 table.stats td a:not(.inline-flex) { display: inline-block; }
 table.stats td a, table.stats td > .inline-flex, table.stats td > span.flex { vertical-align: middle; }
 table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
-@media (max-width: 639px) { table.stats th, table.stats td { padding-left: 0.5rem; padding-right: 0.5rem; } }
+table.stats th:first-child, table.stats td:first-child { padding-left: 1.5rem; }
+table.stats th:last-child, table.stats td:last-child { padding-right: 1.5rem; }
+@media (max-width: 639px) {
+  table.stats th, table.stats td { padding-left: 0.5rem; padding-right: 0.5rem; }
+  table.stats th:first-child, table.stats td:first-child { padding-left: 1rem; }
+  table.stats th:last-child, table.stats td:last-child { padding-right: 1rem; }
+}
 
 /* horizontal scrollers: a soft shadow on whichever edge has more to see (covers ride along with the content, shadows stay put) */
 .scroll-x {
@@ -129,7 +135,7 @@ table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
 /* forms */
 select.control { appearance: none; -webkit-appearance: none; background-image: none; padding-right: 2rem; }
 /* filter chips (marked .chip-tap) grow to a thumb-sized target on touch screens */
-@media (pointer: coarse) { button.chip-tap, a.chip-tap { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.25rem; } }
+@media (pointer: coarse) { button.chip-tap, a.chip-tap { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.5rem; } }
 
 /* motion */
 .stagger > * { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }

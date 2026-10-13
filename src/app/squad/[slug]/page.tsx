@@ -8,7 +8,7 @@ import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref } from "@/lib/stats";
 import { playerInsights } from "@/lib/insights";
-import { Avatar, FormStrip, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Avatar, Breadcrumb, FormStrip, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
 import { PageTransition } from "@/components/page-transition";
@@ -58,9 +58,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
 
   return (
     <PageTransition>
-    <div className="space-y-8">
-      <nav className="flex gap-2 text-xs text-muted" aria-label="Breadcrumb"><Link href="/squad" className="hover:text-ink">Squad</Link><span aria-hidden>/</span><span className="text-ink">{p.name}</span></nav>
-      <header className="grid gap-8 border-b border-ink/10 pb-10 animate-rise md:grid-cols-[auto_1fr] md:items-center md:gap-12">
+    <div className="space-y-10">
+      <Breadcrumb items={[{ href: "/squad", label: "Squad" }, { label: p.name }]} />
+      <header className="grid gap-8 border-b border-ink/10 pb-6 animate-rise md:grid-cols-[auto_1fr] md:items-center md:gap-12">
         <ViewTransition name={`player-${p.slug}`} share="morph" default="none"><Avatar name={p.name} photo={p.extra.photo} size={176} shirt={p.extra.shirt} priority /></ViewTransition>
         <div className="min-w-0">
           <p className="eyebrow">{p.extra.positions?.length ? p.extra.positions.join(" · ") : "Squad player"}{p.extra.shirt !== null && p.extra.shirt !== undefined ? ` · Number ${p.extra.shirt}` : ""}</p>
@@ -151,7 +151,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
       ); })()}
 
       <section className="card overflow-hidden">
-        <div className="p-6 pb-3"><SectionTitle sub={`${log.length} match${log.length === 1 ? "" : "es"}, most recent first`}>Every match</SectionTitle></div>
+        <div className="p-6 pb-2"><SectionTitle sub={`${log.length} match${log.length === 1 ? "" : "es"}, most recent first`}>Every match</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
           <table className="stats w-full sm:min-w-[640px]">
             <thead><tr><th>Opponent</th><th>Result</th><th className="num">Score</th><th className="num">Goals</th><th className="num">Assists</th><th className="hidden sm:table-cell">Date</th><th className="hidden sm:table-cell">Season</th><th className="hidden sm:table-cell"><span className="sr-only">Awards</span></th></tr></thead>

@@ -147,8 +147,8 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           </p>
           <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
             {roster.map((n) => { const on = played.has(n); return (
-              <li key={n} className={clsx("flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
-                <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
+              <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
+                <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
                 {on && pitch > 0 && <span className="tabular shrink-0 text-xs text-muted">{pounds(each)}</span>}
               </li>); })}
           </ul>
@@ -165,9 +165,9 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
         )}
         <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
           {roster.map((n) => { const on = played.has(n); return (
-            <li key={n} className={clsx("flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
-              <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
-              {on && <span className="flex shrink-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted"><span>G</span><MiniCounter value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>}
+            <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
+              <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
+              {on && <span className="flex shrink-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>}
             </li>); })}
         </ul>
         <div className="mt-5 border-t border-ink/10 pt-4">
@@ -177,7 +177,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
               {ringers.map((n) => (
                 <li key={n} className="flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/[0.06] px-3 py-2">
                   <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink"><span className="chip shrink-0 text-[10px] text-muted">Ringer</span><span className="truncate">{n}</span></span>
-                  <span className="flex shrink-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted"><span>G</span><MiniCounter value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
+                  <span className="flex shrink-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
                   <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring shrink-0 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>
                 </li>
               ))}
@@ -213,12 +213,13 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
   );
 }
 
-function MiniCounter({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+function MiniCounter({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  const btn = "focus-ring inline-flex items-center justify-center px-1.5 py-1 text-muted hover:text-ink [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9 [@media(pointer:coarse)]:p-0";
   return (
     <span className="inline-flex items-center rounded-md border border-ink/15 bg-ink/5">
-      <button type="button" aria-label="Fewer" onClick={() => onChange(Math.max(0, value - 1))} className="focus-ring rounded-l-md px-1.5 py-1 text-muted hover:text-ink"><Minus size={12} aria-hidden /></button>
+      <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className={`${btn} rounded-l-md`}><Minus size={12} aria-hidden /></button>
       <span className="tabular w-5 text-center text-sm font-semibold text-ink">{value}</span>
-      <button type="button" aria-label="More" onClick={() => onChange(Math.min(30, value + 1))} className="focus-ring rounded-r-md px-1.5 py-1 text-muted hover:text-ink"><Plus size={12} aria-hidden /></button>
+      <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(30, value + 1))} className={`${btn} rounded-r-md`}><Plus size={12} aria-hidden /></button>
     </span>
   );
 }

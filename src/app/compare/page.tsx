@@ -53,8 +53,8 @@ export default async function ComparePage({ searchParams }: { searchParams: Sear
 
   return (
     <PageTransition>
-    <div className="space-y-8">
-      <PageHeader eyebrow="Side by side" title="Compare players" sub="Choose any two players to compare their records." right={<Link href="/stats" className="focus-ring chip text-muted hover:text-ink">Statistics</Link>} />
+    <div className="space-y-10">
+      <PageHeader eyebrow="Side by side" title="Compare players" sub="Choose any two players to compare their records." right={<Link href="/stats" className="focus-ring chip chip-tap text-muted hover:text-ink">Statistics</Link>} />
       {pair ? (
         <Compare key={`${pair[0].slug}|${pair[1].slug}`} players={players} matches={buildMatches(data)} seasons={seasons} initialA={pair[0].slug} initialB={pair[1].slug} />
       ) : (

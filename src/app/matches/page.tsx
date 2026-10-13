@@ -16,16 +16,16 @@ export default async function MatchesPage() {
   const upcoming = chronological(data.matches).filter((m) => !m.played && m.date && m.date >= today).slice(0, 5);
   return (
     <PageTransition>
-    <>
+    <div className="space-y-10">
       <PageHeader eyebrow="Results and fixtures" title="Matches" sub="Every match the club has played, and the ones still to come." right={<Link href="/submit" className={btn("primary")}>Add a result</Link>} />
       {upcoming.length > 0 && (
-        <section className="mb-12">
+        <section>
           <SectionTitle>Coming up</SectionTitle>
           <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} showSeason today={today} />)}</div>
         </section>
       )}
       <MatchesBrowser matches={data.matches.map(toLite)} seasons={[...(data.friendlies ? [data.friendlies] : []), ...data.seasons].map((s) => ({ id: s.id, number: s.number, title: s.title }))} today={today} />
-    </>
+    </div>
     </PageTransition>
   );
 }

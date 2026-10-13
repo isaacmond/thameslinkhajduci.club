@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, goalRace, leaderboard, pace, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
-import { LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Breadcrumb, LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffTimeline } from "@/components/charts";
 import { GoalRaceChart } from "@/components/charts-race";
 import { SeasonTimeline } from "@/components/season-timeline";
@@ -43,8 +43,9 @@ function FriendliesPage({ s }: { s: NonNullable<Data["friendlies"]> }) {
   const w = played.filter((m) => m.result === "W").length, d = played.filter((m) => m.result === "D").length, l = played.filter((m) => m.result === "L").length;
   return (
     <PageTransition>
-    <div className="space-y-8">
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title="Friendlies" sub="Games outside the league." right={<nav className="flex gap-2" aria-label="Seasons"><Link href="/seasons" className="focus-ring chip text-muted hover:text-ink"><ChevronLeft size={14} aria-hidden />Seasons</Link></nav>} />
+    <div className="space-y-10">
+      <Breadcrumb items={[{ href: "/seasons", label: "Seasons" }, { label: "Friendlies" }]} />
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title="Friendlies" sub="Games outside the league." />
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Friendlies summary">
         <Stat label="Played" value={played.length} />
         <Stat label="Won" value={w} />
@@ -88,9 +89,10 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
 
   return (
     <PageTransition>
-    <div className="space-y-8">
+    <div className="space-y-10">
+      <Breadcrumb items={[{ href: "/seasons", label: "Seasons" }, { label: `Season ${s.number}` }]} />
       <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{s.summary.paidBy && <> Pitch paid for by {s.summary.paidBy}.</>}{paceNote && <> {paceNote}</>}</>}
-        right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip text-muted hover:text-ink"><ChevronLeft size={14} aria-hidden />Season {prev.number}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip text-muted hover:text-ink">Season {next.number}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
+        right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip chip-tap text-muted hover:text-ink"><ChevronLeft size={14} aria-hidden />Season {prev.number}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip chip-tap text-muted hover:text-ink">Season {next.number}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section aria-label="Season summary">
         <RecordStrip s={s.summary} className="card lg:hidden" />
@@ -148,7 +150,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
       })()}
 
       <section className="card overflow-hidden">
-        <div className="p-6 pb-3"><SectionTitle sub={`${players.length} players${hasMoney ? " · cost is each player's share of pitch hire" : ""}`}>Squad</SectionTitle></div>
+        <div className="p-6 pb-2"><SectionTitle sub={`${players.length} players${hasMoney ? " · cost is each player's share of pitch hire" : ""}`}>Squad</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
           <table className="stats w-full md:min-w-[640px]">
             <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num hidden md:table-cell">Per game</th><th className="num hidden md:table-cell" title="Man of the match">MOTM</th><th className="num hidden sm:table-cell">W</th><th className="num hidden sm:table-cell">D</th><th className="num hidden sm:table-cell">L</th><th className="num hidden sm:table-cell">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>

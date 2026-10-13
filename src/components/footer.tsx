@@ -60,7 +60,7 @@ function SponsorStrip() {
 export function Footer() {
   return (
     <footer className="border-t border-ink/10">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 pt-10 pb-[calc(3.5rem+2.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-10 lg:px-8">
         <HideOnHome><SponsorStrip /><div className="my-8 border-t border-ink/10" aria-hidden /></HideOnHome>
         <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-center gap-4">
@@ -71,10 +71,10 @@ export function Footer() {
             </div>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-            <Link className="text-muted transition-colors hover:text-ink" href="/records">Records</Link>
-            <Link className="text-muted transition-colors hover:text-ink" href="/compare">Compare players</Link>
-            <Link className="text-muted transition-colors hover:text-ink" href="/data">Data</Link>
-            <a className="text-muted transition-colors hover:text-ink" href="https://github.com/isaacmond/thameslinkhajduci.club" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <Link className="focus-ring -my-2 rounded py-2 text-muted transition-colors hover:text-ink" href="/records">Records</Link>
+            <Link className="focus-ring -my-2 rounded py-2 text-muted transition-colors hover:text-ink" href="/compare">Compare players</Link>
+            <Link className="focus-ring -my-2 rounded py-2 text-muted transition-colors hover:text-ink" href="/data">Data</Link>
+            <a className="focus-ring -my-2 rounded py-2 text-muted transition-colors hover:text-ink" href="https://github.com/isaacmond/thameslinkhajduci.club" target="_blank" rel="noopener noreferrer">GitHub</a>
           </nav>
         </div>
       </div>

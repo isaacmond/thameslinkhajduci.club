@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${serif.variable} ${inter.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <Nav authEnabled={auth} />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-8 sm:px-6 sm:pt-12 md:pb-20 lg:px-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-8 sm:px-6 sm:pt-12 lg:pb-20 lg:px-8">{children}</main>
         <Footer />
         <MobileTabs authEnabled={auth} />
         <ScrollHints />

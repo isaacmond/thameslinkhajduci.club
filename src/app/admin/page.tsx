@@ -68,7 +68,7 @@ export default async function AdminPage() {
     <div className="space-y-8">
       <PageHeader eyebrow="Club admin" title="Admin" sub="Approvals, the team sheet, the man of the match vote, members and fixtures. Changes appear on the site within a minute." right={<Link href="/account" className={btn("secondary")}>Your account</Link>} />
       <nav aria-label="Admin sections" className="flex flex-wrap gap-2 text-sm">
-        {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#players", "Players"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip focus-ring hover:border-ink/30">{label}</a>)}
+        {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#players", "Players"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip chip-tap focus-ring hover:border-ink/30">{label}</a>)}
       </nav>
       <section id="pending" className="card scroll-mt-24 p-5 sm:p-6">
         <SectionTitle sub="Results, payments and new players sent in by people who were not signed in. Recording one writes it into the records.">Waiting for approval{pending.length ? ` · ${pending.length}` : ""}</SectionTitle>

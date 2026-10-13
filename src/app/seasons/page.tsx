@@ -19,9 +19,9 @@ export default async function SeasonsPage() {
   const raceSeason = data.seasons.find((s) => s.isCurrent) ?? data.seasons[data.seasons.length - 1] ?? null;
   return (
     <PageTransition>
-    <>
+    <div className="space-y-10">
       <PageHeader eyebrow="History" title="Seasons" sub={`${data.seasons.length} league seasons across ${new Set(data.seasons.map((s) => s.venue)).size} venues.`} />
-      <section className="mb-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="card p-6"><SectionTitle sub="Wins, draws and defeats">Results</SectionTitle><WDLBySeason data={series} /></div>
         <div className="card p-6"><SectionTitle sub="Scored and conceded per game">Goals</SectionTitle><GoalsBySeason data={series} /></div>
         {progression.length > 0 && (
@@ -61,10 +61,10 @@ export default async function SeasonsPage() {
               <p className="mt-1 text-xs text-muted">{data.friendlies.matches.length} game{data.friendlies.matches.length === 1 ? "" : "s"} outside the league</p>
             </div>
           </div>
-          <div className="flex items-center gap-3"><FormStrip matches={[...data.friendlies.matches].filter((m) => m.played).slice(-8)} size="sm" /><Link href="/seasons/friendlies" className="focus-ring chip text-muted hover:text-ink">View <ArrowRight size={14} aria-hidden /></Link></div>
+          <div className="flex items-center gap-3"><FormStrip matches={[...data.friendlies.matches].filter((m) => m.played).slice(-8)} size="sm" /><Link href="/seasons/friendlies" className="focus-ring chip chip-tap text-muted hover:text-ink">View <ArrowRight size={14} aria-hidden /></Link></div>
         </article>
       )}
-    </>
+    </div>
     </PageTransition>
   );
 }

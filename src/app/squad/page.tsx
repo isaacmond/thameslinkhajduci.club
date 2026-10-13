@@ -19,10 +19,10 @@ export default async function SquadPage() {
   const active = cards.filter((c) => c.activeThisSeason).length;
   return (
     <PageTransition>
-    <>
+    <div className="space-y-10">
       <PageHeader eyebrow="The players" title="Squad" sub={<>{cards.length} players have represented the club{current && active > 0 && <>, {active} of them this season</>}. <Link href="/submit?type=player" className="link">Add a new player</Link></>} />
       <SquadGrid players={cards} currentSeason={current?.id ?? null} />
-    </>
+    </div>
     </PageTransition>
   );
 }

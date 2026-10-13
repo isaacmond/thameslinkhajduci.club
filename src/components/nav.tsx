@@ -9,10 +9,12 @@ import { AccountChip } from "./account-chip";
 
 const LINKS = [
   { href: "/", label: "Home" }, { href: "/squad", label: "Squad" }, { href: "/matches", label: "Matches" }, { href: "/seasons", label: "Seasons" },
-  { href: "/stats", label: "Stats" }, { href: "/opponents", label: "Opponents" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/submit", label: "Add result" },
+  { href: "/stats", label: "Stats" }, { href: "/opponents", label: "Opponents" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/submit", label: "Add a result" },
 ];
 const TABS = [{ href: "/", label: "Home", Icon: House }, { href: "/matches", label: "Matches", Icon: CalendarDays }, { href: "/squad", label: "Squad", Icon: Users }, { href: "/stats", label: "Stats", Icon: BarChart3 }];
 const MORE = [{ href: "/submit", label: "Add a result", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/opponents", label: "Opponents", Icon: Shield }, { href: "/compare", label: "Compare players", Icon: Swords }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data", Icon: Database }];
+/** Every page with a name, for the phone header's label. Home is matched last so "/" does not claim every path. */
+const LABELS = [...LINKS.filter((l) => l.href !== "/"), ...MORE, { href: "/account", label: "Your account" }, { href: "/", label: "Home" }];
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
 export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
@@ -27,20 +29,20 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
             <div className="eyebrow mt-0.5 hidden !text-[10px] sm:block">Football club · Est. 2024</div>
           </div>
         </Link>
-        <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-0.5 self-stretch md:flex lg:gap-1">
+        <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-0.5 self-stretch lg:flex">
           {LINKS.map((l) => {
             const active = isActive(path, l.href);
             return (
-              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={clsx("focus-ring relative inline-flex items-center whitespace-nowrap rounded-md px-2 py-4 text-[13px] font-medium transition-colors lg:px-2.5", active ? "text-ink" : "text-muted hover:text-ink")}>
+              <Link key={l.href} href={l.href} aria-current={active ? "page" : undefined} className={clsx("focus-ring relative inline-flex items-center whitespace-nowrap rounded-md px-2 py-4 text-[13px] font-medium transition-colors xl:px-2.5", active ? "text-ink" : "text-muted hover:text-ink")}>
                 {l.label}
-                {active && <span className="absolute inset-x-2 -bottom-px h-px bg-ink" />}
+                {active && <span className="absolute inset-x-2 -bottom-px h-px bg-accent" />}
               </Link>
             );
           })}
         </nav>
-        {authEnabled && <span className="hidden md:flex"><AccountChip /></span>}
-        <span className="eyebrow ml-auto md:hidden" aria-hidden>{LINKS.find((l) => isActive(path, l.href))?.label ?? ""}</span>
-        {authEnabled && <span className="flex md:hidden"><AccountChip /></span>}
+        {authEnabled && <span className="hidden lg:flex"><AccountChip /></span>}
+        <span className="eyebrow ml-auto lg:hidden" aria-hidden>{LABELS.find((l) => isActive(path, l.href))?.label ?? ""}</span>
+        {authEnabled && <span className="flex lg:hidden"><AccountChip /></span>}
       </div>
     </header>
   );
@@ -61,9 +63,9 @@ export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
   const tab = "focus-ring flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors";
   return (
     <>
-      {open && <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-ink/20 backdrop-blur-[2px] md:hidden" />}
+      {open && <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden" />}
       {open && (
-        <div role="dialog" aria-label="More pages" className="fixed inset-x-3 bottom-[calc(3.5rem+0.75rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-ink/10 bg-surface p-2 shadow-card animate-rise md:hidden">
+        <div role="dialog" aria-label="More pages" className="fixed inset-x-3 bottom-[calc(3.5rem+0.75rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-ink/10 bg-surface p-2 shadow-card animate-rise lg:hidden">
           <ul className="grid grid-cols-2 gap-1">
             {more.map((m) => (
               <li key={m.href}><Link href={m.href} onClick={() => setOpen(false)} aria-current={isActive(path, m.href) ? "page" : undefined} className={clsx("focus-ring flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium", isActive(path, m.href) ? "bg-accent/10 text-accent" : "text-ink hover:bg-ink/5")}><m.Icon size={18} aria-hidden />{m.label}</Link></li>
@@ -71,7 +73,7 @@ export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
           </ul>
         </div>
       )}
-      <nav aria-label="Primary (mobile)" className="vt-tabs fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-ink/10 bg-paper/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+      <nav aria-label="Primary (mobile)" className="vt-tabs fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-ink/10 bg-paper/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
         {TABS.map((t) => { const active = isActive(path, t.href); return <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined} className={clsx(tab, active ? "text-accent" : "text-muted")}><t.Icon size={20} strokeWidth={1.75} aria-hidden />{t.label}</Link>; })}
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={clsx(tab, open || moreActive ? "text-accent" : "text-muted")}>{open ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}More</button>
       </nav>

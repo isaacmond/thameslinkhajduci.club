@@ -20,14 +20,28 @@ export function PageHeader({ eyebrow, title, sub, right }: { eyebrow?: React.Rea
   );
 }
 
+/** Where a detail page sits: parent pages as links, the current page last. */
+export function Breadcrumb({ items }: { items: { href?: string; label: React.ReactNode }[] }) {
+  return (
+    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+      {items.map((it, i) => (
+        <span key={i} className="contents">
+          {i > 0 && <span aria-hidden>/</span>}
+          {it.href ? <Link href={it.href} className="focus-ring rounded hover:text-ink">{it.label}</Link> : <span className="text-ink" aria-current="page">{it.label}</span>}
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 export function SectionTitle({ children, sub, right, id }: { children: React.ReactNode; sub?: React.ReactNode; right?: React.ReactNode; id?: string }) {
   return (
-    <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-      <div>
-        <h2 id={id} className="display text-[1.75rem] leading-tight text-ink">{children}</h2>
-        {sub && <p className="mt-0.5 text-sm text-muted">{sub}</p>}
+    <div className="mb-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id={id} className="display min-w-0 text-[1.75rem] leading-tight text-ink">{children}</h2>
+        {right && <div className="shrink-0">{right}</div>}
       </div>
-      {right}
+      {sub && <p className="mt-0.5 text-sm text-muted">{sub}</p>}
     </div>
   );
 }

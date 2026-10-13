@@ -29,7 +29,7 @@ export default async function MoneyPage() {
 
   return (
     <PageTransition>
-    <div className="space-y-8">
+    <div className="space-y-10">
       <PageHeader eyebrow="Pitch fees" title="Money" sub={<>The cost of each pitch is shared between the players in that match. Balances are kept from Season 8.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} was paid up front by ${who}`).join("; ")}.</>}</>} right={<Link href="/submit?type=payment" className={btn("primary")}><Coins size={16} aria-hidden />Record a payment</Link>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">

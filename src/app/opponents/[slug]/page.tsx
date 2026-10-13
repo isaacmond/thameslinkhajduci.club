@@ -9,7 +9,7 @@ import type { OpponentRecord } from "@/lib/stats";
 import { chronological, fmtDate, gwLabel, headToHead, opponentKey, scoreline, seasonHref } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { slugify } from "@/lib/slug";
-import { LeaderList, MatchRow, RecordStrip, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Breadcrumb, LeaderList, MatchRow, RecordStrip, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffBars } from "@/components/goal-diff-bars";
 import { TeamBadge, opponentVerdict } from "@/components/team-badge";
 import { PageTransition } from "@/components/page-transition";
@@ -91,10 +91,10 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
 
   return (
     <PageTransition>
-    <div className="space-y-8">
-      <nav className="flex gap-2 text-xs text-muted" aria-label="Breadcrumb"><Link href="/opponents" className="hover:text-ink">Opponents</Link><span aria-hidden>/</span><span className="text-ink">{o.opponent}</span></nav>
+    <div className="space-y-10">
+      <Breadcrumb items={[{ href: "/opponents", label: "Opponents" }, { label: o.opponent }]} />
 
-      <header className="flex flex-col gap-6 border-b border-ink/10 pb-8 animate-rise sm:flex-row sm:items-center sm:gap-8">
+      <header className="flex flex-col gap-6 border-b border-ink/10 pb-6 animate-rise sm:flex-row sm:items-center sm:gap-8">
         <TeamBadge name={o.opponent} size={112} className="h-20 w-20 sm:h-28 sm:w-28" />
         <div className="min-w-0 flex-1">
           <p className="eyebrow">Opponent #{all.indexOf(o) + 1} by matches played · {o.seasons.length} season{o.seasons.length === 1 ? "" : "s"}</p>
@@ -104,7 +104,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
             {v && <Tag tone={v.tone}>{v.word}</Tag>}
             <Tag>First played {fmtDate(first.date)}</Tag>
             <Tag>Last played {fmtDate(last.date)}</Tag>
-            {o.seasons.map((s) => <Link key={s} href={seasonHref(s)} className="focus-ring chip text-muted transition-colors hover:text-ink">Season {s.replace(/^S/, "")}</Link>)}
+            {o.seasons.map((s) => <Link key={s} href={seasonHref(s)} className="focus-ring chip chip-tap text-muted transition-colors hover:text-ink">Season {s.replace(/^S/, "")}</Link>)}
           </div>
         </div>
       </header>
@@ -133,7 +133,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
         <div className="space-y-6 lg:col-span-3">
           {next && (
-            <div className="card p-5">
+            <div className="card p-6">
               <p className="eyebrow mb-2 flex items-center gap-2"><CalendarClock size={14} aria-hidden />Next meeting</p>
               <div className="-mx-3"><MatchRow m={next} today={today} showSeason /></div>
             </div>

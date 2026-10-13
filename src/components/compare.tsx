@@ -100,7 +100,7 @@ function Head({ p, other, align, tone }: { p: ComparePlayer; other: ComparePlaye
         {p.nickname && <p className="mt-0.5 truncate text-sm italic text-muted">“{p.nickname}”</p>}
         <div className={clsx("mt-2 flex flex-wrap gap-1.5", right && "justify-end")}>
           <Tag>Debut {fmtDate(p.debut, { month: "short", year: "numeric" })}</Tag>
-          <Link href={`/squad/${p.slug}`} className="focus-ring chip text-muted hover:text-ink">Profile</Link>
+          <Link href={`/squad/${p.slug}`} className="focus-ring chip chip-tap text-muted hover:text-ink">Profile</Link>
         </div>
         <span className="sr-only">{tone === "lead" ? `Leads ${short(other, p)} on more categories` : tone === "trail" ? `Trails ${short(other, p)} on more categories` : "Level on categories"}</span>
       </div>
@@ -188,7 +188,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
 
   return (
     <div className="space-y-6">
-      <div className="card p-5 sm:p-6">
+      <div className="card p-6">
         <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <Select label="Player" value={A.slug} onChange={pickA} options={options} />
           <button type="button" onClick={swap} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-surface px-3 text-xs font-semibold text-ink transition-colors hover:border-ink/30 sm:w-auto" aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
@@ -200,7 +200,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
         </div>
       </div>
 
-      <section className="card relative overflow-hidden p-5 sm:p-8" aria-label={`${A.name} and ${B.name}`}>
+      <section className="card relative overflow-hidden p-6" aria-label={`${A.name} and ${B.name}`}>
         <div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
           <Head p={A} other={B} align="left" tone={toneA} />
           <div className="flex flex-col items-center self-center">
@@ -214,14 +214,14 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="card p-5 sm:p-6 lg:col-span-3">
+        <div className="card p-6 lg:col-span-3">
           <SectionTitle sub="The stronger figure in each row is highlighted">Head to head</SectionTitle>
           <div className="flex justify-between text-xs font-semibold text-ink"><span className="truncate">{sA}</span><span className="truncate text-right">{sB}</span></div>
           <ol className="divide-y divide-ink/[0.06]">{METRICS.map((m) => <Bars key={m.key} a={A} b={B} m={m} />)}</ol>
         </div>
 
         <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">
-          <div className="card p-5 sm:p-6">
+          <div className="card p-6">
             <SectionTitle sub="The team's win rate with both, and with each alone">Together</SectionTitle>
             <dl className="grid grid-cols-3 gap-2">
               {cell("Together", both, togetherPct !== null && togetherPct > soloBest)}
@@ -233,7 +233,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
           </div>
 
           <div className="card overflow-hidden">
-            <div className="p-5 pb-2 sm:p-6 sm:pb-2"><SectionTitle sub="Appearances and goals">Season by season</SectionTitle></div>
+            <div className="p-6 pb-2"><SectionTitle sub="Appearances and goals">Season by season</SectionTitle></div>
             {seasonRows.length ? (
               <div className="scroll-x overflow-x-auto">
                 <table className="stats w-full">

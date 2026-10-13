@@ -36,7 +36,7 @@ export function ShareButton({ title, text, image, filename = "thameslink-hajduci
     } catch { /* user dismissed the sheet */ }
   };
   return (
-    <button type="button" onClick={share} className={clsx("focus-ring chip gap-1.5 text-ink transition-colors hover:border-ink/30", className)}>
+    <button type="button" onClick={share} className={clsx("focus-ring chip chip-tap gap-1.5 text-ink transition-colors hover:border-ink/30", className)}>
       {done ? <Check size={14} className="text-accent" aria-hidden /> : <Share2 size={14} aria-hidden />}
       <span role="status" aria-live="polite">{done ? "Link copied" : "Share"}</span>
     </button>

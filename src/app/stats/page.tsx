@@ -43,12 +43,12 @@ export default async function StatsPage() {
   return (
     <PageTransition>
     <div className="space-y-10">
-      <PageHeader eyebrow="In numbers" title="Statistics" sub="Leaderboards, the full player table, and who plays best together." right={<Link href="/data" className="focus-ring chip text-muted hover:text-ink">Download the data</Link>} />
+      <PageHeader eyebrow="In numbers" title="Statistics" sub="Leaderboards, the full player table, and who plays best together." right={<Link href="/data" className="focus-ring chip chip-tap text-muted hover:text-ink">Download the data</Link>} />
 
       <section aria-labelledby="leaders">
         <SectionTitle id="leaders" sub="All time, top five">Leaderboards</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {boards.map((b) => <div key={b.title} className="card p-5"><h3 className="display text-2xl leading-none text-ink">{b.title}</h3><p className="mt-1 min-h-4 text-xs text-muted">{b.sub}</p><div className="mt-3"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
+          {boards.map((b) => <div key={b.title} className="card p-6"><h3 className="display text-2xl leading-none text-ink">{b.title}</h3><p className="mt-1 min-h-4 text-xs text-muted">{b.sub}</p><div className="mt-3"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
         </div>
       </section>
 

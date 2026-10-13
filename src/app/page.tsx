@@ -58,7 +58,7 @@ export default async function Home() {
       {(next || last) && (
         <section className="grid gap-4 md:grid-cols-2" aria-label="Next match and latest result">
           {next && (
-            <Link href={`/matches/${next.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg sm:p-7">
+            <Link href={`/matches/${next.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg">
               <p className="eyebrow">Next match</p>
               <div className="mt-5 flex items-center gap-4">
                 <TeamBadge name={next.opponent} size={52} />
@@ -78,7 +78,7 @@ export default async function Home() {
             </Link>
           )}
           {last && (
-            <Link href={`/matches/${last.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg sm:p-7">
+            <Link href={`/matches/${last.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg">
               <p className="eyebrow flex items-center justify-between gap-2"><span>Latest result</span><span className="font-medium normal-case tracking-normal">{fmtDate(last.date, { weekday: "short", day: "numeric", month: "short" })}</span></p>
               <div className="mt-5 flex items-center gap-4">
                 <ResultPill result={last.result} size="lg" />

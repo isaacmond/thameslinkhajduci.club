@@ -21,7 +21,7 @@ export function PollButton({ fixture, label = "Poll the group chat", className }
   const openAndCopy = () => { setOpen(true); void copy("question"); };
   return (
     <>
-      <button type="button" onClick={open ? () => setOpen(false) : openAndCopy} aria-expanded={open} className={clsx("focus-ring chip gap-1.5 border-gold/40 bg-gold/10 text-gold transition-colors hover:bg-gold/20", className)}>
+      <button type="button" onClick={open ? () => setOpen(false) : openAndCopy} aria-expanded={open} className={clsx("focus-ring chip chip-tap gap-1.5 border-gold/40 bg-gold/10 text-gold transition-colors hover:bg-gold/20", className)}>
         <Vote size={14} aria-hidden />{label}
       </button>
       {open && (

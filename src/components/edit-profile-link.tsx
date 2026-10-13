@@ -9,5 +9,5 @@ export function EditProfileLink({ player }: { player: string }) {
   const [mine, setMine] = useState(false);
   useEffect(() => { let on = true; getMe().then((m) => { if (on) setMine(m?.player === player); }); return () => { on = false; }; }, [player]);
   if (!mine) return null;
-  return <Link href="/account" className="chip focus-ring text-accent hover:bg-ink/10"><Pencil size={12} aria-hidden />Edit your profile</Link>;
+  return <Link href="/account" className="chip chip-tap focus-ring text-accent hover:bg-ink/10"><Pencil size={12} aria-hidden />Edit your profile</Link>;
 }

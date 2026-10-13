@@ -11,7 +11,7 @@ import { fmtCloses } from "@/lib/motm";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, leaderboard, opponentKey, playedMatches, scorersFor, scoreline, seasonHref, seasonPlayers } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, resultWord } from "@/lib/captions";
-import { Crest, LeaderList, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { Breadcrumb, Crest, LeaderList, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/countdown";
 import { TeamBadge } from "@/components/team-badge";
 import { sponsorFor } from "@/components/footer";
@@ -69,8 +69,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
 
   return (
     <PageTransition>
-    <div className="space-y-8">
-      <nav className="flex flex-wrap items-center gap-2 text-xs text-muted" aria-label="Breadcrumb"><Link href="/matches" className="hover:text-ink">Matches</Link><span aria-hidden>/</span><Link href={seasonHref(season.id)} className="hover:text-ink">{season.id === "FR" ? "Friendlies" : `Season ${season.number}`}</Link><span aria-hidden>/</span><span className="text-ink">{gwLabel(m)}</span></nav>
+    <div className="space-y-10">
+      <Breadcrumb items={[{ href: "/matches", label: "Matches" }, { href: seasonHref(season.id), label: season.id === "FR" ? "Friendlies" : `Season ${season.number}` }, { label: gwLabel(m) }]} />
 
       <section className="card overflow-hidden animate-rise">
         <div className="px-5 pb-8 pt-6 sm:px-10 sm:pb-10 sm:pt-8">
@@ -102,9 +102,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
           {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
-          <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-muted hover:text-ink" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
+          <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip chip-tap text-muted hover:text-ink" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
           <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
-          <Link href={`/submit?match=${m.id}`} className="focus-ring chip gap-1.5 text-ink transition-colors hover:border-ink/30">{isForfeit && m.played ? "Edit the forfeit" : m.played ? "Edit the result" : "Add the result"}</Link>
+          <Link href={`/submit?match=${m.id}`} className="focus-ring chip chip-tap gap-1.5 text-ink transition-colors hover:border-ink/30">{isForfeit && m.played ? "Edit the forfeit" : m.played ? "Edit the result" : "Add the result"}</Link>
           {pollFor && <PollButton fixture={pollFor} label={pollFor.id === m.id ? "Ask who's playing" : `Ask who's playing ${gwLabel(pollFor)}`} />}
         </div>
       </section>
@@ -122,7 +122,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </div>
         ) : (
           <div className="card overflow-hidden">
-            <div className={clsx("p-5", (lineup.length || usual.length) ? "pb-2" : "")}><SectionTitle sub={m.played ? (lineup.length ? `${lineup.length} players` : "No line-up recorded") : "To be confirmed"}>Line-up</SectionTitle></div>
+            <div className={clsx("p-6", (lineup.length || usual.length) ? "pb-2" : "")}><SectionTitle sub={m.played ? (lineup.length ? `${lineup.length} players` : "No line-up recorded") : "To be confirmed"}>Line-up</SectionTitle></div>
             {!m.played && usual.length > 0 && (
               <div className="px-6 pb-6">
                 <p className="eyebrow mb-3">Most appearances this season</p>

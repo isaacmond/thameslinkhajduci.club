@@ -41,7 +41,7 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
               <th className="hidden w-8 !static sm:table-cell">#</th>
               {COLS.map((c, ci) => (
                 <th key={c.key} className={clsx(c.num && "num", c.hide, ci === 0 && "sticky-col")} aria-sort={sort.key === c.key ? (sort.dir === -1 ? "descending" : "ascending") : undefined}>
-                  <button type="button" onClick={() => click(c.key)} title={c.title} className={clsx("focus-ring inline-flex items-center gap-1 rounded uppercase tracking-[0.16em] hover:text-ink", sort.key === c.key && "text-accent")}>{c.label}<span aria-hidden className="text-[9px]">{sort.key === c.key ? (sort.dir === -1 ? "▼" : "▲") : ""}</span></button>
+                  <button type="button" onClick={() => click(c.key)} title={c.title} className={clsx("focus-ring inline-flex min-w-8 items-center gap-1 rounded py-2 uppercase tracking-[0.16em] hover:text-ink", sort.key === c.key && "text-accent")}>{c.label}<span aria-hidden className="text-[9px]">{sort.key === c.key ? (sort.dir === -1 ? "▼" : "▲") : ""}</span></button>
                 </th>
               ))}
             </tr>
