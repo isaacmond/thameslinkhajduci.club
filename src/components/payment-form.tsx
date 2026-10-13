@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
 import { fmtMoney } from "@/lib/stats";
-import { FormStatus, inputClass, Select } from "./controls";
+import { Field, FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
@@ -60,29 +60,17 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
 
   return (
     <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <div className="card grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6">
-        <div className="flex min-w-0 flex-col gap-1">
-          <Select label="Who paid" value={player} onChange={pick} options={players.map((p) => ({ value: p.name, label: optionLabel(p) }))} className="min-w-0" />
-          <span className="min-h-[1.25rem] text-[11px] text-muted">Whose share of the pitch this covers.</span>
-        </div>
-        <div className="flex min-w-0 flex-col gap-1">
-          <Select label="Paid to" value={to} onChange={(v) => { setTo(v); setResult(null); }} options={[...(to ? [] : [{ value: "", label: "Pick who received it" }]), ...players.map((p) => ({ value: p.name, label: p.name === payer ? `${p.name} · paid for this season's pitch` : p.name }))]} className="min-w-0" />
-          <span className="min-h-[1.25rem] text-[11px] text-muted">{payer ? (to && to !== payer ? `${payer} paid for the pitch this season; the admin will check who should be credited.` : `${payer} paid for the pitch this season.`) : "Whoever paid for the pitch."}</span>
-        </div>
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          <span className="eyebrow">Amount (£)</span>
+      <div className="card card-pad grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <Select label="Who paid" value={player} onChange={pick} options={players.map((p) => ({ value: p.name, label: optionLabel(p) }))} hint="Whose share of the pitch this covers." />
+        <Select label="Paid to" value={to} onChange={(v) => { setTo(v); setResult(null); }} options={[...(to ? [] : [{ value: "", label: "Pick who received it" }]), ...players.map((p) => ({ value: p.name, label: p.name === payer ? `${p.name} · paid for this season's pitch` : p.name }))]} hint={payer ? (to && to !== payer ? `${payer} paid for the pitch this season; the admin will check who should be credited.` : `${payer} paid for the pitch this season.`) : "Whoever paid for the pitch."} />
+        <Field label="Amount (£)" hint={balance !== null && balance > 0.01 ? <>On the records {player} owes {fmtMoney(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${fmtMoney(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding. You can still record a payment."}>
           <span className="relative"><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">£</span><input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.00" required className={`${inputClass} pl-7 tabular`} /></span>
-          <span className="min-h-[1.25rem] text-[11px] text-muted">
-            {balance !== null && balance > 0.01 ? <>On the records {player} owes {fmtMoney(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${fmtMoney(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding. You can still record a payment."}
-          </span>
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          <span className="eyebrow">Date paid</span>
+        </Field>
+        <Field label="Date paid" hint="When the money left your account.">
           <input type="date" value={date} max={today} onChange={(e) => setDate(e.target.value)} required className={`${inputClass} tabular`} />
-          <span className="min-h-[1.25rem] text-[11px] text-muted">When the money left your account.</span>
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Reference (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={120} placeholder="Bank reference, or which games it covers" className={inputClass} /></label>
-        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Usually the same person" className={inputClass} /></label>}
+        </Field>
+        <Field label="Reference (optional)"><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={120} placeholder="Bank reference, or which games it covers" className={inputClass} /></Field>
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <Field label="Your name"><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Usually the same person" className={inputClass} /></Field>}
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
       <div className="flex flex-wrap items-center gap-3">

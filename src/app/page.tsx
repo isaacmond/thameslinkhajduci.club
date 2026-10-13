@@ -4,7 +4,7 @@ import { getData } from "@/lib/data";
 import { chronological, fmtDate, form, gwLabel, lastResult, leaderboard, type MilestoneKind, nextFixture, recentPlayers, records, scoreline, seasonHref, seasonPlayers, upcomingMilestones } from "@/lib/stats";
 import { insights, pickInsights } from "@/lib/insights";
 import { londonEpoch, londonToday } from "@/lib/time";
-import { Avatar, Crest, FormStrip, LeaderList, MatchRow, MotmStar, PlayerLink, RecordCard, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { ArrowLink, Avatar, Crest, FormStrip, IconText, LeaderList, MatchRow, MotmStar, Panel, PlayerLink, RecordCard, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { TeamBadge } from "@/components/team-badge";
 import { Countdown } from "@/components/countdown";
 import { PageTransition } from "@/components/page-transition";
@@ -13,6 +13,9 @@ import { Sponsors } from "@/components/footer";
 
 const KIND: Record<MilestoneKind, [string, string]> = { apps: ["appearance", "appearances"], goals: ["goal", "goals"], assists: ["assist", "assists"], motm: ["man of the match award", "man of the match awards"] };
 const KIND_LABEL: Record<MilestoneKind, string> = { apps: "Appearances", goals: "Goals", assists: "Assists", motm: "Man of the match" };
+
+/** The next-match and latest-result cards share the row tracks of their section, so headlines and footer rules line up. */
+const leadCard = "focus-ring card card-pad card-link group flex flex-col md:row-span-3 md:grid md:grid-rows-subgrid md:gap-0";
 
 export default async function Home() {
   const data = await getData();
@@ -56,41 +59,39 @@ export default async function Home() {
       </section>
 
       {(next || last) && (
-        <section className="grid gap-4 md:grid-cols-2" aria-label="Next match and latest result">
+        <section className="grid gap-4 md:grid-cols-2 md:grid-rows-[auto_1fr_auto]" aria-label="Next match and latest result">
           {next && (
-            <Link href={`/matches/${next.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg">
+            <Link href={`/matches/${next.id}`} className={leadCard}>
               <p className="eyebrow">Next match</p>
-              <div className="mt-5 flex items-center gap-4">
-                <TeamBadge name={next.opponent} size={52} />
+              <div className="mt-5 flex items-center gap-4 md:self-start">
+                <span className="flex w-13 shrink-0 justify-center"><TeamBadge name={next.opponent} size={52} /></span>
                 <div className="min-w-0">
                   <p className="display truncate text-[2rem] leading-tight text-ink">{next.opponent}</p>
                   <p className="text-sm text-muted">{fmtDate(next.date, { weekday: "long", day: "numeric", month: "long" })}{next.kickOff && ` · ${next.kickOff}`}</p>
                 </div>
               </div>
-              <span className="min-h-6 flex-1" aria-hidden />
-              <div className="flex items-end justify-between gap-4 border-t border-ink/10 pt-5">
+              <div className="mt-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-t border-ink/10 pt-5">
                 <div>
                   <p className="eyebrow">Kick-off in</p>
                   {kickoff !== null ? <Countdown target={kickoff} className="tabular mt-1 text-3xl font-semibold tracking-tight text-ink" /> : <p className="display mt-1 text-3xl text-ink">TBC</p>}
                 </div>
-                <span className="inline-flex items-center gap-1 text-sm font-medium text-accent">Match details <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" aria-hidden /></span>
+                <ArrowLink>Match details</ArrowLink>
               </div>
             </Link>
           )}
           {last && (
-            <Link href={`/matches/${last.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg">
+            <Link href={`/matches/${last.id}`} className={leadCard}>
               <p className="eyebrow">Latest result</p>
-              <div className="mt-5 flex items-center gap-4">
-                <ResultPill result={last.result} size="lg" />
+              <div className="mt-5 flex items-center gap-4 md:self-start">
+                <span className="flex w-13 shrink-0 justify-center"><ResultPill result={last.result} size="lg" /></span>
                 <div className="min-w-0">
                   <p className="display text-[2rem] leading-tight text-ink"><span className="tabular">{scoreline(last)}</span> <span className="text-muted">v</span> {last.opponent}</p>
                   <p className="text-sm text-muted">{last.seasonId === "FR" ? "Friendly" : `Season ${last.seasonNumber} · ${gwLabel(last)}`} · {fmtDate(last.date, { weekday: "short", day: "numeric", month: "short" })}</p>
                 </div>
               </div>
-              <span className="min-h-6 flex-1" aria-hidden />
-              <div className="space-y-1 border-t border-ink/10 pt-5 text-sm">
+              <div className="mt-6 space-y-1 border-t border-ink/10 pt-5 text-sm">
                 {lastScorers.length > 0 && <p className="text-muted"><span className="text-ink">Goals</span> · {lastScorers.map((s) => `${s.player}${s.goals > 1 ? ` ${s.goals}` : ""}`).join(", ")}</p>}
-                {last.motm && <p className="flex items-center gap-1.5 text-muted"><MotmStar /><span className="text-ink">Man of the match</span> · {last.motm}</p>}
+                {last.motm && <IconText icon={<MotmStar />} gap="gap-1.5" className="text-muted"><span className="text-ink">Man of the match</span> · {last.motm}</IconText>}
                 {!lastScorers.length && !last.motm && <p className="text-muted">Match report and line-up</p>}
               </div>
             </Link>
@@ -100,81 +101,69 @@ export default async function Home() {
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {current && (
-          <article className="card overflow-hidden">
-            <header className="flex items-baseline justify-between gap-3 px-6 pb-1 pt-6">
-              <h2 className="display text-[1.75rem] leading-none text-ink">Season {current.number}</h2>
-              <Link href={seasonHref(current.id)} className="focus-ring inline-flex items-center gap-1 rounded text-sm font-medium text-accent hover:underline">{current.period} <ArrowRight size={14} aria-hidden /></Link>
-            </header>
+          <Panel as="article" flush title={`Season ${current.number}`} right={<ArrowLink href={seasonHref(current.id)}>{current.period}</ArrowLink>}>
             <RecordStrip s={current.summary} animate />
-            <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <div className="card-pad grid grid-cols-1 gap-6 border-t border-ink/10 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <div><p className="eyebrow mb-3">Most appearances</p><LeaderList items={sApps} color="bg-ink" emptyText="The season hasn't started yet" /></div>
               <div><p className="eyebrow mb-3">Top scorers</p><LeaderList items={sScorers} emptyText="No goals yet this season" /></div>
             </div>
-          </article>
+          </Panel>
         )}
-        <article className="card overflow-hidden">
-          <header className="flex items-baseline justify-between gap-3 px-6 pb-1 pt-6">
-            <h2 className="display text-[1.75rem] leading-none text-ink">All time</h2>
-            <span className="text-sm text-muted">{data.seasons.length} seasons since {since}</span>
-          </header>
+        <Panel as="article" flush title="All time" right={<span className="text-sm text-muted">{data.seasons.length} seasons since {since}</span>}>
           <RecordStrip s={data.allTime} animate />
-          <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <div className="card-pad grid grid-cols-1 gap-6 border-t border-ink/10 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <div><p className="eyebrow mb-3">Most appearances</p><LeaderList items={topApps} color="bg-ink" /></div>
             <div><p className="eyebrow mb-3">Top scorers</p><LeaderList items={topScorers} /></div>
           </div>
-        </article>
+        </Panel>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_3fr]">
-        <div className="card p-6">
-          <SectionTitle sub="The last eight league matches">Form</SectionTitle>
+        <Panel title="Form" sub="The last eight league matches">
           <FormStrip matches={[...recent].reverse()} />
           <ul className="mt-5 divide-y divide-ink/8 text-sm">
             {[...recent].reverse().slice(0, 4).map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="focus-ring group flex items-center gap-3 rounded py-2.5"><ResultPill result={m.result} size="sm" /><span className="min-w-0 truncate text-ink group-hover:text-accent"><span className="tabular font-medium">{scoreline(m)}</span> v {m.opponent}</span><span className="ml-auto shrink-0 text-xs text-muted">{fmtDate(m.date, { day: "numeric", month: "short" })}</span></Link></li>)}
           </ul>
-        </div>
-        <div className="card p-6">
-          <SectionTitle right={<Link href="/matches" className="link text-sm">All fixtures</Link>} sub={current?.venue}>Coming up</SectionTitle>
+        </Panel>
+        <Panel title="Coming up" sub={current?.venue} right={<Link href="/matches" className="link text-sm">All fixtures</Link>}>
           {upcoming.length ? <div className="-mx-3 grid grid-cols-1 gap-0.5">{upcoming.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="text-sm text-muted">{next ? "That's the last fixture on the calendar for now." : "No fixtures scheduled yet."}</p>}
-        </div>
+        </Panel>
       </section>
 
       {(talking.length > 0 || milestones.length > 0) && (
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
           {talking.length > 0 && (
-            <div className="card p-6">
-              <SectionTitle right={<Link href="/stats" className="link text-sm">Statistics</Link>}>In numbers</SectionTitle>
+            <Panel title="In numbers" right={<Link href="/stats" className="link text-sm">Statistics</Link>}>
               <ul className="divide-y divide-ink/8">
                 {talking.map((t) => (
                   <li key={t.key}>
                     <Link href={t.href ?? "/stats"} className="focus-ring group flex items-start gap-3 rounded py-3 text-[15px] leading-snug">
                       <span className="min-w-0 flex-1 text-ink group-hover:text-accent">{t.text}</span>
-                      <ArrowRight size={15} className="mt-1 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+                      <span className="icon-line" aria-hidden><ArrowRight size={15} className="text-muted opacity-0 transition-opacity group-hover:opacity-100" /></span>
                     </Link>
                   </li>
                 ))}
               </ul>
-            </div>
+            </Panel>
           )}
           {milestones.length > 0 && (
-            <div className="card p-6">
-              <SectionTitle sub="Within reach of a round number">Milestones</SectionTitle>
+            <Panel title="Milestones" sub="Within reach of a round number">
               <ul className="space-y-3">
                 {milestones.map((ms) => (
-                  <li key={`${ms.player.slug}-${ms.kind}`} className="flex items-center gap-3">
-                    <Avatar name={ms.player.name} photo={ms.player.extra.photo} size={38} />
+                  <li key={`${ms.player.slug}-${ms.kind}`} className="flex items-baseline-last gap-3">
+                    <span className="self-center"><Avatar name={ms.player.name} photo={ms.player.extra.photo} size={38} /></span>
                     <span className="min-w-0 flex-1 leading-tight">
                       <PlayerLink name={ms.player.name} player={ms.player} className="block truncate text-sm" />
                       <span className="block text-xs text-muted">{ms.away} {KIND[ms.kind][ms.away === 1 ? 0 : 1]} to go</span>
                     </span>
                     <span className="shrink-0 text-right leading-none">
                       <span className="display block text-3xl leading-none text-ink">{ms.target}</span>
-                      <span className="eyebrow eyebrow-sm">{KIND_LABEL[ms.kind]}</span>
+                      <span className="eyebrow eyebrow-sm block">{KIND_LABEL[ms.kind]}</span>
                     </span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </Panel>
           )}
         </section>
       )}

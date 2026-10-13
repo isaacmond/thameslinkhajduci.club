@@ -39,10 +39,10 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
         <table className="stats w-full md:min-w-[820px]">
           <thead>
             <tr>
-              <th className="hidden w-8 !static sm:table-cell">#</th>
+              <th className="hidden w-8 static sm:table-cell">#</th>
               {COLS.map((c, ci) => (
                 <th key={c.key} className={clsx(c.num && "num", c.hide, ci === 0 && "sticky-col")} aria-sort={sort.key === c.key ? (sort.dir === -1 ? "descending" : "ascending") : undefined}>
-                  <button type="button" onClick={() => click(c.key)} title={c.title} className={clsx("focus-ring inline-flex min-w-8 items-center gap-1 rounded py-2 hover:text-ink", sort.key === c.key && "text-accent")}>{c.label}<span aria-hidden className="text-[9px]">{sort.key === c.key ? (sort.dir === -1 ? "▼" : "▲") : ""}</span></button>
+                  <button type="button" onClick={() => click(c.key)} title={c.title} className={clsx("focus-ring inline-flex min-w-8 items-center gap-1 rounded hover:text-ink", c.num && "justify-end", sort.key === c.key && "text-accent")}>{c.label}<span aria-hidden className="text-[9px]">{sort.key === c.key ? (sort.dir === -1 ? "▼" : "▲") : ""}</span></button>
                 </th>
               ))}
             </tr>
@@ -50,7 +50,7 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
           <tbody>
             {rows.map((r, i) => (
               <tr key={r.slug}>
-                <td className="hidden !static text-muted sm:table-cell">{i + 1}</td>
+                <td className="hidden static text-muted sm:table-cell">{i + 1}</td>
                 <td className="sticky-col"><Link href={`/squad/${r.slug}`} className="link block max-w-[8rem] truncate font-medium text-ink sm:max-w-none">{r.name}</Link></td>
                 <td className="num">{r.apps}</td><td className="num font-semibold text-ink">{r.goals}</td><td className="num">{r.assists}</td><td className="num" title={`${r.goals} goal${r.goals === 1 ? "" : "s"} over ${r.gpgGames} match${r.gpgGames === 1 ? "" : "es"} with scorers recorded`}>{r.goalsPerGame.toFixed(2)}</td><td className="num hidden md:table-cell" title={`${r.assists} assist${r.assists === 1 ? "" : "s"} over ${r.apgGames} match${r.apgGames === 1 ? "" : "es"} with assists recorded`}>{r.assistsPerGame.toFixed(2)}</td>
                 <td className="num hidden md:table-cell">{r.motm || ""}</td>

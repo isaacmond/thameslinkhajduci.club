@@ -53,12 +53,12 @@ export function GoalDiffBars({ matches, opponent }: { matches: Match[]; opponent
           return (
             <div key={m.id} className="min-w-0 px-0.5">
               <span className={clsx("tabular block text-xs font-semibold leading-none", TEXT[kind])}>{signed(gds[i])}</span>
-              {showLabels && <span className="mt-0.5 block text-[10px] leading-tight text-muted">{m.seasonId} {gwLabel(m)}</span>}
+              {showLabels && <span className="mt-0.5 block text-3xs leading-tight text-muted">{m.seasonId} {gwLabel(m)}</span>}
             </div>
           );
         })}
       </div>
-      <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted" aria-hidden>
+      <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-2xs text-muted" aria-hidden>
         {results.has("W") && <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: FILL.W }} />Win</span>}
         {results.has("D") && <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: FILL.D }} />Draw</span>}
         {results.has("L") && <span className="inline-flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: FILL.L }} />Loss</span>}

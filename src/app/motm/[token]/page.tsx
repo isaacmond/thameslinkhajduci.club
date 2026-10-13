@@ -9,7 +9,7 @@ import { fmtDate, gwLabel } from "@/lib/stats";
 import { MotmVote } from "@/components/motm-vote";
 import { PageTransition } from "@/components/page-transition";
 import { btn } from "@/components/button";
-import { MotmStar } from "@/components/ui";
+import { MotmStar, SectionTitle } from "@/components/ui";
 
 /**
  * The ballot page from the email. The token in the URL is the ballot; nobody signs in. Open: pick a name. Closed: the result.
@@ -38,14 +38,13 @@ export default async function BallotPage({ params, searchParams }: { params: Pro
         <p className="mt-2 text-sm text-muted">{fixture}</p>
         {open ? (
           <>
-            <p className="display mt-8 text-2xl text-ink">Who was the man of the match?</p>
-            <p className="mb-4 mt-1 text-sm text-muted">{ballot.vote ? <>You picked <span className="text-gold">{ballot.vote}</span>. Tap another name to change it.</> : pick && pick !== ballot.player && candidates.some((c) => c.player === pick) ? "Tap once more to confirm, or pick someone else." : "Tap a name to vote."}</p>
+            <SectionTitle size="sm" className="mt-8" sub={ballot.vote ? <>You picked <span className="text-gold">{ballot.vote}</span>. Tap another name to change it.</> : pick && pick !== ballot.player && candidates.some((c) => c.player === pick) ? "Tap once more to confirm, or pick someone else." : "Tap a name to vote."}>Who was the man of the match?</SectionTitle>
             <MotmVote token={token} voter={ballot.player} candidates={shuffled(candidates, token)} current={ballot.vote} pick={pick ?? null} />
             <p className="mt-5 text-xs text-muted">{voted} of {ballots.length} ballot{ballots.length === 1 ? "" : "s"} returned · closes {fmtCloses(poll.closesAt)}, or once everyone has voted.{ballots.length < candidates.length && ` ${candidates.length - ballots.length} of the ${candidates.length} who played ${candidates.length - ballots.length === 1 ? "has" : "have"} no email on the members list, so can be voted for but cannot vote.`}</p>
           </>
         ) : poll.status === "closed" && poll.winner ? (
           <>
-            <p className="mt-8 flex items-center gap-2 text-sm text-gold"><MotmStar />Man of the match</p>
+            <p className="mt-8 flex items-center gap-1.5 text-sm text-gold"><MotmStar />Man of the match</p>
             <p className="display mt-1 text-5xl leading-none text-ink sm:text-6xl">{poll.winner}</p>
             <p className="mt-3 text-sm text-muted">{top} of {voted} vote{voted === 1 ? "" : "s"} · {voted} of {ballots.length} ballots returned.{ballot.vote ? ` You voted for ${ballot.vote}.` : ""}</p>
             {counts && counts.some((c) => c.votes > 0) && (
@@ -53,7 +52,7 @@ export default async function BallotPage({ params, searchParams }: { params: Pro
                 {counts.filter((c) => c.votes > 0).map((c) => (
                   <li key={c.player} className="flex items-center gap-3 text-sm">
                     <span className={clsx("w-36 shrink-0 truncate sm:w-44", c.player === poll.winner ? "text-gold" : "text-ink")}>{c.player}</span>
-                    <span className="h-2 flex-1 overflow-hidden rounded-full bg-ink/10"><span className={clsx("block h-full rounded-full", c.player === poll.winner ? "bg-gold" : "bg-ink/50")} style={{ width: `${Math.round((c.votes / Math.max(1, top)) * 100)}%` }} /></span>
+                    <span className="h-2 flex-1 overflow-hidden rounded-full bg-ink/[0.06]"><span className={clsx("block h-full rounded-full", c.player === poll.winner ? "bg-gold" : "bg-ink/50")} style={{ width: `${Math.round((c.votes / Math.max(1, top)) * 100)}%` }} /></span>
                     <span className="tabular w-6 text-right text-xs text-muted">{c.votes}</span>
                   </li>
                 ))}

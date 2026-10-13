@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import clsx from "clsx";
+import { ChevronDown } from "lucide-react";
 import type { MatchLite, Result } from "@/lib/types";
 import { Empty, MatchRow } from "./ui";
 import { chipToggle, inputClass, Switch } from "./controls";
@@ -51,15 +52,15 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
         const open = filtering || gi === 0;
         return (
           <details key={sid} open={open} className="group/season card mb-4 overflow-hidden">
-            <summary className="focus-ring grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 px-5 py-4 hover:bg-ink/[0.02]">
+            <summary className="focus-ring grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 card-x py-4 hover:bg-ink/[0.02]">
               <div className="min-w-0">
                 <h3 className="display text-2xl leading-none text-ink"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h3>
                 {s?.title.split("·")[1]?.trim() && <span className="mt-1 block text-xs text-muted">{s.title.split("·")[1].trim()}</span>}
               </div>
               <span className="tabular text-right text-xs text-muted">{ms.length} match{ms.length === 1 ? "" : "es"} · {cw}–{cd}–{cl}</span>
-              <span className="text-muted transition-transform group-open/season:rotate-180" aria-hidden>▾</span>
+              <ChevronDown size={14} className="shrink-0 text-muted transition-transform group-open/season:rotate-180" aria-hidden />
             </summary>
-            <div className="grid gap-0.5 border-t border-ink/8 p-2 lg:grid-cols-2">{ms.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
+            <div className="card-rows card-rows-full border-t border-ink/8 lg:grid-cols-2">{ms.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
           </details>
         );
       })}

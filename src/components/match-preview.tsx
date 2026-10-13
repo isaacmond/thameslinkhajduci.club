@@ -2,7 +2,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import type { ClubData, Match, Player } from "@/lib/types";
 import { form, preview } from "@/lib/stats";
-import { FormStrip, LeaderList, SectionTitle } from "@/components/ui";
+import { FormStrip, LeaderList, Panel, Stat, StatGrid } from "@/components/ui";
 
 /** Goals per Hajduci player across the counted meetings with one opponent, most first. Only players still in the records get a row. */
 function scorersAgainst(matches: Match[], players: Player[], top = 3): { player: Player; value: number }[] {
@@ -30,8 +30,7 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
   const sub = p.sample === 0 ? "No previous matches to go on yet" : `Based on the last ${p.sample} match${p.sample === 1 ? "" : "es"}${h2h && h2h.played >= 2 ? " and past meetings" : ""}`;
 
   return (
-    <div className="card p-6">
-      <SectionTitle sub={sub}>Forecast</SectionTitle>
+    <Panel title="Forecast" sub={sub}>
 
       <ul className="space-y-3" aria-label="Outcome probabilities">
         {outcomes.map((o) => {
@@ -50,10 +49,10 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
         })}
       </ul>
 
-      <dl className="mt-5 grid grid-cols-2 gap-2 text-center">
-        <div className="rounded-lg bg-sunken/60 px-2 py-3"><dt className="eyebrow">xG for</dt><dd className="display mt-1.5 text-3xl leading-none text-ink">{p.expectedFor.toFixed(1)}</dd></div>
-        <div className="rounded-lg bg-sunken/60 px-2 py-3"><dt className="eyebrow">xG against</dt><dd className="display mt-1.5 text-3xl leading-none text-ink">{p.expectedAgainst.toFixed(1)}</dd></div>
-      </dl>
+      <StatGrid className="mt-5 grid-cols-2 gap-x-2">
+        <Stat variant="well" size="sm" align="center" label="xG for" value={p.expectedFor.toFixed(1)} />
+        <Stat variant="well" size="sm" align="center" label="xG against" value={p.expectedAgainst.toFixed(1)} />
+      </StatGrid>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
         <span className="eyebrow">Current form</span>
@@ -72,13 +71,13 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
         )}
         {scorers.length > 0 && (
           <div className="mt-3">
-            <p className="mb-2 text-xs text-muted">Top scorers against them</p>
+            <p className="eyebrow mb-3">Top scorers against them</p>
             <LeaderList items={scorers} />
           </div>
         )}
       </div>
 
       <p className="mt-4 text-xs text-muted">A Poisson model of recent scoring rates.</p>
-    </div>
+    </Panel>
   );
 }

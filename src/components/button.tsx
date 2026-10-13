@@ -13,7 +13,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   ghost: "border-transparent text-muted hover:text-ink",
   gold: "border-gold/35 text-gold hover:bg-gold/10",
 };
-const SIZE: Record<ButtonSize, string> = { xs: "h-8 px-3 text-sm", sm: "h-[2.375rem] px-4 text-sm", md: "h-12 px-5 text-base", icon: "h-[2.375rem] w-[2.375rem] px-0 text-sm" };
+const SIZE: Record<ButtonSize, string> = { xs: "h-8 px-3 text-sm", sm: "h-control px-4 text-sm", md: "h-12 px-5 text-base", icon: "size-control px-0 text-sm" };
 
 export const btn = (variant: ButtonVariant = "secondary", size: ButtonSize = "sm", className?: string) =>
   clsx("focus-ring inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full border font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:opacity-60", VARIANT[variant], SIZE[size], className);

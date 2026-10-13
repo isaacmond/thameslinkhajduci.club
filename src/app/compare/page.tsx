@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getData } from "@/lib/data";
 import type { ClubData } from "@/lib/types";
 import { attendance, chronological, goalContext, playedMatches, playerStreaks } from "@/lib/stats";
-import { PageHeader } from "@/components/ui";
+import { Empty, PageHeader } from "@/components/ui";
 import { PageTransition } from "@/components/page-transition";
 import { Compare, type CompareMatch, type ComparePlayer } from "@/components/compare";
 import { btn } from "@/components/button";
@@ -59,7 +59,7 @@ export default async function ComparePage({ searchParams }: { searchParams: Sear
       {pair ? (
         <Compare key={`${pair[0].slug}|${pair[1].slug}`} players={players} matches={buildMatches(data)} seasons={seasons} initialA={pair[0].slug} initialB={pair[1].slug} />
       ) : (
-        <div className="card px-4 py-8 text-center text-sm text-muted">At least two players are needed to compare.</div>
+        <Empty>At least two players are needed to compare.</Empty>
       )}
     </div>
     </PageTransition>

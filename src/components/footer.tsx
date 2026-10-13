@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HideOnHome } from "./hide-on-home";
+import { SectionTitle } from "./ui";
 
 export const SPONSORS = [
   { name: "Transport for London", src: "/sponsors/tfl.svg", tagline: "Official travel partner", url: "https://tfl.gov.uk" },
@@ -15,22 +16,16 @@ export const sponsorFor = (key: string) => SPONSORS[[...key].reduce((h, c) => (h
 export function Sponsors() {
   return (
     <section aria-labelledby="sponsors-heading">
-      <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <p className="eyebrow">Our partners</p>
-          <h2 id="sponsors-heading" className="display text-[1.75rem] leading-tight text-ink">Proudly supported by</h2>
-        </div>
-        <p className="text-sm text-muted">With thanks to our partners</p>
-      </div>
+      <SectionTitle id="sponsors-heading" eyebrow="Our partners" right={<p className="text-sm text-muted">With thanks to our partners</p>}>Proudly supported by</SectionTitle>
       <ul className="stagger grid grid-cols-2 gap-4 sm:grid-cols-4">
         {SPONSORS.map((s) => (
           <li key={s.name}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring group flex h-full flex-col rounded-[var(--radius-xl)] border border-ink/10 bg-logo-tile p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-lg">
+            <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring card card-link group flex h-full flex-col bg-logo-tile p-5">
               <div className="relative flex h-14 w-full items-center justify-center">
                 <Image src={s.src} alt={`${s.name} logo`} fill sizes="200px" className="object-contain" />
               </div>
-              <p className="eyebrow mt-auto pt-4 text-center text-[#17221b]">{s.name}</p>
-              <p className="text-center text-[11px] text-[#5b6861]">{s.tagline}</p>
+              <p className="eyebrow mt-4 min-h-[2lh] text-center leading-snug text-[#17221b]">{s.name}</p>
+              <p className="text-center text-2xs text-[#5b6861]">{s.tagline}</p>
             </a>
           </li>
         ))}
@@ -62,12 +57,12 @@ export function Footer() {
     <footer className="border-t border-ink/10">
       <div className="mx-auto max-w-6xl px-4 pt-10 pb-[calc(3.5rem+2.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:pb-10 lg:px-8">
         <HideOnHome><SponsorStrip /><div className="my-8 border-t border-ink/10" aria-hidden /></HideOnHome>
-        <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex items-center gap-4">
             <Image src="/crest.png" alt="" width={44} height={44} className="h-11 w-11" />
             <div>
               <p className="display text-2xl leading-none text-ink">Thameslink Hajduci</p>
-              <p className="mt-1 text-sm text-muted"><span lang="sr-Cyrl">Темзлинк Хайдуки</span> · Whitechapel, London · Since 2024</p>
+              <p className="mt-1 text-sm text-muted"><span lang="sr-Cyrl">Темзлинк Хайдуки</span> · Whitechapel, London<span className="nowrap"> · Since 2024</span></p>
             </div>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">

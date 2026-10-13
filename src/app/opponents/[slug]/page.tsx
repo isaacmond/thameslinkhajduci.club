@@ -8,7 +8,7 @@ import type { OpponentRecord } from "@/lib/stats";
 import { chronological, fmtDate, gwLabel, headToHead, opponentKey, scoreline, seasonHref } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { slugify } from "@/lib/slug";
-import { Breadcrumb, LeaderList, MatchRow, RecordCard, RecordStrip, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Breadcrumb, IconText, LeaderList, MatchRow, Panel, RecordCard, RecordStrip, ResultPill, Stat, Tag } from "@/components/ui";
 import { GoalDiffBars } from "@/components/goal-diff-bars";
 import { TeamBadge, opponentVerdict } from "@/components/team-badge";
 import { PageTransition } from "@/components/page-transition";
@@ -37,6 +37,7 @@ function headline(o: OpponentRecord): string {
   return `${lost} defeats to ${won} wins across ${games}.`;
 }
 
+/** A list of MatchRows inside a card: the rows carry their own 0.75rem inset, so the list makes up the rest of the card inset and each result pill lines up with the card title. */
 const meetingSub = (m: Match | null, empty: string) => (m ? <>Season {m.seasonId.replace(/^S/, "")}, {gwLabel(m)} · <span className="nowrap">{fmtDate(m.date)}</span></> : empty);
 
 export default async function OpponentPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -106,9 +107,9 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
       </section>
 
       {counted.length >= 2 ? (
-        <section className="card p-6"><SectionTitle sub="Goal difference in each meeting">Meeting by meeting</SectionTitle><GoalDiffBars matches={counted} opponent={o.opponent} /></section>
+        <Panel title="Meeting by meeting" sub="Goal difference in each meeting"><GoalDiffBars matches={counted} opponent={o.opponent} /></Panel>
       ) : (
-        <section className="card p-6 text-sm text-muted">One meeting so far. A chart of every meeting appears from the second.</section>
+        <section className="card card-pad text-sm text-muted">One meeting so far. A chart of every meeting appears from the second.</section>
       )}
 
       <section className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -119,22 +120,21 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
         <div className="space-y-6 lg:col-span-3">
           {next && (
-            <div className="card p-6">
-              <p className="eyebrow mb-2 flex items-center gap-2"><CalendarClock size={14} aria-hidden />Next meeting</p>
-              <div className="-mx-3"><MatchRow m={next} today={today} showSeason /></div>
+            <div className="card">
+              <p className="eyebrow card-x pb-1 pt-(--card-px)"><IconText icon={<CalendarClock size={14} />}>Next meeting</IconText></p>
+              <div className="card-rows"><MatchRow m={next} today={today} showSeason /></div>
             </div>
           )}
-          <div>
-            <SectionTitle sub={`${meetings.length} on the fixture list, most recent first`}>Every meeting</SectionTitle>
-            <div className="card grid grid-cols-1 gap-0.5 p-2">
+          <Panel as="div" title="Every meeting" sub={`${meetings.length} on the fixture list, most recent first`} flush>
+            <div className="card-rows">
               {meetings.map((m) => <MatchRow key={m.id} m={m} today={today} showSeason />)}
             </div>
-          </div>
+          </Panel>
         </div>
         <div className="space-y-6 lg:col-span-2 lg:sticky lg:top-24">
-          <div className="card p-6"><SectionTitle>Top scorers</SectionTitle><LeaderList items={scorers.slice(0, 5)} emptyText="No goals against them yet." /></div>
-          <div className="card p-6"><SectionTitle>Most appearances</SectionTitle><LeaderList items={regulars.slice(0, 5)} color="bg-ink" emptyText="No line-ups recorded." /></div>
-          {motm.length > 0 && <div className="card p-6"><SectionTitle>Man of the match</SectionTitle><LeaderList items={motm.slice(0, 5)} color="bg-gold" /></div>}
+          <Panel as="div" title="Top scorers"><LeaderList items={scorers.slice(0, 5)} emptyText="No goals against them yet." /></Panel>
+          <Panel as="div" title="Most appearances"><LeaderList items={regulars.slice(0, 5)} color="bg-ink" emptyText="No line-ups recorded." /></Panel>
+          {motm.length > 0 && <Panel as="div" title="Man of the match"><LeaderList items={motm.slice(0, 5)} color="bg-gold" /></Panel>}
         </div>
       </section>
     </div>

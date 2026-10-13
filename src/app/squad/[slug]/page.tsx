@@ -7,7 +7,7 @@ import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref, signed } from "@/lib/stats";
 import { playerInsights } from "@/lib/insights";
-import { Avatar, Breadcrumb, FormStrip, MotmStar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Avatar, Breadcrumb, FormStrip, MotmStar, Panel, PlayerLink, ResultPill, Stat, StatGrid, StatStrip, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
 import { PageTransition } from "@/components/page-transition";
@@ -79,9 +79,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
       </header>
 
       <section aria-label="Career totals">
-        <dl className="card grid grid-cols-4 divide-x divide-ink/10 text-center">
-          {([["Appearances", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["Won", `${Math.round(p.winRate)}%`]] as [string, number | string][]).map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k === "Appearances" ? <><span className="sm:hidden">Apps</span><span className="hidden sm:inline">Appearances</span></> : k}</dt><dd className="display text-4xl leading-none text-ink sm:text-5xl">{v}</dd></div>)}
-        </dl>
+        <StatStrip size="lg" divided className="card" items={[{ label: <><span className="sm:hidden">Apps</span><span className="hidden sm:inline">Appearances</span></>, value: p.apps }, { label: "Goals", value: p.goals }, { label: "Assists", value: p.assists }, { label: "Won", value: `${Math.round(p.winRate)}%` }]} />
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat size="sm" label="Goals a game" value={p.goalsPerGame.toFixed(2)} sub={`over ${p.gpgGames} match${p.gpgGames === 1 ? "" : "es"} with scorers recorded`} />
           <Stat size="sm" label="Assists a game" value={p.assistsPerGame.toFixed(2)} sub={`over ${p.apgGames} match${p.apgGames === 1 ? "" : "es"} with assists recorded`} />
@@ -90,76 +88,71 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         </div>
       </section>
 
-      <section className="card p-6" aria-labelledby="form-streaks">
-        <SectionTitle id="form-streaks" sub={lastEight.length ? `The last ${lastEight.length === 1 ? "match" : `${lastEight.length} matches`} ${first} played, most recent first` : undefined}>Form</SectionTitle>
+      <Panel id="form-streaks" title="Form" sub={lastEight.length ? `The last ${lastEight.length === 1 ? "match" : `${lastEight.length} matches`} ${first} played, most recent first` : undefined}>
         <FormStrip matches={lastEight} />
-        <dl className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatGrid className="mt-5 grid-cols-2 gap-3 lg:grid-cols-4">
           {p.goals === 0 ? (
-            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Goals</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">0</dd><dd className="mt-1.5 text-xs text-muted">No goals yet</dd></div>
+            <Stat variant="well" label="Goals" value={0} sub="No goals yet" />
           ) : st.scoringRun > 0 ? (
-            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Scoring run</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.scoringRun}</dd><dd className="mt-1.5 text-xs text-muted">{st.scoringRun === 1 ? "match" : "matches in a row"} with a goal · best {st.longestScoringRun}</dd></div>
+            <Stat variant="well" label="Scoring run" value={st.scoringRun} sub={`${st.scoringRun === 1 ? "match" : "matches in a row"} with a goal · best ${st.longestScoringRun}`} />
           ) : (
-            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Since last goal</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.drought}</dd><dd className="mt-1.5 text-xs text-muted">{st.drought === 1 ? "match" : "matches"} · best scoring run {st.longestScoringRun}</dd></div>
+            <Stat variant="well" label="Since last goal" value={st.drought} sub={`${st.drought === 1 ? "match" : "matches"} · best scoring run ${st.longestScoringRun}`} />
           )}
           {showUnbeaten ? (
-            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Unbeaten run</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.unbeatenRun}</dd><dd className="mt-1.5 text-xs text-muted">{st.unbeatenRun === 1 ? "match" : "matches"} without defeat</dd></div>
+            <Stat variant="well" label="Unbeaten run" value={st.unbeatenRun} sub={`${st.unbeatenRun === 1 ? "match" : "matches"} without defeat`} />
           ) : (
-            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Since last win</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.winlessRun}</dd><dd className="mt-1.5 text-xs text-muted">{st.lastWin ? <>{st.winlessRun === 1 ? "match" : "matches"} · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} v {st.lastWin.opponent}</Link></> : st.winlessRun > 0 ? "matches" : "No matches yet"}</dd></div>
+            <Stat variant="well" label="Since last win" value={st.winlessRun} sub={st.lastWin ? <>{st.winlessRun === 1 ? "match" : "matches"} · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} v {st.lastWin.opponent}</Link></> : st.winlessRun > 0 ? "matches" : "No matches yet"} />
           )}
-          <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Attendance</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{att.possible ? `${att.pct}%` : "–"}</dd><dd className="mt-1.5 text-xs text-muted">{att.possible ? `${att.apps} of ${att.possible} matches` : "Not yet on a season squad"}</dd></div>
-          <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Goals in wins</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{gc.inWins}</dd><dd className="mt-1.5 text-xs text-muted">{p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats` : "No goals yet"}</dd></div>
-        </dl>
+          <Stat variant="well" label="Attendance" value={att.possible ? `${att.pct}%` : "–"} sub={att.possible ? `${att.apps} of ${att.possible} matches` : "Not yet on a season squad"} />
+          <Stat variant="well" label="Goals in wins" value={gc.inWins} sub={p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats` : "No goals yet"} />
+        </StatGrid>
         {notes.length > 0 && (
           <ul className="mt-5 space-y-1.5 border-t border-ink/8 pt-4 text-sm text-muted" aria-label="Notes">
             {notes.map((n) => <li key={n}>{n}</li>)}
           </ul>
         )}
-      </section>
+      </Panel>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-2">
-          <div className="card p-6">
-            <SectionTitle sub="How often the team wins with and without them">With and without</SectionTitle>
-            <dl className="grid grid-cols-2 gap-3 text-center">
-              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">With {first}</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withGames} {imp.withGames === 1 ? "match" : "matches"}<span className="mt-0.5 block">Goal difference {imp.gdWith === null ? "–" : signed(imp.gdWith)} a game</span></dd></div>
-              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Without</dt><dd className="display mt-1.5 text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withoutGames} {imp.withoutGames === 1 ? "match" : "matches"}<span className="mt-0.5 block">Goal difference {imp.gdWithout === null ? "–" : signed(imp.gdWithout)} a game</span></dd></div>
-            </dl>
+          <Panel title="With and without" sub="How often the team wins with and without them" as="div">
+            <StatGrid className="grid-cols-2 gap-3">
+              <Stat variant="well" align="center" label={`With ${first}`} value={`${imp.winRateWith ?? "–"}%`} sub={<>won, from {imp.withGames} {imp.withGames === 1 ? "match" : "matches"}<span className="mt-0.5 block">Goal difference {imp.gdWith === null ? "–" : signed(imp.gdWith)} a game</span></>} />
+              <Stat variant="well" align="center" label="Without" value={<span className="text-muted">{imp.winRateWithout ?? "–"}%</span>} sub={<>won, from {imp.withoutGames} {imp.withoutGames === 1 ? "match" : "matches"}<span className="mt-0.5 block">Goal difference {imp.gdWithout === null ? "–" : signed(imp.gdWithout)} a game</span></>} />
+            </StatGrid>
             {delta !== null && imp.withGames >= 3 && imp.withoutGames >= 3 && (
               <p className="mt-3 text-sm text-muted">{Math.abs(delta) > 5 ? <>The team&apos;s win rate is {Math.abs(delta)} points {delta > 0 ? "higher" : "lower"} with {first} playing.</> : <>About the same either way.</>}</p>
             )}
-          </div>
-          <div className="card p-6">
-            <SectionTitle sub="Most matches together, and the win rate">Played most with</SectionTitle>
+          </Panel>
+          <Panel title="Played most with" sub="Most matches together, and the win rate" as="div">
             {partners.length ? (
               <ul className="space-y-2 text-sm">
                 {partners.map((x) => <li key={x.other} className="flex items-center gap-2"><PlayerLink name={x.other} player={byName.get(x.other)} avatar className="min-w-0 truncate" /><span className="ml-auto shrink-0 text-xs text-muted">{x.shared} {x.shared === 1 ? "match" : "matches"}</span><span className="tabular w-12 shrink-0 text-right font-semibold text-ink">{x.winRate}%</span></li>)}
               </ul>
             ) : <p className="text-sm text-muted">Not enough matches yet.</p>}
-          </div>
+          </Panel>
         </div>
-        <div className="card flex flex-col p-6 lg:col-span-3">
-          <SectionTitle sub="Appearances, goals and assists">Season by season</SectionTitle>
+        <Panel title="Season by season" sub="Appearances, goals and assists" as="div" className="flex flex-col lg:col-span-3" bodyClassName="flex flex-1 flex-col">
           <div className="min-h-[240px] flex-1"><PlayerSeasonBars data={perSeason} height="100%" /></div>
-        </div>
+        </Panel>
       </section>
 
       {(() => { const n = (hatTricks.length > 0 ? 1 : 0) + (motms.length > 0 ? 1 : 0) + (money && (money.totalCharged > 0 || money.paid > 0) ? 1 : 0); return n > 0 && (
         <section className={clsx("grid grid-cols-1 gap-6", n >= 2 && "md:grid-cols-2", n >= 3 && "lg:grid-cols-3")}>
-          {hatTricks.length > 0 && <div className="card p-6"><SectionTitle>Hat-tricks</SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
-          {motms.length > 0 && <div className="card p-6"><SectionTitle>Man of the match</SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
-          {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-6"><SectionTitle sub="From Season 8">Pitch fees</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Charged</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Paid</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className="tabular text-xl font-semibold text-ink">{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-muted">{money.balance > 0.01 ? <><Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Record a payment</Link> · </> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch fees. ` : "All paid up. "}<Link href="/money" className="link">Money</Link></p></div>}
+          {hatTricks.length > 0 && <Panel title="Hat-tricks" as="div"><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></Panel>}
+          {motms.length > 0 && <Panel title="Man of the match" as="div"><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></Panel>}
+          {money && (money.totalCharged > 0 || money.paid > 0) && <Panel title="Pitch fees" sub="From Season 8" as="div"><StatStrip size="sm" money items={([["Charged", money.totalCharged], ["Paid", money.paid], [money.balance < -0.01 ? "Is owed" : "Owes", Math.abs(money.balance)]] as [string, number][]).map(([label, v]) => ({ label, value: fmtMoney(v) }))} /><p className="mt-2 text-xs text-muted">{money.balance > 0.01 ? <><Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Record a payment</Link> · </> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch fees. ` : "All paid up. "}<Link href="/money" className="link">Money</Link></p></Panel>}
         </section>
       ); })()}
 
-      <section className="card overflow-hidden">
-        <div className="p-6 pb-2"><SectionTitle sub={`${log.length} match${log.length === 1 ? "" : "es"}, most recent first`}>Every match</SectionTitle></div>
+      <Panel flush title="Every match" sub={`${log.length} match${log.length === 1 ? "" : "es"}, most recent first`}>
         <div className="scroll-x overflow-x-auto">
-          <table className="stats w-full sm:min-w-[640px]">
+          <table className="stats rows-first w-full sm:min-w-[640px]">
             <thead><tr><th>Opponent</th><th>Result</th><th className="num">Score</th><th className="num">Goals</th><th className="num">Assists</th><th className="hidden sm:table-cell">Date</th><th className="hidden sm:table-cell">Season</th><th className="hidden sm:table-cell"><span className="sr-only">Awards</span></th></tr></thead>
             <tbody>
               {log.map((m) => { const l = mine(m)!; return (
                 <tr key={m.id}>
-                  <td><Link href={`/matches/${m.id}`} title={m.opponent} className="link block max-w-[8.5rem] truncate align-middle font-medium text-ink sm:inline sm:max-w-none">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <MotmStar className="-mt-0.5 ml-1 align-middle" label="Man of the match" />}</span>{m.type && <span className="chip ml-2 hidden !py-0 leading-5 text-muted sm:inline-flex">{m.type}</span>}</td>
+                  <td><Link href={`/matches/${m.id}`} title={m.opponent} className="link inline-flex max-w-[8.5rem] font-medium text-ink sm:max-w-none"><span className="truncate">{m.opponent}</span></Link><span className="block text-3xs text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <MotmStar className="icon-inline ml-1" label="Man of the match" />}</span>{m.type && <Tag size="sm" className="ml-2 hidden sm:inline-flex">{m.type}</Tag>}</td>
                   <td><ResultPill result={m.result} size="sm" /></td>
                   <td className="num font-medium">{scoreline(m)}</td>
                   <td className={clsx("num", l.goals > 0 && "font-semibold")}>{l.goals || ""}</td>
@@ -171,7 +164,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             </tbody>
           </table>
         </div>
-      </section>
+      </Panel>
     </div>
     </PageTransition>
   );

@@ -42,7 +42,7 @@ export default async function AdminPage() {
     return (
       <PageTransition><div className="space-y-6">
         <PageHeader eyebrow="Admin" title="Admins only" sub="This page is for the club admin. Your own profile and submissions are on your account page." />
-        <div className="card flex flex-wrap items-center gap-4 p-5"><ShieldOff size={20} className="text-muted" aria-hidden /><Link href="/account" className="link">Back to your account</Link></div>
+        <div className="card card-pad flex flex-wrap items-center gap-4"><ShieldOff size={20} className="text-muted" aria-hidden /><Link href="/account" className="link">Back to your account</Link></div>
       </div></PageTransition>
     );
   }
@@ -70,27 +70,27 @@ export default async function AdminPage() {
       <nav aria-label="Admin sections" className="flex flex-wrap gap-2 text-sm">
         {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#players", "Players"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip chip-tap focus-ring hover:border-ink/30">{label}</a>)}
       </nav>
-      <section id="pending" className="card scroll-mt-24 p-5 sm:p-6">
+      <section id="pending" className="card card-pad scroll-mt-24">
         <SectionTitle sub="Results, payments and new players sent in by people who were not signed in. Recording one writes it into the records.">Waiting for approval{pending.length ? ` · ${pending.length}` : ""}</SectionTitle>
         <PendingAdmin items={items} />
       </section>
-      <section id="squad" className="card scroll-mt-24 p-5 sm:p-6">
+      <section id="squad" className="card card-pad scroll-mt-24">
         <SectionTitle sub="Who is expected for the next game. Everyone picked gets an email the day before with the details, the squad and your note; you can also send it straight away. The fixture page shows the squad too.">Team sheet</SectionTitle>
         <SquadAdmin fixtures={upcoming} roster={squadRoster} squads={squads} />
       </section>
-      <section id="players" className="card scroll-mt-24 p-5 sm:p-6">
+      <section id="players" className="card card-pad scroll-mt-24">
         <SectionTitle sub="Edit anyone's name, nickname, positions, shirt number, bio or photo. A new name is carried through every match, payment and vote.">Players</SectionTitle>
         <PlayersAdmin players={[...data.players].sort((a, b) => a.name.localeCompare(b.name)).map((p) => ({ name: p.name, nickname: p.extra.nickname ?? "", positions: p.extra.positions ?? [], shirt: p.extra.shirt ?? null, bio: p.extra.bio ?? "", photo: p.extra.photo ?? null }))} />
       </section>
-      <section id="motm" className="card scroll-mt-24 p-5 sm:p-6">
+      <section id="motm" className="card card-pad scroll-mt-24">
         <SectionTitle sub="Every league result opens a vote by itself: everyone who played gets a ballot by email, the poll closes after 48 hours or when the last ballot is in, and the winner goes into the records. Here you can call one early, chase missing ballots, or open one on an older result.">Man of the match</SectionTitle>
         <MotmAdmin polls={pollItems} pollable={pollable} />
       </section>
-      <section id="members" className="card scroll-mt-24 p-5 sm:p-6">
+      <section id="members" className="card card-pad scroll-mt-24">
         <SectionTitle sub="Anyone listed here can sign in with that address, edit their own profile, have their submissions recorded straight away, and get team-sheet reminders. Pick a name, type the email, done. Admins see this page.">Members</SectionTitle>
         <MembersAdmin members={members.flatMap((m) => m.emails.map((e) => ({ email: e, player: m.player, admin: Boolean(m.admin) })))} roster={roster} me={user.email} />
       </section>
-      <section id="fixtures" className="card scroll-mt-24 p-5 sm:p-6">
+      <section id="fixtures" className="card card-pad scroll-mt-24">
         <SectionTitle sub="Add next week's game, fix a date or opponent, mark a forfeit, or start a new season.">Seasons &amp; fixtures</SectionTitle>
         <FixturesAdmin seasons={seasons} fixtures={fixtures} roster={roster} />
       </section>

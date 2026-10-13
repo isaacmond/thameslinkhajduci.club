@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { Check, Inbox, X } from "lucide-react";
 import { approveSubmissionAction, rejectSubmissionAction, type ActionState } from "@/app/actions/admin";
 import { btn } from "./button";
+import { FormStatus } from "./controls";
 
 export type PendingItem = { id: number; kind: string; summary: string; submittedBy: string; createdAt: string; details: string[] };
 
@@ -15,8 +16,8 @@ export function PendingAdmin({ items }: { items: PendingItem[] }) {
   if (!items.length) return <p className="flex items-center gap-2 text-sm text-muted"><Inbox size={16} aria-hidden />Nothing waiting. {state?.ok && <span className="text-accent">{state.message}</span>}</p>;
   return (
     <div className="space-y-3">
-      {state && <p role="status" className={`text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.message}</p>}
-      <ul className="divide-y divide-ink/10">
+      {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}
+      <ul className="divide-y divide-ink/8">
         {items.map((it) => (
           <li key={it.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">

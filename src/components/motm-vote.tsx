@@ -2,9 +2,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { Check } from "lucide-react";
 import { voteMotmAction, type VoteState } from "@/app/actions/motm";
-import { MotmStar } from "./ui";
+import { MotmStar, Tick } from "./ui";
 
 export type VoteCandidate = { player: string; goals: number; assists: number };
 
@@ -38,8 +37,8 @@ export function MotmVote({ token, voter, candidates, current, pick }: { token: s
           return (
             <li key={c.player}>
               <button type="button" onClick={() => choose(c.player)} disabled={me || pending} aria-pressed={picked} title={me ? "You cannot vote for yourself" : undefined}
-                className={clsx("focus-ring flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed", picked ? "border-gold/60 bg-gold/15 text-gold" : suggested ? "border-accent/60 bg-accent/10 text-ink hover:bg-accent/20" : me ? "border-ink/5 bg-ink/[0.02] text-muted/60" : "border-ink/10 bg-ink/5 text-ink hover:bg-ink/10")}>
-                <span className={clsx("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2", picked ? "border-gold bg-gold text-paper" : "border-ink/25")} aria-hidden>{picked ? <Check size={14} /> : null}</span>
+                className={clsx("focus-ring flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed", picked ? "border-gold/60 bg-gold/15 text-gold" : suggested ? "chip-on" : me ? "chip-off border-ink/5 text-muted/60" : "chip-off border-ink/10 text-ink hover:border-ink/25")}>
+                <Tick on={picked} tone="gold" hint={suggested} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{c.player}{me && <span className="ml-2 text-xs font-normal text-muted">(you)</span>}</span>
                   {did(c) && <span className="block text-xs text-muted">{did(c)}</span>}
@@ -51,7 +50,7 @@ export function MotmVote({ token, voter, candidates, current, pick }: { token: s
           );
         })}
       </ul>
-      {state && <p role="status" className={clsx("flex items-center gap-2 text-sm", state.ok ? "text-accent" : "text-loss")}>{state.ok && <MotmStar />}{state.message}</p>}
+      {state && <p role="status" className={clsx("flex items-start gap-2 text-sm", state.ok ? "text-accent" : "text-loss")}>{state.ok && <span className="icon-line"><MotmStar /></span>}<span className="min-w-0">{state.message}</span></p>}
     </div>
   );
 }

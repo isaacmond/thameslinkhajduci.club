@@ -4,7 +4,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { ArrowLeftRight, Shuffle } from "lucide-react";
 import { fmtDate } from "@/lib/stats";
-import { Avatar, Empty, SectionTitle, Shirt, Tag } from "./ui";
+import { Avatar, Empty, Panel, Shirt, Stat, StatGrid, Tag } from "./ui";
 import { Select } from "./controls";
 import { ShareButton } from "./share-button";
 import { btn } from "./button";
@@ -122,16 +122,16 @@ function Bars({ a, b, m }: { a: ComparePlayer; b: ComparePlayer; m: Metric }) {
   const subA = m.sub?.(a), subB = m.sub?.(b);
   return (
     <li className="py-3">
-      <div className="flex items-baseline justify-between gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-2">
         {val(va, aBetter, nA)}
-        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-muted">(level)</span>}</span>
-        {val(vb, bBetter, nB)}
+        <span className="text-center"><span className="eyebrow">{m.label}</span>{level && <span className="ml-1 text-2xs text-muted">(level)</span>}</span>
+        <span className="justify-self-end">{val(vb, bBetter, nB)}</span>
       </div>
       <div className="mt-1.5 grid grid-cols-2 gap-1" aria-hidden>
         <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-ink/[0.06]"><span className={bar(aBetter)} style={{ width: `${w(va)}%` }} /></div>
         <div className="flex h-2 overflow-hidden rounded-r-full bg-ink/[0.06]"><span className={bar(bBetter)} style={{ width: `${w(vb)}%` }} /></div>
       </div>
-      {(subA || subB) && <div className="mt-1 flex justify-between gap-3 text-[11px] text-muted"><span className="min-w-0 truncate">{subA && <><span className="sr-only">{nA}: </span>{subA}</>}</span><span className="min-w-0 truncate text-right">{subB && <><span className="sr-only">{nB}: </span>{subB}</>}</span></div>}
+      {(subA || subB) && <div className="mt-1 flex justify-between gap-3 text-2xs text-muted"><span className="min-w-0 truncate">{subA && <><span className="sr-only">{nA}: </span>{subA}</>}</span><span className="min-w-0 truncate text-right">{subB && <><span className="sr-only">{nB}: </span>{subB}</>}</span></div>}
     </li>
   );
 }
@@ -174,23 +174,16 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
   const sA = short(A, B), sB = short(B, A);
   const toneA = t.a > t.b ? "lead" : t.b > t.a ? "trail" : "level", toneB = t.b > t.a ? "lead" : t.a > t.b ? "trail" : "level";
   const shareText = `${A.name} v ${B.name}: ${A.goals} goal${A.goals === 1 ? "" : "s"} in ${A.apps} appearance${A.apps === 1 ? "" : "s"} against ${B.goals} in ${B.apps}. ${line}`;
-  const cell = (label: string, xs: CompareMatch[], highlight = false) => {
+  const cell = (label: string, xs: CompareMatch[]) => {
     const pct = winPct(xs);
-    return (
-      <div className="rounded-xl bg-sunken/60 p-3 text-center">
-        <dt className="eyebrow">{label}</dt>
-        <dd className={clsx("display mt-1.5 text-3xl leading-none sm:text-4xl", pct === null ? "text-muted" : highlight ? "text-ink" : "text-ink")}>{pct === null ? "–" : `${pct}%`}</dd>
-        <dd className="mt-1.5 text-[11px] leading-tight text-muted">{xs.length} match{xs.length === 1 ? "" : "es"}{xs.length > 0 && <span className="block tabular">{wdl(xs)}</span>}</dd>
-      </div>
-    );
+    return <Stat variant="well" align="center" size="sm" label={label} value={pct === null ? <span className="text-muted">–</span> : `${pct}%`} sub={<>{xs.length} match{xs.length === 1 ? "" : "es"}{xs.length > 0 && <span className="block tabular">{wdl(xs)}</span>}</>} />;
   };
-  const togetherPct = winPct(both), soloBest = Math.max(winPct(onlyA) ?? -1, winPct(onlyB) ?? -1);
 
   if (players.length < 2) return <Empty>At least two players are needed to compare.</Empty>;
 
   return (
     <div className="space-y-6">
-      <div className="card p-6">
+      <div className="card card-pad">
         <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <Select label="Player" value={A.slug} onChange={pickA} options={options} />
           <button type="button" onClick={swap} className={btn("secondary", "sm", "px-3")} aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
@@ -202,7 +195,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
         </div>
       </div>
 
-      <section className="card relative overflow-hidden p-6" aria-label={`${A.name} and ${B.name}`}>
+      <section className="card card-pad relative overflow-hidden" aria-label={`${A.name} and ${B.name}`}>
         <div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
           <Head p={A} other={B} align="left" tone={toneA} />
           <div className="flex flex-col items-center self-center">
@@ -216,46 +209,43 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="card p-6 lg:col-span-3">
-          <SectionTitle sub="The stronger figure in each row is highlighted">Head to head</SectionTitle>
+        <Panel title="Head to head" sub="The stronger figure in each row is highlighted" as="div" className="lg:col-span-3">
           <div className="flex justify-between text-xs font-semibold text-ink"><span className="truncate">{sA}</span><span className="truncate text-right">{sB}</span></div>
           <ol className="divide-y divide-ink/[0.06]">{METRICS.map((m) => <Bars key={m.key} a={A} b={B} m={m} />)}</ol>
-        </div>
+        </Panel>
 
         <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">
-          <div className="card p-6">
-            <SectionTitle sub="The team's win rate with both, and with each alone">Together</SectionTitle>
-            <dl className="grid grid-cols-3 gap-2">
-              {cell("Together", both, togetherPct !== null && togetherPct > soloBest)}
-              {cell(`${sA} only`, onlyA, false)}
-              {cell(`${sB} only`, onlyB, false)}
-            </dl>
+          <Panel title="Together" sub="The team's win rate with both, and with each alone" as="div">
+            <StatGrid className="grid-cols-3 gap-2">
+              {cell("Together", both)}
+              {cell(`${sA} only`, onlyA)}
+              {cell(`${sB} only`, onlyB)}
+            </StatGrid>
             <p className="mt-3 text-sm text-muted">{togetherLine(A, B, both, onlyA, onlyB)}</p>
             {both.length > 0 && <p className="mt-2 text-xs text-muted">Last together <Link href={`/matches/${both[both.length - 1].id}`} className="link">{fmtDate(both[both.length - 1].date)}</Link> · {shared} season{shared === 1 ? "" : "s"} together</p>}
-          </div>
+          </Panel>
 
-          <div className="card overflow-hidden">
-            <div className="p-6 pb-2"><SectionTitle sub="Appearances and goals">Season by season</SectionTitle></div>
+          <Panel flush title="Season by season" sub="Appearances and goals" as="div">
             {seasonRows.length ? (
               <div className="scroll-x overflow-x-auto">
                 <table className="stats w-full">
                   <thead>
-                    <tr><th aria-hidden /><th colSpan={2} className="!text-center text-ink">{sA}</th><th colSpan={2} className="!text-center text-ink">{sB}</th></tr>
-                    <tr><th>Season</th><th className="num" title="Appearances">P</th><th className="num" title="Goals">G</th><th className="num" title="Appearances">P</th><th className="num" title="Goals">G</th></tr>
+                    <tr><th aria-hidden /><th colSpan={2} className="text-center text-ink">{sA}</th><th colSpan={2} className="text-center text-ink">{sB}</th></tr>
+                    <tr><th>Season</th><th title="Appearances" className="text-center">P</th><th title="Goals" className="text-center">G</th><th title="Appearances" className="text-center">P</th><th title="Goals" className="text-center">G</th></tr>
                   </thead>
                   <tbody>
                     {seasonRows.map((r) => { const ga = r.a?.goals ?? 0, gb = r.b?.goals ?? 0; return (
                       <tr key={r.sid}>
                         <td className="font-medium text-ink"><Link href={`/seasons/${r.sid.toLowerCase()}`} className="link">Season {r.sid.replace(/^S/, "")}</Link></td>
-                        <td className={clsx("num", !r.a?.apps && "text-muted")}>{r.a?.apps ?? 0}</td><td className={clsx("num font-semibold", ga > gb ? "text-ink" : ga ? "text-ink/70" : "text-muted")}>{ga}</td>
-                        <td className={clsx("num", !r.b?.apps && "text-muted")}>{r.b?.apps ?? 0}</td><td className={clsx("num font-semibold", gb > ga ? "text-ink" : gb ? "text-ink/70" : "text-muted")}>{gb}</td>
+                        <td className={clsx("tabular text-center", !r.a?.apps && "text-muted")}>{r.a?.apps ?? 0}</td><td className={clsx("tabular text-center font-semibold", ga > gb ? "text-ink" : ga ? "text-ink/70" : "text-muted")}>{ga}</td>
+                        <td className={clsx("tabular text-center", !r.b?.apps && "text-muted")}>{r.b?.apps ?? 0}</td><td className={clsx("tabular text-center font-semibold", gb > ga ? "text-ink" : gb ? "text-ink/70" : "text-muted")}>{gb}</td>
                       </tr>); })}
-                    <tr className="font-semibold"><td className="text-ink">Total</td><td className="num">{A.apps}</td><td className="num">{A.goals}</td><td className="num">{B.apps}</td><td className="num">{B.goals}</td></tr>
+                    <tr className="font-semibold"><td className="text-ink">Total</td><td className="tabular text-center">{A.apps}</td><td className="tabular text-center">{A.goals}</td><td className="tabular text-center">{B.apps}</td><td className="tabular text-center">{B.goals}</td></tr>
                   </tbody>
                 </table>
               </div>
             ) : <Empty inset>No seasons yet.</Empty>}
-          </div>
+          </Panel>
         </div>
       </section>
     </div>

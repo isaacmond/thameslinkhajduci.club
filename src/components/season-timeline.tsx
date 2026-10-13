@@ -3,8 +3,10 @@ import clsx from "clsx";
 import type { Match, Season } from "@/lib/types";
 import { chronological, fmtDate, gwLabel, scoreline } from "@/lib/stats";
 import { ScrollToStop } from "./scroll-to-stop";
+import { ROUND } from "./ui";
 
 const STEP = 76; // px per fixture: fixed, so the row scrolls sideways on phones instead of squashing
+const STOP = 28; // the stop's diameter (ROUND.md); each connector runs from one stop's edge to the next
 
 type Kind = "played" | "next" | "future" | "pending";
 const kindOf = (m: Match, nextId: string | null, today: string): Kind => (m.played ? "played" : m.id === nextId ? "next" : m.date && m.date < today ? "pending" : "future");
@@ -23,20 +25,20 @@ export function SeasonTimeline({ season, today }: { season: Season; today: strin
   return (
     <div className="scroll-x focus-ring overflow-x-auto" tabIndex={0} role="region" aria-label="Season timeline, scrolls sideways">
       {nextIdx >= 0 && <ScrollToStop x={nextIdx * STEP + STEP / 2} />}
-      <ol className="relative flex py-2" style={{ minWidth: fixtures.length * STEP }}>
-        <span className="absolute inset-x-[38px] top-[2.6rem] h-px bg-ink/12" aria-hidden />
-        {fixtures.map((m) => {
+      <ol className="flex w-max py-2">
+        {fixtures.map((m, i) => {
           const kind = kindOf(m, nextId, today);
           return (
             <li key={m.id} style={{ width: STEP }} className="shrink-0">
               <Link href={`/matches/${m.id}`} aria-label={describe(m, kind)} className="focus-ring group flex flex-col items-center gap-1.5 rounded-lg px-1 py-1 text-center">
                 <span className="eyebrow eyebrow-sm">{gwLabel(m)}</span>
-                <span className={clsx("relative flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold",
+                <span className={clsx("pill-round relative", ROUND.md,
                   kind === "played" ? `result-${m.result ?? "X"}` : kind === "next" ? "border-accent bg-accent text-paper" : kind === "pending" ? "border-dashed border-ink/25 bg-surface text-muted" : "border-ink/15 bg-surface text-muted")}>
                   {kind === "played" ? (m.result ?? "·") : kind === "next" ? "•" : ""}
+                  {i < fixtures.length - 1 && <span className="absolute left-[calc(100%+1px)] top-1/2 h-px -translate-y-1/2 bg-ink/12" style={{ width: STEP - STOP }} aria-hidden />}
                 </span>
                 <span className={clsx("tabular text-xs", kind === "played" ? "font-semibold text-ink" : kind === "next" ? "font-semibold text-accent" : "text-muted")}>{kind === "played" ? scoreline(m) : kind === "next" ? "Next" : m.date ? fmtDate(m.date, { day: "numeric", month: "short" }) : "TBC"}</span>
-                <span className="line-clamp-2 min-h-[2lh] w-full whitespace-normal break-words text-[11px] leading-tight text-muted transition-colors group-hover:text-ink" title={m.opponent}>{m.opponent}</span>
+                <span className="line-clamp-2 min-h-[2lh] w-full whitespace-normal break-words text-2xs leading-tight text-muted transition-colors group-hover:text-ink" title={m.opponent}>{m.opponent}</span>
               </Link>
             </li>
           );

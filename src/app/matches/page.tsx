@@ -21,7 +21,7 @@ export default async function MatchesPage() {
       {upcoming.length > 0 && (
         <section>
           <SectionTitle>Coming up</SectionTitle>
-          <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} showSeason today={today} />)}</div>
+          <div className="card card-rows card-rows-full lg:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} showSeason today={today} />)}</div>
         </section>
       )}
       <section>

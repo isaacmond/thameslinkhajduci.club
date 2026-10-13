@@ -6,7 +6,6 @@ export function badgeHue(name: string): number {
   for (const ch of opponentKey(name)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
   return h % 360;
 }
-/** The opponent's colour, tuned for the current theme. */
 /** Up to three initials: one per word ("Green of the South" → GOS), or the first three letters of a one-word name ("Spudos" → SPU). */
 export function badgeInitials(name: string): string {
   const words = opponentKey(name).split(" ").filter(Boolean);

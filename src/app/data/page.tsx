@@ -4,7 +4,7 @@ import { ArrowUpRight, CircleAlert, CircleCheck, Download, Info, TriangleAlert }
 import { getData } from "@/lib/data";
 import { buildTable, TABLES, TABLE_INFO } from "@/lib/tables";
 import { SEVERITY_LABEL, sheetHealth, type Severity } from "@/lib/health";
-import { Callout, PageHeader, SectionTitle, Tag } from "@/components/ui";
+import { Callout, IconText, PageHeader, SectionTitle, Stat, StatGrid, Tag } from "@/components/ui";
 import { DataExplorer } from "@/components/data-explorer";
 import { RefreshButton } from "@/components/refresh-button";
 import { PageTransition } from "@/components/page-transition";
@@ -27,11 +27,11 @@ export default async function DataPage() {
     <div className="space-y-10">
       <PageHeader eyebrow="The records" title="Data" sub="Everything on this site, as tables you can download." right={<RefreshButton />} />
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="card min-w-0 p-5"><p className="eyebrow">Source of truth</p><p className="display mt-1 text-2xl leading-none text-ink">The records database</p><a href="/api/export?format=xlsx" className="link mt-1 inline-flex items-center gap-1 text-sm"><Download size={14} aria-hidden />Download it all as a spreadsheet</a></div>
-        <div className="card min-w-0 p-5"><p className="eyebrow">Last updated</p><p className="display mt-1 text-2xl leading-none text-ink">{readAt}</p><p className="mt-1 text-xs text-muted">Refreshed every minute</p></div>
-        <div className="card min-w-0 p-5"><p className="eyebrow">In the dataset</p><p className="display mt-1 text-2xl leading-none text-ink">{data.matches.length} fixtures · {data.players.length} players</p><p className="mt-1 text-xs text-muted">{data.matches.filter((m) => m.played).length} played, {data.allTime.goalsFor + data.allTime.goalsAgainst} goals</p></div>
-      </section>
+      <StatGrid as="section" className="grid-cols-1 gap-4 sm:grid-cols-3">
+        <Stat size="xs" className="min-w-0" label="Source of truth" value="The records database" sub={<a href="/api/export?format=xlsx" className="link inline-flex items-center gap-1"><Download size={12} aria-hidden />Download it all as a spreadsheet</a>} />
+        <Stat size="xs" className="min-w-0" label="Last updated" value={readAt} sub="Refreshed every minute" />
+        <Stat size="xs" className="min-w-0" label="In the dataset" value={<>{data.matches.length} fixtures · {data.players.length} players</>} sub={`${data.matches.filter((m) => m.played).length} played, ${data.allTime.goalsFor + data.allTime.goalsAgainst} goals`} />
+      </StatGrid>
 
       <section className="min-w-0" aria-labelledby="records-health">
         <SectionTitle id="records-health" sub={`Checked against the records on the last update: scorers against goals, assists, man of the match, appearances, overdue scores, dates and payment names. ${health.issues.length ? `${health.issues.length} thing${health.issues.length === 1 ? "" : "s"} to look at.` : "Nothing to report."}`} right={<div className="flex flex-wrap gap-2">{SEVERITIES.map((s) => <Tag key={s} tone={health.counts[s] ? SEVERITY_UI[s].tone : "default"}>{health.counts[s]} {SEVERITY_LABEL[s].toLowerCase()}</Tag>)}</div>}>Records health</SectionTitle>
@@ -44,14 +44,10 @@ export default async function DataPage() {
             {SEVERITIES.map((s) => {
               const list = health.issues.filter((i) => i.severity === s);
               return (
-                <div key={s} className="card min-w-0 p-5">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="display inline-flex items-center gap-2 text-2xl leading-none text-ink">{SEVERITY_UI[s].icon}{SEVERITY_LABEL[s]}</h3>
-                    <Tag tone={list.length ? SEVERITY_UI[s].tone : "default"}>{list.length}</Tag>
-                  </div>
-                  <p className="mt-1 text-xs text-muted">{SEVERITY_UI[s].blurb}</p>
+                <div key={s} className="card card-pad min-w-0">
+                  <SectionTitle as="h3" size="sm" sub={SEVERITY_UI[s].blurb} right={<Tag tone={list.length ? SEVERITY_UI[s].tone : "default"}>{list.length}</Tag>}><IconText icon={SEVERITY_UI[s].icon}>{SEVERITY_LABEL[s]}</IconText></SectionTitle>
                   {list.length ? (
-                    <ul className="mt-3 divide-y divide-ink/5">
+                    <ul className="divide-y divide-ink/8">
                       {list.map((i) => (
                         <li key={i.key} className="py-2 text-sm text-muted [overflow-wrap:anywhere]">
                           {i.message}
@@ -60,7 +56,7 @@ export default async function DataPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-3 text-sm text-muted">None</p>
+                    <p className="text-sm text-muted">None</p>
                   )}
                 </div>
               );

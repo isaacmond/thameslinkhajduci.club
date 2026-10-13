@@ -3,7 +3,7 @@ import { useMemo, useState, ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { fmtDate } from "@/lib/stats";
-import { Empty, Shirt, Tag } from "./ui";
+import { Empty, Shirt, StatStrip, Tag } from "./ui";
 import { chipToggle } from "./controls";
 
 export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null; ringer: boolean };
@@ -43,7 +43,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
         {list.map((p, i) => (
           <li key={p.slug} className="animate-rise" style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}>
-            <Link href={`/squad/${p.slug}`} className="focus-ring card group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+            <Link href={`/squad/${p.slug}`} className="focus-ring card card-link group flex h-full flex-col overflow-hidden">
               <ViewTransition name={`player-${p.slug}`} share="morph" default="none">
                 <div className="relative aspect-[4/5] overflow-hidden bg-sunken">
                   {p.photo ? (
@@ -54,23 +54,19 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                     </div>
                   )}
                   {p.shirt !== null && p.photo && <span className="display absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-surface/90 text-xl leading-none text-ink shadow-sm backdrop-blur">{p.shirt}</span>}
-                  {p.ringer && <Tag className="absolute left-2.5 top-2.5 !py-0 leading-5 text-[10px] bg-surface/90 backdrop-blur">Ringer</Tag>}
+                  {p.ringer && <Tag size="sm" className="absolute left-2.5 top-2.5 bg-surface/90 backdrop-blur">Ringer</Tag>}
                 </div>
               </ViewTransition>
               <div className="px-4 pb-3 pt-3.5">
                 <h2 className="display truncate text-[1.35rem] leading-tight text-ink group-hover:text-accent sm:text-[1.6rem]" title={p.name}>{p.name}</h2>
-                <p className="mt-0.5 flex min-h-[1.25rem] flex-wrap items-center gap-x-2 text-xs text-muted">
+                <p className="mt-0.5 flex min-h-5 flex-wrap items-center gap-x-2 text-xs text-muted">
                   {p.positions.length > 0 && <span className="font-medium tracking-wide">{p.positions.join(" · ")}</span>}
                   {p.nickname && <span className="italic">“{p.nickname}”</span>}
                   {p.activeThisSeason && <span className="inline-flex items-center gap-1 text-accent"><span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />{currentSeason ? `Season ${currentSeason.replace(/^S/, "")}` : "This season"}</span>}
                 </p>
               </div>
-              <dl className="mt-auto grid grid-cols-3 border-t border-ink/8 text-center">
-                {[["Apps", p.apps], ["Goals", p.goals], ["Assists", p.assists]].map(([k, v]) => (
-                  <div key={k} className="flex min-w-0 flex-col-reverse px-0.5 py-2.5"><dt className="eyebrow eyebrow-sm tracking-[0.06em] sm:tracking-[0.12em]">{k}</dt><dd className="display text-2xl leading-tight text-ink">{v}</dd></div>
-                ))}
-              </dl>
-              <p className="hidden border-t border-ink/8 px-4 py-2 text-[11px] text-muted sm:block">Debut {fmtDate(p.debut, { month: "short", year: "numeric" })} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"}</p>
+              <StatStrip size="sm" className="mt-auto border-t border-ink/8" items={[{ label: "Apps", value: p.apps }, { label: "Goals", value: p.goals }, { label: "Assists", value: p.assists }]} />
+              <p className="hidden border-t border-ink/8 px-4 py-2 text-2xs text-muted sm:block">Debut {fmtDate(p.debut, { month: "short", year: "numeric" })} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"}</p>
             </Link>
           </li>
         ))}

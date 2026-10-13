@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getData } from "@/lib/data";
 import type { Player } from "@/lib/types";
 import { attendance, chemistry, goalContext, headToHead, leaderboard, seasonPlayers, signed } from "@/lib/stats";
-import { LeaderList, PageHeader, PlayerLink, SectionTitle } from "@/components/ui";
+import { ArrowLink, LeaderList, PageHeader, Panel, PlayerLink, SectionTitle } from "@/components/ui";
 import { PlayerTable, type PlayerRow } from "@/components/player-table";
 import { StackedBySeason } from "@/components/charts";
 import { PageTransition } from "@/components/page-transition";
@@ -49,7 +49,8 @@ export default async function StatsPage() {
       <section aria-labelledby="leaders">
         <SectionTitle id="leaders" sub="All time, top five">Leaderboards</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {boards.map((b) => <div key={b.title} className="card p-6"><h3 className="display text-2xl leading-none text-ink">{b.title}</h3><p className="mt-1 min-h-4 text-xs text-muted">{b.sub}</p><div className="mt-3"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
+          {/* Boards without a qualifier keep an empty line in its place, so the lists in each row start level. */}
+          {boards.map((b) => <Panel key={b.title} as="div" size="sm" title={b.title} sub={b.sub ?? "\u00a0"}><LeaderList items={b.items} color={b.color} format={b.fmt} /></Panel>)}
         </div>
       </section>
 
@@ -59,38 +60,35 @@ export default async function StatsPage() {
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="card p-6"><SectionTitle sub="The top fifteen, by season">Goals by season</SectionTitle><StackedBySeason data={stack("goals")} seasons={seasonIds} /></div>
-        <div className="card p-6"><SectionTitle sub="The top fifteen, by season">Appearances by season</SectionTitle><StackedBySeason data={stack("apps")} seasons={seasonIds} /></div>
+        <Panel as="div" title="Goals by season" sub="The top fifteen, by season"><StackedBySeason data={stack("goals")} seasons={seasonIds} /></Panel>
+        <Panel as="div" title="Appearances by season" sub="The top fifteen, by season"><StackedBySeason data={stack("apps")} seasons={seasonIds} /></Panel>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="card overflow-hidden">
-          <div className="p-6 pb-2"><SectionTitle sub="Pairs with the most matches together">Partnerships</SectionTitle></div>
+        <Panel as="div" title="Partnerships" sub="Pairs with the most matches together" flush>
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full">
               <thead><tr><th>Pair</th><th className="num">Matches</th><th className="num">Won</th><th className="num">Goals a game</th></tr></thead>
-              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-muted sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className="num font-semibold">{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
+              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="whitespace-normal"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-muted sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className="num font-semibold">{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
             </table>
           </div>
-        </div>
+        </Panel>
         <div className="space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">
-        <div className="card p-6">
-          <SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Played five or more times without a win">Yet to beat</SectionTitle>
+        <Panel as="div" title="Yet to beat" sub="Played five or more times without a win" right={<ArrowLink href="/opponents">All opponents</ArrowLink>}>
           {notBeaten.length ? (
             <ul className="space-y-2 text-sm">
               {notBeaten.map((o) => <li key={o.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 sm:flex sm:gap-3"><Link href={`/opponents/${o.slug}`} className="focus-ring min-w-0 truncate rounded font-medium text-ink transition-colors hover:text-accent" title={o.opponent}>{o.opponent}</Link><span className="tabular w-10 shrink-0 text-right text-xs font-semibold text-ink sm:order-last">{signed(o.gf - o.ga)}</span><span className="col-span-2 flex gap-3 text-xs text-muted sm:ml-auto sm:shrink-0"><span>{o.played} played</span><span className="tabular">drew {o.drawn}, lost {o.lost}</span></span></li>)}
             </ul>
           ) : <p className="text-sm text-muted">Every team played five or more times has been beaten at least once.</p>}
-        </div>
-        <div className="card overflow-hidden">
-          <div className="p-6 pb-2"><SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Most played first">Head to head</SectionTitle></div>
+        </Panel>
+        <Panel as="div" title="Head to head" sub="Most played first" right={<ArrowLink href="/opponents">All opponents</ArrowLink>} flush>
           <div className="scroll-x overflow-x-auto sm:max-h-[560px] sm:overflow-auto">
             <table className="stats w-full">
               <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th><th className="hidden md:table-cell lg:hidden xl:table-cell">Seasons</th></tr></thead>
-              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[11rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td><td className="hidden !whitespace-normal text-xs text-muted md:table-cell lg:hidden xl:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
+              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[11rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td><td className="hidden whitespace-normal text-xs text-muted md:table-cell lg:hidden xl:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
             </table>
           </div>
-        </div>
+        </Panel>
         </div>
       </section>
     </div>

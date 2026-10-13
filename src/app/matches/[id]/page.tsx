@@ -11,7 +11,8 @@ import { fmtCloses } from "@/lib/motm";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, leaderboard, opponentKey, playedMatches, scorersFor, scoreline, seasonHref, seasonPlayers } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, resultWord } from "@/lib/captions";
-import { Breadcrumb, Crest, LeaderList, MotmStar, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { Breadcrumb, Crest, LeaderList, MotmStar, Panel, PlayerLink, ResultPill, StatStrip, Tag } from "@/components/ui";
+import { slugify } from "@/lib/slug";
 import { Countdown } from "@/components/countdown";
 import { TeamBadge } from "@/components/team-badge";
 import { sponsorFor } from "@/components/footer";
@@ -35,6 +36,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 const resultText = { W: "text-win", D: "text-draw", L: "text-loss" } as const;
+/** A player on a tinted row: the forfeit bill and the expected squad. */
+const wellRow = "well flex min-w-0 items-center justify-between gap-3 px-3 py-2";
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -78,7 +81,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-muted">
             <span className="eyebrow">{season.id === "FR" ? "Friendly" : `Season ${season.number} · ${gwLabel(m)}`}</span>
             <span>{fmtDate(m.date, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}</span>
-            <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden />{season.venueUrl ? <a href={season.venueUrl} target="_blank" rel="noopener noreferrer" className="link">{season.venue}</a> : season.venue}</span>
+            <span className="inline-flex items-center gap-1"><MapPin size={12} className="shrink-0" aria-hidden />{season.venueUrl ? <a href={season.venueUrl} target="_blank" rel="noopener noreferrer" className="link">{season.venue}</a> : season.venue}</span>
             {m.type && <Tag>{m.type}</Tag>}
           </p>
           <h1 className="mt-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 sm:items-center text-ink sm:gap-8">
@@ -86,9 +89,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <Crest size={64} className="h-12 w-12 shrink-0 sm:h-16 sm:w-16" />
               <span className="display min-w-0 text-xl leading-tight [text-wrap:balance] sm:text-4xl">Thameslink Hajduci</span>
             </span>
-            <span className="flex flex-col items-center gap-2 self-center">
-              {m.played ? <span className="display whitespace-nowrap text-6xl leading-none sm:text-8xl">{m.ourGoals}<span className="mx-1.5 text-muted/60 sm:mx-3">–</span>{m.theirGoals}</span> : <span className="display text-4xl text-muted sm:text-6xl">v</span>}
-              {m.played && m.result && <span className={clsx("eyebrow", resultText[m.result])}>{resultWord(m.result)}</span>}
+            <span className="relative flex flex-col items-center self-center">
+              {m.played ? <span className="display whitespace-nowrap text-6xl leading-none sm:text-8xl">{m.ourGoals}<span className="relative -top-[0.09em] mx-1.5 text-muted/60 sm:mx-3">–</span>{m.theirGoals}</span> : <span className="display text-4xl text-muted sm:text-6xl">v</span>}
+              {m.played && m.result && <span className={clsx("eyebrow absolute top-full mt-2 whitespace-nowrap", resultText[m.result])}>{resultWord(m.result)}</span>}
             </span>
             <span className="flex min-w-0 flex-col items-center gap-3 text-center sm:flex-row sm:justify-start sm:text-left">
               {!/^forfeit$/i.test(m.opponent) && <TeamBadge name={m.opponent} size={64} className="h-12 w-12 sm:h-16 sm:w-16" />}
@@ -98,9 +101,9 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           {!m.played && kickoff && <p className="mt-8 text-center"><span className="eyebrow block">Kick-off in</span><Countdown target={kickoff} className="tabular mt-1 text-4xl font-semibold tracking-tight text-ink" /></p>}
           {(m.comment || verdict) && <p className="display mx-auto mt-8 max-w-2xl text-center text-xl italic leading-snug text-ink/85 sm:text-2xl">{m.comment ? <>“{m.comment}”</> : verdict}</p>}
         </div>
-        <div className="space-y-3 border-t border-ink/10 bg-sunken/40 px-5 py-4">
+        <div className="card-x space-y-3 border-t border-ink/10 bg-sunken/40 py-4">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {m.motm && <Tag tone="gold"><MotmStar />Man of the match <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></Tag>}
+          {m.motm && <Tag tone="gold"><MotmStar />Man of the match<Link href={`/squad/${byName.get(m.motm)?.slug ?? slugify(m.motm)}`} className="focus-ring rounded underline-offset-2 hover:underline">{m.motm}</Link></Tag>}
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
           {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
@@ -120,16 +123,14 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         const usual = !m.played && season.id !== "FR" ? leaderboard(seasonPlayers(data, season.id), "apps").slice(0, 8) : [];
         // A forfeit's line-up is the bill: who was responsible, and what the pitch cost each of them.
         const lineupCard = isForfeit && m.played ? (
-          <div className="card p-6">
-            <SectionTitle sub={lineup.length ? `${lineup.length} players share the ${fmtMoney(m.matchCost)} pitch, ${fmtMoney(m.costPerPlayer)} each.` : "No one was charged for the pitch."}>Pitch fees</SectionTitle>
-            {lineup.length > 0 && <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">{lineup.map((l) => <li key={l.player} className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-sunken/60 px-3 py-2"><PlayerLink name={l.player} player={byName.get(l.player)} avatar className="min-w-0 truncate text-sm" /><span className="tabular shrink-0 text-xs text-muted">{fmtMoney(l.cost)}</span></li>)}</ul>}
+          <Panel title="Pitch fees" sub={lineup.length ? `${lineup.length} players share the ${fmtMoney(m.matchCost)} pitch, ${fmtMoney(m.costPerPlayer)} each.` : "No one was charged for the pitch."}>
+            {lineup.length > 0 && <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">{lineup.map((l) => <li key={l.player} className={wellRow}><PlayerLink name={l.player} player={byName.get(l.player)} avatar className="min-w-0 truncate text-sm" /><span className="tabular shrink-0 text-xs text-muted">{fmtMoney(l.cost)}</span></li>)}</ul>}
             <p className="mt-4 text-xs text-muted"><Link href={`/submit?match=${m.id}`} className="link">Edit the forfeit</Link></p>
-          </div>
+          </Panel>
         ) : (
-          <div className="card overflow-hidden">
-            <div className={clsx("p-6", (lineup.length || usual.length) ? "pb-2" : "")}><SectionTitle sub={m.played ? (lineup.length ? `${lineup.length} players` : "No line-up recorded") : "To be confirmed"}>Line-up</SectionTitle></div>
+          <Panel flush title="Line-up" sub={m.played ? (lineup.length ? `${lineup.length} players` : "No line-up recorded") : "To be confirmed"}>
             {!m.played && usual.length > 0 && (
-              <div className="px-6 pb-6">
+              <div className="card-x pb-(--card-px)">
                 <p className="eyebrow mb-3">Most appearances this season</p>
                 <LeaderList items={usual} color="bg-ink" />
                 <p className="mt-4 text-xs text-muted"><Link href={`/submit?match=${m.id}`} className="link">Add the result</Link> once it&apos;s played.</p>
@@ -142,7 +143,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   <tbody>
                     {lineup.map((l) => (
                       <tr key={l.player}>
-                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{m.motm === l.player && <MotmStar className="sm:hidden" label="Man of the match" />}{l.ringer && <Tag className="!py-0 leading-5 text-[10px]">Ringer</Tag>}</span></td>
+                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{m.motm === l.player && <MotmStar className="sm:hidden" label="Man of the match" />}{l.ringer && <Tag size="sm">Ringer</Tag>}</span></td>
                         <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/70")}>{l.goals || "·"}</td>
                         <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/70")}>{l.assists || "·"}</td>
                         <td className="hidden text-right text-xs text-gold sm:table-cell">{m.motm === l.player && <span className="inline-flex items-center gap-1"><MotmStar />Man of the match</span>}</td>
@@ -153,35 +154,30 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 </table>
               </div>
             )}
-          </div>
+          </Panel>
         );
         // Before kick-off the admin's team sheet stands in for the line-up; the score form starts from the same list.
         const squadCard = squad && squad.players.length > 0 ? (
-          <section className="card p-6" aria-labelledby="expected-squad">
-            <SectionTitle id="expected-squad" sub={`${squad.players.length} players named`}>Expected squad</SectionTitle>
-            <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">{squad.players.map((p) => <li key={p} className="flex min-w-0 items-center rounded-lg bg-sunken/60 px-3 py-2"><PlayerLink name={p} player={byName.get(p)} avatar className="min-w-0 truncate text-sm" /></li>)}</ul>
+          <Panel id="expected-squad" title="Expected squad" sub={`${squad.players.length} players named`}>
+            <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">{squad.players.map((p) => <li key={p} className={wellRow}><PlayerLink name={p} player={byName.get(p)} avatar className="min-w-0 truncate text-sm" /></li>)}</ul>
             {squad.note && <p className="mt-4 border-l-2 border-accent pl-3 text-sm text-ink/90">{squad.note}</p>}
             <p className="mt-4 text-xs text-muted">When you <Link href={`/submit?match=${m.id}`} className="link">add the result</Link>, this squad is ticked for you.</p>
-          </section>
+          </Panel>
         ) : null;
         const h2hCard = showH2h && h2h ? (
-          <div key="h2h" className="card p-6">
-            <SectionTitle sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"}`}>Head to head</SectionTitle>
-            <dl className="grid grid-cols-3 gap-2 text-center">
-              {([["Won", h2h.won], ["Drawn", h2h.drawn], ["Lost", h2h.lost]] as [string, number][]).map(([k, v]) => <div key={k} className="flex flex-col-reverse"><dt className="eyebrow mt-1.5">{k}</dt><dd className="display text-4xl leading-none text-ink">{v}</dd></div>)}
-            </dl>
-            <p className="mt-3 text-center text-xs text-muted">Goals {h2h.gf}–{h2h.ga}</p>
+          <Panel key="h2h" title="Head to head" sub={`${h2h.played} meeting${h2h.played === 1 ? "" : "s"}`}>
+            <StatStrip className="-mt-4" items={[{ label: "Won", value: h2h.won }, { label: "Drawn", value: h2h.drawn }, { label: "Lost", value: h2h.lost }]} />
+            <p className="text-center text-xs text-muted">Goals {h2h.gf}–{h2h.ga}</p>
             {h2h.matches.filter((x) => x.id !== m.id).length > 0 && (
               <ul className="mt-4 space-y-1.5 text-sm">
                 {[...h2h.matches].filter((x) => x.id !== m.id).reverse().map((x) => <li key={x.id} className="flex items-center gap-2"><ResultPill result={x.result} size="sm" /><Link href={`/matches/${x.id}`} className="link">{scoreline(x)}</Link><span className="ml-auto text-xs text-muted">{fmtDate(x.date)}</span></li>)}
               </ul>
             )}
-          </div>
+          </Panel>
         ) : null;
         if (m.played || !showPreview) {
           const side = [m.played && (
-            <div key="summary" className="card p-6">
-              <SectionTitle>Summary</SectionTitle>
+            <Panel key="summary" title="Summary">
               <dl className="space-y-3 text-sm">
                 {isForfeit ? <div><dt className="eyebrow">Forfeit</dt><dd className="mt-1 text-ink">Awarded {m.ourGoals}–{m.theirGoals}. The pitch was still paid for.</dd></div> : (
                 <div><dt className="eyebrow">Scorers</dt><dd className="mt-1 text-ink">{scorers.length ? scorers.map((s) => `${s.player}${s.goals > 1 ? ` (${s.goals})` : ""}`).join(", ") : (m.ourGoals ?? 0) > 0 ? "Not recorded" : "None"}</dd></div>
@@ -208,7 +204,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
               </dl>
-            </div>
+            </Panel>
           ), h2hCard].filter(Boolean);
           return (
             <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -227,8 +223,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       })()}
 
       <nav className="grid grid-cols-2 gap-3" aria-label="Adjacent matches">
-        {prev ? <Link href={`/matches/${prev.id}`} className="focus-ring card flex min-w-0 items-center gap-2 p-3 transition-shadow hover:shadow-lg sm:gap-3 sm:p-4"><ChevronLeft className="shrink-0 text-muted" aria-hidden /><span className="min-w-0"><span className="eyebrow block">Previous</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{scoreline(prev)} v </span>{prev.opponent}</span><span className="block text-xs text-muted">{fmtDate(prev.date)}</span></span></Link> : <span />}
-        {next ? <Link href={`/matches/${next.id}`} className="focus-ring card flex min-w-0 items-center justify-end gap-2 p-3 text-right transition-shadow hover:shadow-lg sm:gap-3 sm:p-4"><span className="min-w-0"><span className="eyebrow block">Next</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{next.played ? `${scoreline(next)} v ` : ""}</span>{next.opponent}</span><span className="block text-xs text-muted">{fmtDate(next.date)}</span></span><ChevronRight className="shrink-0 text-muted" aria-hidden /></Link> : <span />}
+        {prev ? <Link href={`/matches/${prev.id}`} className="focus-ring card card-link flex min-w-0 items-center gap-2 p-3 sm:gap-3 sm:p-4"><ChevronLeft className="shrink-0 text-muted" aria-hidden /><span className="min-w-0"><span className="eyebrow block">Previous</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{scoreline(prev)} v </span>{prev.opponent}</span><span className="block text-xs text-muted">{fmtDate(prev.date)}</span></span></Link> : <span />}
+        {next ? <Link href={`/matches/${next.id}`} className="focus-ring card card-link flex min-w-0 items-center justify-end gap-2 p-3 text-right sm:gap-3 sm:p-4"><span className="min-w-0"><span className="eyebrow block">Next</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{next.played ? `${scoreline(next)} v ` : ""}</span>{next.opponent}</span><span className="block text-xs text-muted">{fmtDate(next.date)}</span></span><ChevronRight className="shrink-0 text-muted" aria-hidden /></Link> : <span />}
       </nav>
     </div>
     </PageTransition>

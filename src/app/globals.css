@@ -25,6 +25,11 @@
   --color-logo-tile: #fffcf6;
   --font-display: var(--font-serif), "Instrument Serif", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: 0.875rem;
+  --spacing-control: 2.375rem;
   --radius-xl: 0.875rem;
   --shadow-card: 0 1px 2px rgba(23, 34, 27, 0.04), 0 10px 30px -18px rgba(23, 34, 27, 0.22);
   --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -32,7 +37,9 @@
 }
 
 @layer base {
-  :root { color-scheme: light; }
+  /* the inset every card's content shares (headers, bodies, toolbars, table edges), so their left edges line up */
+  :root { color-scheme: light; --card-px: 1.25rem; }
+  @media (min-width: 640px) { :root { --card-px: 1.5rem; } }
   @media (prefers-color-scheme: dark) {
     :root {
       color-scheme: dark;
@@ -72,14 +79,32 @@ body {
 .tabular { font-variant-numeric: tabular-nums; }
 .nowrap { white-space: nowrap; }
 
+/* an icon sitting on the first line of the text beside it: the wrapper is one line tall and centres the icon in it */
+.icon-line { display: inline-flex; align-items: center; height: 1lh; flex-shrink: 0; }
+/* an icon inside a run of text */
+.icon-inline { display: inline-block; vertical-align: -0.125em; flex-shrink: 0; }
+
 /* surfaces */
+.card-pad { padding: var(--card-px); }
+.card-x { padding-inline: var(--card-px); }
+.card-link { transition: box-shadow 0.15s; }
+.card-link:hover { box-shadow: 0 1px 2px rgba(23, 34, 27, 0.06), 0 14px 34px -16px rgba(23, 34, 27, 0.3); }
+/* a list of MatchRows inside a card: the rows carry 0.75rem of their own padding, so the list adds the rest of the card inset
+   (under a heading; `card-rows-full` also pads the top, for a list that is the whole card or follows a rule) */
+.card-rows { --rows-inset: calc(var(--card-px) - 0.75rem); display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.125rem; padding: 0 var(--rows-inset) var(--rows-inset); }
+.card-rows-full { padding-top: var(--rows-inset); }
+/* a quiet tinted box inside a card */
+.well { border-radius: var(--radius-xl); background: color-mix(in srgb, var(--color-sunken) 60%, transparent); }
 .card { background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-ink) 9%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); }
-.chip { display: inline-flex; align-items: center; white-space: nowrap; gap: 0.35rem; border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent); background: color-mix(in srgb, var(--color-ink) 4%, transparent); }
+.chip { display: inline-flex; align-items: center; white-space: nowrap; gap: 0.35rem; border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; line-height: 1rem; font-weight: 600; letter-spacing: 0.02em; border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent); background: color-mix(in srgb, var(--color-ink) 4%, transparent); }
+/* the small chip that sits beside a name in a row or table */
+.chip-sm { padding: 0.125rem 0.45rem; font-size: var(--text-3xs); line-height: 0.875rem; gap: 0.25rem; }
+/* round marks: result pills, fixture numbers, timeline stops */
+.pill-round { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 /* selected and unselected filter chips and toggle tiles, one scheme site-wide (labels around a checkbox use .chip-check) */
 .chip-on, .chip-check:has(:checked) { border-color: color-mix(in srgb, var(--color-accent) 50%, transparent); background: color-mix(in srgb, var(--color-accent) 15%, transparent); color: var(--color-ink); }
 .chip-off { background: var(--color-surface); color: var(--color-muted); }
 .chip-off:hover { color: var(--color-ink); }
-.rule { border-color: color-mix(in srgb, var(--color-ink) 10%, transparent); }
 
 /* results: tinted, never loud */
 .result-W { background: color-mix(in srgb, var(--color-win) 14%, transparent); color: var(--color-win); border-color: color-mix(in srgb, var(--color-win) 35%, transparent); }
@@ -93,6 +118,12 @@ body {
 .focus-ring:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 }
 
+/* stats side by side: each card's label, figure and note share rows with its neighbours, so a label that wraps
+   to two lines moves every figure in the row down together rather than just its own */
+.stat-grid { display: grid; }
+.stat-grid > .stat { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
+
+@layer components {
 /* tables */
 table.stats { width: 100%; border-collapse: separate; border-spacing: 0; }
 table.stats th { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); font-weight: 600; padding: 0.65rem 0.75rem; text-align: left; white-space: nowrap; border-bottom: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent); position: sticky; top: 0; background: var(--color-surface); }
@@ -111,13 +142,30 @@ th.sticky-col { z-index: 2; }
 table.stats td a { padding: 0.3rem 0; margin: -0.3rem 0; }
 table.stats td a:not(.inline-flex) { display: inline-block; }
 table.stats td a, table.stats td > .inline-flex, table.stats td > span.flex { vertical-align: middle; }
-table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; }
-table.stats th:first-child, table.stats td:first-child { padding-left: 1.5rem; }
-table.stats th:last-child, table.stats td:last-child { padding-right: 1.5rem; }
+table.stats th button { padding: 0.35rem 0.1rem; margin: -0.35rem -0.1rem; text-transform: inherit; }
+table.stats th:first-child, table.stats td:first-child { padding-left: var(--card-px); }
+table.stats th:last-child, table.stats td:last-child { padding-right: var(--card-px); }
 @media (max-width: 639px) {
-  table.stats th, table.stats td { padding-left: 0.5rem; padding-right: 0.5rem; }
-  table.stats th:first-child, table.stats td:first-child { padding-left: 1rem; }
-  table.stats th:last-child, table.stats td:last-child { padding-right: 1rem; }
+  table.stats th:not(:first-child):not(:last-child), table.stats td:not(:first-child):not(:last-child) { padding-left: 0.5rem; padding-right: 0.5rem; }
+  /* columns hidden on phones (.hidden sm:table-cell) can be the first or last child: the first and last shown columns take the card inset */
+  table.stats :is(th, td):nth-child(1 of :not(.hidden)) { padding-left: var(--card-px); }
+  table.stats :is(th, td):nth-last-child(1 of :not(.hidden)) { padding-right: var(--card-px); }
+  /* the column that gives way on a phone: it takes the spare width and its text truncates, so the table fits the card */
+  table.stats .col-fill { width: 100%; max-width: 0; }
+}
+/* the same at the widths where a .hidden column with a breakpoint (sm:table-cell, lg:hidden ...) is still out of view */
+@media (min-width: 640px) and (max-width: 767px) {
+  table.stats :is(th, td):nth-child(1 of :is(:not(.hidden), .sm\:table-cell)) { padding-left: var(--card-px); }
+  table.stats :is(th, td):nth-last-child(1 of :is(:not(.hidden), .sm\:table-cell)) { padding-right: var(--card-px); }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  table.stats :is(th, td):nth-last-child(1 of :is(:not(.hidden), .sm\:table-cell, .md\:table-cell, .lg\:table-cell):not(.lg\:hidden)) { padding-right: var(--card-px); }
+}
+/* rows whose first cell has a second line (a date or note under the name): every cell sits on the first line's baseline instead of centring */
+table.stats.rows-first td { vertical-align: baseline; }
+table.stats.rows-first td a, table.stats.rows-first td > .inline-flex, table.stats.rows-first td > span.flex { vertical-align: baseline; }
+/* a pill or chip on that line, set in smaller type: raised from the baseline so its centre meets the text's */
+table.stats.rows-first td > :is(.pill-round, .chip) { vertical-align: 0.2em; }
 }
 
 /* horizontal scrollers: a soft shadow on whichever edge has more to see (covers ride along with the content, shadows stay put) */

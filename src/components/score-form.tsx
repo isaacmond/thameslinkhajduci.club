@@ -1,16 +1,16 @@
 "use client";
 import { useMemo, useState } from "react";
 import clsx from "clsx";
-import { Check, ClipboardList, Minus, Plus, Send, UserPlus, X } from "lucide-react";
+import { ClipboardList, Minus, Plus, Send, UserPlus, X } from "lucide-react";
 import { pickRegulars } from "@/lib/ringers";
 import { fmtDate, fmtMoney } from "@/lib/stats";
-import { FormStatus, inputClass, Select, Switch } from "./controls";
+import { FormStatus, inputClass, Select, Switch, fieldClass } from "./controls";
 import { btn } from "./button";
 import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { PollButton } from "./poll-button";
-import { SectionTitle, Tag } from "./ui";
+import { SectionTitle, Tag, Tick } from "./ui";
 
 /**
  * `lineup` is who the records say played (roster players only); `ringers` the outsiders recorded alongside them; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
@@ -28,7 +28,7 @@ const AWARDED = { ours: 0, theirs: 8 };
 
 function Counter({ value, onChange, max = 30, label }: { value: number; onChange: (v: number) => void; max?: number; label: string }) {
   return (
-    <span className="flex h-[38px] w-full max-w-[9rem] items-center justify-between rounded-lg border border-ink/15 bg-ink/5">
+    <span className="flex h-control w-full max-w-[9rem] items-center justify-between rounded-lg border border-ink/15 bg-ink/5">
       <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className="focus-ring flex h-full items-center rounded-l-lg px-3 text-muted hover:text-ink"><Minus size={16} aria-hidden /></button>
       <span className="tabular w-8 text-center text-xl font-semibold leading-none text-ink" aria-live="polite">{value}</span>
       <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(max, value + 1))} className="focus-ring flex h-full items-center rounded-r-lg px-3 text-muted hover:text-ink"><Plus size={16} aria-hidden /></button>
@@ -125,11 +125,11 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
 
   return (
     <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <div className="card grid grid-cols-1 gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div className="card card-pad grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <Select label="Fixture" value={matchId} onChange={pick} options={fixtures.map((f) => ({ value: f.id, label: f.label }))} className="min-w-0" />
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 text-xs sm:gap-4">
           <div className="min-w-0"><p className="eyebrow mb-1 truncate">Hajduci</p><Counter value={ours} onChange={setOurs} label="Hajduci goals" /></div>
-          <span className="flex h-[38px] items-center text-2xl text-muted">–</span>
+          <span className="flex h-control items-center text-2xl text-muted">–</span>
           <div className="min-w-0"><p className="eyebrow mb-1 truncate" title={fx?.opponent}>{fx?.opponent ?? "Them"}</p><Counter value={theirs} onChange={setTheirs} label="opponent goals" /></div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 lg:col-span-2">
@@ -140,56 +140,56 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
       </div>
 
       {forfeit ? (
-        <div className="card p-5 sm:p-6">
+        <div className="card card-pad">
           <SectionTitle sub={`Tick who shares the ${pitch > 0 ? `${fmtMoney(pitch)} ` : ""}pitch fee.`}>Pitch fees</SectionTitle>
-          <p className={clsx("mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-3 py-2 text-xs", played.size ? "border-ink/10 bg-sunken/60 text-ink/90" : "border-ink/10 bg-sunken/40 text-muted")} role="status">
+          <p className={clsx("well mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 text-xs", played.size ? "text-ink/90" : "text-muted")} role="status">
             <span>{played.size ? <>{played.size} player{played.size === 1 ? "" : "s"}{pitch > 0 && <>, <span className="text-ink">{fmtMoney(each)} each</span></>}.</> : <>No one ticked{fx?.seasonId !== "FR" ? ", so the pitch stays with whoever paid for it" : ""}.</>}</span>
             {fx && fx.expected.length > 0 && !sameSet(played, fx.expected) && <button type="button" onClick={() => setPlayed(new Set(fx.expected))} className="focus-ring link ml-auto text-xs">Tick the whole team sheet</button>}
           </p>
           <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
             {roster.map((n) => { const on = played.has(n); return (
               <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "chip-on" : "chip-off border-ink/10")}>
-                <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
+                <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><Tick on={on} /><span className="truncate">{n}</span></button>
                 {on && pitch > 0 && <span className="tabular shrink-0 text-xs text-muted">{fmtMoney(each)}</span>}
               </li>); })}
           </ul>
         </div>
       ) : (
-      <div className="card p-5 sm:p-6">
+      <div className="card card-pad">
         <SectionTitle sub={<>Tap the players who played, then add goals and assists. {goalsLogged} of {ours} goals assigned.</>}>Line-up</SectionTitle>
         {fromSheet && (
-          <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-sunken/60 px-3 py-2 text-xs text-ink/90" role="status">
-            <ClipboardList size={14} className="shrink-0 text-accent" aria-hidden />
-            <span>{matchesSheet ? <>Ticked from the expected squad of {fx!.expected.length}. Untick anyone who didn&apos;t play.</> : <>Started from the expected squad of {fx!.expected.length}, since edited.</>}</span>
+          <p className="well mb-3 flex flex-wrap items-start gap-x-2 gap-y-1 px-3 py-2 text-xs text-ink/90" role="status">
+            <span className="icon-line text-accent" aria-hidden><ClipboardList size={14} /></span>
+            <span className="min-w-0 flex-1">{matchesSheet ? <>Ticked from the expected squad of {fx!.expected.length}. Untick anyone who didn&apos;t play.</> : <>Started from the expected squad of {fx!.expected.length}, since edited.</>}</span>
             {!matchesSheet && <button type="button" onClick={() => { setPlayed(new Set(fx!.expected)); setScorers({}); setAssists({}); setMotm(""); }} className="focus-ring link ml-auto text-xs">Reset to the expected squad</button>}
           </p>
         )}
         <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
           {roster.map((n) => { const on = played.has(n); return (
             <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "chip-on" : "chip-off border-ink/10")}>
-              <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
+              <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><Tick on={on} /><span className="truncate">{n}</span></button>
               {on && <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>}
             </li>); })}
         </ul>
         <div className="mt-5 border-t border-ink/10 pt-4">
-          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2"><h3 className="display text-2xl leading-none text-ink">Ringers</h3><p className="text-xs text-muted">Players from outside the squad. They don&apos;t pay; their share goes to the regulars who weren&apos;t playing.</p></div>
+          <SectionTitle as="h3" size="sm" sub={<>Players from outside the squad. They don&apos;t pay; their share goes to the regulars who weren&apos;t playing.</>}>Ringers</SectionTitle>
           {ringers.length > 0 && (
-            <ul className="mb-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
+            <ul className="mb-3 grid grid-cols-1 gap-1.5 lg:grid-cols-2">
               {ringers.map((n) => (
-                <li key={n} className="chip-on flex items-center gap-2 rounded-xl border px-3 py-2">
-                  <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink"><Tag className="shrink-0 !py-0 leading-5 text-[10px]">Ringer</Tag><span className="truncate">{n}</span></span>
-                  <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
-                  <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring shrink-0 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>
+                <li key={n} className="chip-on grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 rounded-xl border px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+                  <span className="flex min-w-0 items-center gap-2 text-sm text-ink"><Tag size="sm" className="shrink-0">Ringer</Tag><span className="truncate">{n}</span></span>
+                  <span className="eyebrow eyebrow-sm col-span-2 row-start-2 flex items-center gap-1 sm:col-span-1 sm:col-start-2 sm:row-start-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
+                  <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring col-start-2 row-start-1 shrink-0 justify-self-end rounded-md p-1 text-muted hover:text-ink sm:col-start-3"><X size={14} aria-hidden /></button>
                 </li>
               ))}
             </ul>
           )}
           <div className="flex flex-wrap items-end gap-2">
-            <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs text-muted"><span className="eyebrow">Ringer&apos;s name</span><input value={ringerName} onChange={(e) => setRingerName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addRinger(); } }} maxLength={40} placeholder="Full name" className={inputClass} /></label>
+            <label className={`${fieldClass} flex-1`}><span className="eyebrow">Ringer&apos;s name</span><input value={ringerName} onChange={(e) => setRingerName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addRinger(); } }} maxLength={40} placeholder="Full name" className={inputClass} /></label>
             <button type="button" onClick={addRinger} disabled={ringerName.trim().length < 2 || ringers.length >= 4} className={btn("secondary", "sm")}><UserPlus size={14} aria-hidden />Add ringer</button>
           </div>
           {ringers.length > 0 && (
-            <p className="mt-3 rounded-lg bg-sunken/60 px-3 py-2 text-xs text-ink/90" role="status">
+            <p className="well mt-3 px-3 py-2 text-xs text-ink/90" role="status">
               {heads} players{pitch > 0 && <>, {fmtMoney(perHead)} each</>}. {ringers.join(", ")}{ringers.length === 1 ? "'s" : "'"} {pitch > 0 ? fmtMoney(levyTotal) : "share"} {regulars.length ? <>is split between {regulars.length} regular{regulars.length === 1 ? "" : "s"} who {regulars.length === 1 ? "wasn't" : "weren't"} playing{pitch > 0 && <>, <span className="text-ink">{fmtMoney(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>stays with whoever paid for the pitch.</>}
             </p>
           )}
@@ -197,10 +197,10 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
       </div>
       )}
 
-      <div className="card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
-        {forfeit ? <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Why (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} className={inputClass} /></label> : <Select label={fx?.seasonId === "FR" || fx?.type ? "Man of the match (optional)" : "Man of the match (optional, the players vote)"} value={motm} onChange={setMotm} options={[{ value: "", label: "Not chosen" }, ...(playedList.length ? playedList : roster).map((n) => ({ value: n, label: n }))]} />}
-        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Your name" className={inputClass} /></label>}
-        {!forfeit && <label className="flex flex-col gap-1 text-xs text-muted sm:col-span-2"><span className="eyebrow">Comment (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="A line about the match" className={inputClass} /></label>}
+      <div className="card card-pad grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {forfeit ? <label className={fieldClass}><span className="eyebrow">Why (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} className={inputClass} /></label> : <Select label={fx?.seasonId === "FR" || fx?.type ? "Man of the match (optional)" : "Man of the match (optional, the players vote)"} value={motm} onChange={setMotm} options={[{ value: "", label: "Not chosen" }, ...(playedList.length ? playedList : roster).map((n) => ({ value: n, label: n }))]} />}
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className={fieldClass}><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Your name" className={inputClass} /></label>}
+        {!forfeit && <label className={`${fieldClass} sm:col-span-2`}><span className="eyebrow">Comment (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="A line about the match" className={inputClass} /></label>}
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
 
@@ -213,6 +213,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
     </form>
   );
 }
+
 
 function MiniCounter({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   const btn = "focus-ring inline-flex items-center justify-center px-1.5 py-1 text-muted hover:text-ink [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9 [@media(pointer:coarse)]:p-0";

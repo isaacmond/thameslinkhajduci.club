@@ -7,7 +7,7 @@ import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, goalRace, leaderboard, pace, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { paceLine } from "@/lib/insights";
-import { Breadcrumb, Empty, LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Breadcrumb, Empty, LeaderList, MatchRow, PageHeader, Panel, PlayerLink, RecordStrip, Stat, Tag } from "@/components/ui";
 import { GoalDiffTimeline } from "@/components/charts";
 import { GoalRaceChart } from "@/components/charts-race";
 import { SeasonTimeline } from "@/components/season-timeline";
@@ -18,6 +18,7 @@ export async function generateStaticParams() {
   const data = await getData();
   return [...data.seasons.map((s) => ({ id: s.id.toLowerCase() })), ...(data.friendlies ? [{ id: "friendlies" }] : [])];
 }
+/** A list of MatchRows inside a card: the rows carry their own 0.75rem inset, so the list makes up the rest of the card inset and each result pill lines up with the card title. */
 type Data = Awaited<ReturnType<typeof getData>>;
 const findSeason = (data: Data, id: string) => (/^(friendlies|fr)$/i.test(id) ? data.friendlies : data.seasons.find((x) => x.id === id.toUpperCase())) ?? null;
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -45,13 +46,12 @@ function FriendliesPage({ s }: { s: NonNullable<Data["friendlies"]> }) {
         <Stat label="Drawn" value={d} />
         <Stat label="Lost" value={l} />
       </section>
-      <section className="card p-6" aria-label="Timeline">
+      <section className="card card-pad" aria-label="Timeline">
         <SeasonTimeline season={s} today={today} />
       </section>
-      <section>
-        <SectionTitle>Matches</SectionTitle>
-        {fixtures.length ? <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <Empty>No friendlies yet.</Empty>}
-      </section>
+      <Panel title="Matches" flush>
+        {fixtures.length ? <div className="card-rows lg:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <Empty inset>No friendlies yet.</Empty>}
+      </Panel>
     </div>
     </PageTransition>
   );
@@ -101,32 +101,30 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         </div>
       </section>
 
-      <section className="card p-6" aria-label="Timeline">
-        <SectionTitle sub="Every fixture, in order">The season</SectionTitle>
+      <Panel title="The season" sub="Every fixture, in order">
         <SeasonTimeline season={s} today={today} />
-      </section>
+      </Panel>
 
       {gd.length > 0 && (small ? (
         null
       ) : (
-        <section className="card p-6"><SectionTitle sub="Goal difference in each match">Match by match</SectionTitle><GoalDiffTimeline data={gd} /></section>
+        <Panel title="Match by match" sub="Goal difference in each match"><GoalDiffTimeline data={gd} /></Panel>
       ))}
 
       {showRace && (
-        <section className="card p-6"><SectionTitle sub="Running goal totals for the leading scorers">Top scorer race</SectionTitle><GoalRaceChart rows={race.rows} players={race.players} /></section>
+        <Panel title="Top scorer race" sub="Running goal totals for the leading scorers"><GoalRaceChart rows={race.rows} players={race.players} /></Panel>
       )}
 
       {(() => {
         const cards = [
-          <div key="boot" className="card p-6"><SectionTitle>Goals</SectionTitle><LeaderList items={leaderboard(players, "goals").slice(0, 5)} emptyText="No goals yet this season." /></div>,
-          !small && <div key="apps" className="card p-6"><SectionTitle>Appearances</SectionTitle><LeaderList items={leaderboard(players, "apps").slice(0, 5)} color="bg-ink" emptyText="No appearances yet." /></div>,
-          leaderboard(players, "motm").length > 0 && <div key="motm" className="card p-6"><SectionTitle>Man of the match</SectionTitle><LeaderList items={leaderboard(players, "motm").slice(0, 5)} color="bg-gold" /></div>,
+          <Panel as="div" key="boot" title="Goals"><LeaderList items={leaderboard(players, "goals").slice(0, 5)} emptyText="No goals yet this season." /></Panel>,
+          !small && <Panel as="div" key="apps" title="Appearances"><LeaderList items={leaderboard(players, "apps").slice(0, 5)} color="bg-ink" emptyText="No appearances yet." /></Panel>,
+          leaderboard(players, "motm").length > 0 && <Panel as="div" key="motm" title="Man of the match"><LeaderList items={leaderboard(players, "motm").slice(0, 5)} color="bg-gold" /></Panel>,
         ].filter(Boolean);
         const fixturesBlock = (
-          <div>
-            <SectionTitle>Fixtures and results</SectionTitle>
-            <div className={clsx("card grid grid-cols-1 gap-0.5 p-2", small ? "md:grid-cols-2" : "")}>{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
-          </div>
+          <Panel as="div" title="Fixtures and results" flush>
+            <div className={clsx("card-rows", small && "md:grid-cols-2")}>{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
+          </Panel>
         );
         // Early in a season the sidebar would be one short card next to a long fixture list, so it goes on top instead.
         return small ? (
@@ -142,8 +140,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
         );
       })()}
 
-      <section className="card overflow-hidden">
-        <div className="p-6 pb-2"><SectionTitle sub={`${players.length} players${hasMoney ? " · cost is each player's share of pitch fees" : ""}`}>Squad</SectionTitle></div>
+      <Panel title="Squad" sub={`${players.length} players${hasMoney ? " · cost is each player's share of pitch fees" : ""}`} flush>
         <div className="scroll-x overflow-x-auto">
           <table className="stats w-full md:min-w-[640px]">
             <thead><tr><th>Player</th><th className="num">P</th><th className="num">G</th><th className="num">A</th><th className="num hidden md:table-cell">Per game</th><th className="num hidden md:table-cell" title="Man of the match">MOTM</th><th className="num hidden sm:table-cell">W</th><th className="num hidden sm:table-cell">D</th><th className="num hidden sm:table-cell">L</th><th className="num hidden sm:table-cell">Win %</th>{hasMoney && <th className="num">Cost</th>}</tr></thead>
@@ -161,7 +158,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
           </table>
           {!players.length && <Empty inset className="pt-4">No appearances yet. The first match is on {fmtDate(fixtures[0]?.date ?? null)}.</Empty>}
         </div>
-      </section>
+      </Panel>
     </div>
     </PageTransition>
   );

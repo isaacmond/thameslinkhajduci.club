@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import clsx from "clsx";
 import { Send } from "lucide-react";
-import { FormStatus, inputClass } from "./controls";
+import { Field, FormStatus, inputClass } from "./controls";
 import { btn } from "./button";
 import { Shirt } from "./ui";
 import { PositionPicker } from "./position-picker";
@@ -59,22 +58,18 @@ export function PlayerForm({ roster, takenShirts, seasonId, signedIn = null }: {
 
   return (
     <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <div className="card grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6">
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          <span className="eyebrow">Full name</span>
+      <div className="card card-pad grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <Field label="Full name" hint={clash ? `${clash} already has a profile.` : "As it should appear on the site."}>
           <input value={name} onChange={(e) => { setName(e.target.value); setResult(null); }} required maxLength={40} autoComplete="off" placeholder="First name and surname" className={inputClass} />
-          <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? `${clash} already has a profile.` : "As it should appear on the site."}</span>
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Nickname (optional)</span><input value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={24} className={inputClass} /></label>
+        </Field>
+        <Field label="Nickname (optional)"><input value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={24} className={inputClass} /></Field>
         <PositionPicker value={positions} onChange={setPositions} hint="Choose all that apply." />
-        <label className="flex flex-col gap-1 text-xs text-muted">
-          <span className="eyebrow">Shirt number (optional)</span>
-          <div className="flex items-center gap-3"><input value={shirt} onChange={(e) => setShirt(e.target.value.replace(/[^\d]/g, "").slice(0, 2))} inputMode="numeric" placeholder="1–99" className={`${inputClass} tabular max-w-[7rem]`} /><Shirt number={shirtNo} name={trimmed || "New player"} className="h-[2.375rem] w-[2.375rem]" /></div>
-          <span className={clsx("min-h-[1.25rem] text-[11px]", worn ? "text-loss" : "text-muted")}>{worn ? `${shirtNo} is ${worn}'s. Pick another.` : "Numbers already taken are refused."}</span>
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-muted sm:col-span-2"><span className="eyebrow">Photo link (optional)</span><input value={photo} onChange={(e) => setPhoto(e.target.value)} maxLength={300} inputMode="url" placeholder="https://… a square-ish photo works best" className={inputClass} /></label>
-        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Who is vouching for them" className={inputClass} /></label>}
-        <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Note (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="How they found us, when they start" className={inputClass} /></label>
+        <Field label="Shirt number (optional)" error={Boolean(worn)} hint={worn ? `${shirtNo} is ${worn}'s. Pick another.` : "Numbers already taken are refused."}>
+          <div className="flex items-center gap-3"><input value={shirt} onChange={(e) => setShirt(e.target.value.replace(/[^\d]/g, "").slice(0, 2))} inputMode="numeric" placeholder="1–99" className={`${inputClass} tabular max-w-[7rem]`} /><Shirt number={shirtNo} name={trimmed || "New player"} className="size-control" /></div>
+        </Field>
+        <Field label="Photo link (optional)" className="sm:col-span-2"><input value={photo} onChange={(e) => setPhoto(e.target.value)} maxLength={300} inputMode="url" placeholder="https://… a square-ish photo works best" className={inputClass} /></Field>
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <Field label="Your name"><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Who is vouching for them" className={inputClass} /></Field>}
+        <Field label="Note (optional)"><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="How they found us, when they start" className={inputClass} /></Field>
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
       <div className="flex flex-wrap items-center gap-3">

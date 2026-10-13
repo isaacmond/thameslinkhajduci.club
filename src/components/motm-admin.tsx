@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Send, StopCircle, Vote } from "lucide-react";
 import { closeMotmPollAction, openMotmPollAction, type ActionState } from "@/app/actions/admin";
-import { Select } from "./controls";
+import { FormStatus, Select } from "./controls";
 import { btn } from "./button";
 import { MotmStar } from "./ui";
 
@@ -25,9 +25,9 @@ export function MotmAdmin({ polls, pollable }: { polls: PollItem[]; pollable: Po
   const open = polls.filter((p) => p.status === "open"), done = polls.filter((p) => p.status !== "open");
   return (
     <div className="space-y-5">
-      {state && <p role="status" className={`text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.message}</p>}
+      {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}
       {open.length > 0 ? (
-        <ul className="divide-y divide-ink/10">
+        <ul className="divide-y divide-ink/8">
           {open.map((p) => (
             <li key={p.matchId} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
@@ -48,8 +48,8 @@ export function MotmAdmin({ polls, pollable }: { polls: PollItem[]; pollable: Po
           <p className="eyebrow mb-2">Decided</p>
           <ul className="space-y-1.5 text-sm">
             {done.map((p) => (
-              <li key={p.matchId} className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="inline-flex items-center gap-1 text-gold"><MotmStar />{p.winner ?? (p.status === "cancelled" ? "Cancelled" : "No votes")}</span>
+              <li key={p.matchId} className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="text-gold"><MotmStar className="icon-inline mr-1" />{p.winner ?? (p.status === "cancelled" ? "Cancelled" : "No votes")}</span>
                 <Link href={`/matches/${p.matchId}`} className="link">{p.score}</Link>
                 <span className="text-xs text-muted">{p.label} · {p.voted}/{p.ballots} voted{p.closedBy ? ` · ${p.closedBy}` : ""}{p.closedAt ? ` · ${when(p.closedAt)}` : ""}</span>
               </li>

@@ -31,17 +31,17 @@ export function DataExplorer({ tables, seasons, initialPreview }: { tables: { na
 
   return (
     <div className="card min-w-0 overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-ink/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="card-x flex flex-col gap-3 border-b border-ink/10 py-4 sm:flex-row sm:flex-wrap sm:items-end">
         <Select label="Table" value={table} onChange={(v) => pick(() => setTable(v))} options={tables.map((t) => ({ value: t.name, label: t.name.charAt(0).toUpperCase() + t.name.slice(1) }))} className="min-w-[10rem]" />
         <Select label="Season" value={season} onChange={(v) => pick(() => setSeason(v))} disabled={!seasonable} options={[{ value: "", label: "All time" }, ...seasons.map((s) => ({ value: s, label: s }))]} className="min-w-[8rem]" />
-        <p className="flex-1 text-xs text-muted sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
+        <p className="flex-1 text-xs text-muted sm:flex sm:h-control sm:items-center">{info}</p>
       </div>
-      <div className="flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] p-3 text-sm">
-        <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />Download this table</a>
-        <a href="/api/export?format=xlsx" className={btn("secondary", "xs")}><Download size={15} aria-hidden />Every table as a spreadsheet</a>
+      <div className="card-x flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] py-3 text-sm">
+        <a href={url("csv")} download className={btn("primary", "xs")}><Download size={14} aria-hidden />Download this table</a>
+        <a href="/api/export?format=xlsx" className={btn("secondary", "xs")}><Download size={14} aria-hidden />Every table as a spreadsheet</a>
       </div>
       <div className="scroll-x overflow-x-auto sm:max-h-[520px] sm:overflow-auto">
-        {loading && !preview && <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>}
+        {loading && !preview && <p className="card-x py-8 text-center text-sm text-muted">Loading…</p>}
         {preview && (
           <table className="stats text-sm">
             <thead><tr>{preview.columns.map((c) => <th key={c} className={clsx(typeof preview.rows[0]?.[c] === "number" && "num")}>{c}</th>)}</tr></thead>
@@ -53,7 +53,7 @@ export function DataExplorer({ tables, seasons, initialPreview }: { tables: { na
           </table>
         )}
       </div>
-      {preview && <p className="border-t border-ink/10 px-4 py-2 text-xs text-muted">{preview.rows.length} row{preview.rows.length === 1 ? "" : "s"}{preview.rows.length > 200 && " (showing first 200; the download has them all)"} · {preview.columns.length} columns</p>}
+      {preview && <p className="card-x border-t border-ink/10 py-2 text-xs text-muted">{preview.rows.length} row{preview.rows.length === 1 ? "" : "s"}{preview.rows.length > 200 && " (showing first 200; the download has them all)"} · {preview.columns.length} columns</p>}
     </div>
   );
 }

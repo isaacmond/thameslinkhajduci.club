@@ -39,15 +39,16 @@ export default async function OpponentsPage() {
         <ul className="stagger grid grid-cols-1 gap-2 sm:hidden">
           {rows.map(({ o, rank, last, v }) => (
             <li key={o.key}>
-              <Link href={`/opponents/${o.slug}`} className="card focus-ring flex items-center gap-3 p-3.5 transition-shadow hover:shadow-lg">
+              <Link href={`/opponents/${o.slug}`} className="card card-link focus-ring flex items-center gap-3 p-3.5">
                 <TeamBadge name={o.opponent} size={44} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
-                    <span className="tabular shrink-0 text-xs font-semibold text-muted">{rank}</span>
+                    <span className="tabular w-5 shrink-0 text-xs font-semibold text-muted">{rank}</span>
                     <span className="min-w-0 truncate font-semibold leading-tight text-ink" title={o.opponent}>{o.opponent}</span>
+                    {v && <Tag tone={v.tone} size="sm" className="ml-auto shrink-0">{v.word}</Tag>}
                   </div>
-                  <p className="tabular mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted"><span>Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</span>{v && <Tag tone={v.tone} className="shrink-0 !py-0 !text-[10px] leading-5">{v.word}</Tag>}</p>
-                  <p className="mt-0.5 text-[11px] text-muted">{o.seasons.join(" ")} · <span className="whitespace-nowrap">last played {fmtDate(last)}</span></p>
+                  <p className="tabular mt-1 text-xs text-muted">Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</p>
+                  <p className="mt-0.5 text-2xs text-muted">{o.seasons.join(" ")} · <span className="whitespace-nowrap">last played {fmtDate(last)}</span></p>
                 </div>
                 <span className="display shrink-0 text-2xl leading-none text-ink" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>
               </Link>
@@ -60,7 +61,7 @@ export default async function OpponentsPage() {
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full">
               <thead>
-                <tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Goals</th><th className="num">GD</th><th className="hidden lg:table-cell">Seasons</th><th className="hidden md:table-cell">Last played</th><th><span className="sr-only">Note</span></th></tr>
+                <tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Goals</th><th className="num">GD</th><th className="hidden lg:table-cell">Seasons</th><th className="hidden lg:table-cell">Last played</th><th><span className="sr-only">Note</span></th></tr>
               </thead>
               <tbody>
                 {rows.map(({ o, rank, gd, last, v }) => (
@@ -69,7 +70,7 @@ export default async function OpponentsPage() {
                       <div className="flex items-center gap-3">
                         <span className="tabular w-5 shrink-0 text-xs font-semibold text-muted">{rank}</span>
                         <TeamBadge name={o.opponent} size={32} />
-                        <Link href={`/opponents/${o.slug}`} className="link max-w-[11rem] truncate font-medium text-ink lg:max-w-[16rem]" title={o.opponent}>{o.opponent}</Link>
+                        <Link href={`/opponents/${o.slug}`} className="link max-w-[11rem] truncate font-medium text-ink xl:max-w-[16rem]" title={o.opponent}>{o.opponent}</Link>
                       </div>
                     </td>
                     <td className="num">{o.played}</td>
@@ -78,9 +79,9 @@ export default async function OpponentsPage() {
                     <td className="num">{o.lost}</td>
                     <td className="num">{o.gf}–{o.ga}</td>
                     <td className={clsx("num font-semibold", gdTone(gd))}>{signed(gd)}</td>
-                    <td className="hidden !whitespace-normal max-w-[9rem] text-xs leading-relaxed text-muted lg:table-cell">{o.seasons.join(" ")}</td>
-                    <td className="hidden text-muted md:table-cell">{fmtDate(last)}</td>
-                    <td>{v && <Tag tone={v.tone}>{v.word}</Tag>}</td>
+                    <td className="hidden whitespace-normal max-w-[9rem] text-xs leading-relaxed text-muted lg:table-cell">{o.seasons.join(" ")}</td>
+                    <td className="hidden text-muted lg:table-cell">{fmtDate(last)}</td>
+                    <td>{v && <Tag tone={v.tone} size="sm">{v.word}</Tag>}</td>
                   </tr>
                 ))}
               </tbody>

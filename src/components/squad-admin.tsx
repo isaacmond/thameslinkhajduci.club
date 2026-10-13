@@ -1,9 +1,10 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
 import clsx from "clsx";
-import { Check, ClipboardList, Eye, MailWarning, Send } from "lucide-react";
+import { ClipboardList, Eye, MailWarning, Send } from "lucide-react";
+import { Tick } from "./ui";
 import { previewReminderAction, saveSquadAction, sendRemindersAction, type ActionState } from "@/app/actions/admin";
-import { FormStatus, inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select, fieldClass } from "./controls";
 import { btn } from "./button";
 
 export type SquadFixture = { id: string; label: string; date: string | null };
@@ -28,7 +29,7 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
       <input type="hidden" name="matchId" value={matchId} />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <Select label="Fixture" value={matchId} onChange={choose} options={fixtures.map((f) => ({ value: f.id, label: f.label }))} className="min-w-0" />
-        <p className="flex h-[2.375rem] items-center text-xs text-muted">{saved?.remindedAt ? `Reminder sent ${new Date(saved.remindedAt).toLocaleString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : saved?.players.length ? "Saved, reminder not sent yet" : "No team sheet yet"}</p>
+        <p className="flex h-control items-center text-xs text-muted">{saved?.remindedAt ? `Reminder sent ${new Date(saved.remindedAt).toLocaleString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}` : saved?.players.length ? "Saved, reminder not sent yet" : "No team sheet yet"}</p>
       </div>
       <fieldset>
         <legend className="eyebrow mb-2">Squad · {picked.size} picked</legend>
@@ -37,7 +38,7 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
             <li key={p.name}>
               <label className={clsx("flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent/60 hover:text-ink", picked.has(p.name) ? "chip-on" : "chip-off border-ink/10")}>
                 <input type="checkbox" name="players" value={p.name} checked={picked.has(p.name)} onChange={() => toggle(p.name)} className="sr-only" />
-                <span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", picked.has(p.name) ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{picked.has(p.name) && <Check size={12} />}</span>
+                <Tick on={picked.has(p.name)} />
                 <span className="tabular w-6 shrink-0 text-xs text-muted">{p.shirt ?? ""}</span>
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {!p.hasEmail && <MailWarning size={13} className="shrink-0 text-loss" aria-label="No email on the members list" />}
@@ -45,9 +46,9 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-[11px] text-muted"><MailWarning size={11} className="mr-1 inline align-text-bottom text-loss" aria-hidden />means no email address on the members list, so they will not get the reminder. Add them under Members.</p>
+        <p className="mt-2 text-2xs text-muted"><MailWarning size={11} className="icon-inline mr-1 text-loss" aria-hidden />means no email address on the members list, so they will not get the reminder. Add them under Members.</p>
       </fieldset>
-      <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Note for the squad (optional)</span><textarea name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={400} rows={2} placeholder="Anything beyond the usual: a different pitch, a later meet, who has the ball." className={`${inputClass} min-h-[3.5rem] resize-y`} /></label>
+      <label className={fieldClass}><span className="eyebrow">Note for the squad (optional)</span><textarea name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={400} rows={2} placeholder="Anything beyond the usual: a different pitch, a later meet, who has the ball." className={`${inputClass} min-h-[3.5rem] resize-y`} /></label>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={btn("primary")}><ClipboardList size={16} aria-hidden />{pending ? "Saving…" : "Save team sheet"}</button>
         <button type="button" disabled={busy || !saved?.players.length} onClick={() => start(async () => setSent(await sendRemindersAction(matchId)))} title={saved?.players.length ? "Email everyone on the saved team sheet now" : "Save the team sheet first"} className={btn("secondary")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Send reminder now"}</button>

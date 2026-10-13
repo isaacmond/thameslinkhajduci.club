@@ -60,7 +60,7 @@ export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
   const moreActive = more.some((m) => isActive(path, m.href));
-  const tab = "focus-ring flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors";
+  const tab = "focus-ring flex h-14 flex-col items-center justify-center gap-1 text-2xs font-medium transition-colors";
   return (
     <>
       {open && <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden" />}
