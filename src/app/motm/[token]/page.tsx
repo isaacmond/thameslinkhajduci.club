@@ -41,7 +41,7 @@ export default async function BallotPage({ params, searchParams }: { params: Pro
             <p className="display mt-8 text-2xl text-ink">Who was the man of the match?</p>
             <p className="mb-4 mt-1 text-sm text-muted">{ballot.vote ? <>You picked <span className="text-gold">{ballot.vote}</span>. Tap another name to change it.</> : pick && pick !== ballot.player && candidates.some((c) => c.player === pick) ? "Tap once more to confirm, or pick someone else." : "Tap a name to vote."}</p>
             <MotmVote token={token} voter={ballot.player} candidates={shuffled(candidates, token)} current={ballot.vote} pick={pick ?? null} />
-            <p className="mt-5 text-xs text-muted">{voted} of {ballots.length} ballot{ballots.length === 1 ? "" : "s"} returned · closes {fmtCloses(poll.closesAt)}, or once everyone has voted.</p>
+            <p className="mt-5 text-xs text-muted">{voted} of {ballots.length} ballot{ballots.length === 1 ? "" : "s"} returned · closes {fmtCloses(poll.closesAt)}, or once everyone has voted.{ballots.length < candidates.length && ` ${candidates.length - ballots.length} of the ${candidates.length} who played ${candidates.length - ballots.length === 1 ? "has" : "have"} no email on the members list, so can be voted for but cannot vote.`}</p>
           </>
         ) : poll.status === "closed" && poll.winner ? (
           <>

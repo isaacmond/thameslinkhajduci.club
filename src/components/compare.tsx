@@ -64,8 +64,15 @@ function verdict(a: ComparePlayer, b: ComparePlayer, t: Tally): string {
   if (b.apps === 0) return `${B} is yet to play a league match.`;
   if (a.goals > b.apps && b.apps >= 5) return `${A} has more goals than ${B} has appearances.`;
   if (b.goals > a.apps && a.apps >= 5) return `${B} has more goals than ${A} has appearances.`;
+  if (a.assists >= 5 && b.apps >= 10 && a.assists > b.goals) return `${A} has set up more goals than ${B} has scored.`;
+  if (b.assists >= 5 && a.apps >= 10 && b.assists > a.goals) return `${B} has set up more goals than ${A} has scored.`;
+  if (a.goals === b.goals && a.apps === b.apps) return "Level on goals and appearances.";
   if (a.goals === b.goals && a.goals > 0 && a.apps !== b.apps) { const quicker = a.apps < b.apps ? A : B; return `Level on ${a.goals} goals, with ${quicker} getting there in ${Math.abs(a.apps - b.apps)} fewer match${Math.abs(a.apps - b.apps) === 1 ? "" : "es"}.`; }
   if (decidedA >= 10 && decidedB >= 10 && Math.abs(a.winRate - b.winRate) >= 15) { const w = a.winRate > b.winRate ? A : B; return `The team's win rate is ${Math.round(Math.abs(a.winRate - b.winRate))} points higher with ${w} playing.`; }
+  if (a.motm >= 3 && b.motm === 0 && b.apps >= 10) return `${A} has ${a.motm} man of the match awards; ${B} is yet to win one.`;
+  if (b.motm >= 3 && a.motm === 0 && a.apps >= 10) return `${B} has ${b.motm} man of the match awards; ${A} is yet to win one.`;
+  if (a.gpgGames >= 10 && b.gpgGames >= 10 && a.goalsPerGame > 0 && a.goalsPerGame >= b.goalsPerGame * 2 && b.attendancePossible >= 10 && a.attendancePossible >= 10 && b.attendancePct > a.attendancePct) return `${A} scores twice as often; ${B} plays more often.`;
+  if (a.gpgGames >= 10 && b.gpgGames >= 10 && b.goalsPerGame > 0 && b.goalsPerGame >= a.goalsPerGame * 2 && a.attendancePossible >= 10 && b.attendancePossible >= 10 && a.attendancePct > b.attendancePct) return `${B} scores twice as often; ${A} plays more often.`;
   if (t.total === 0) return "Not enough matches yet to compare them.";
   if (t.a === t.b) return `Level at ${t.a} categories each.`;
   const [w, l, wn, ln] = t.a > t.b ? [A, B, t.a, t.b] : [B, A, t.b, t.a];

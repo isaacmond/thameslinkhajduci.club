@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import type { Streak } from "@/lib/stats";
-import { fmtDate, playedMatches, ppg, records, scoreline } from "@/lib/stats";
+import { currentStreak, fmtDate, playedMatches, ppg, records, scoreline } from "@/lib/stats";
 import { PageHeader, PlayerLink, SectionTitle } from "@/components/ui";
 import { PageTransition } from "@/components/page-transition";
 
@@ -31,7 +31,9 @@ const streakSub = (s: Streak) => <><span className="nowrap">{fmtDate(s.start.dat
 export default async function RecordsPage() {
   const data = await getData();
   const r = records(data);
-    const byName = new Map(data.players.map((p) => [p.name, p]));
+    const cur = currentStreak(data.matches);
+  const mostLosses = [...data.players].sort((a, b) => b.losses - a.losses)[0];
+  const byName = new Map(data.players.map((p) => [p.name, p]));
   const seasonBests = data.players.flatMap((p) => p.seasons.map((s) => ({ player: p, ...s })));
   const mostGoalsSeason = [...seasonBests].sort((a, b) => b.goals - a.goals)[0];
   const mostAppsSeason = [...seasonBests].sort((a, b) => b.apps - a.apps)[0];
@@ -61,11 +63,12 @@ export default async function RecordsPage() {
       </section>
 
       <section><SectionTitle>Runs</SectionTitle>
-        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
           {r.longestWin && <Card label="Longest winning run" value={`${r.longestWin.length} matches`} sub={streakSub(r.longestWin)} />}
           {r.longestUnbeaten && <Card label="Longest unbeaten run" value={`${r.longestUnbeaten.length} matches`} sub={streakSub(r.longestUnbeaten)} />}
           {r.longestLosing && <Card label="Longest losing run" value={`${r.longestLosing.length} matches`} sub={streakSub(r.longestLosing)} />}
           {r.longestWinless && <Card label="Longest winless run" value={`${r.longestWinless.length} matches`} sub={streakSub(r.longestWinless)} />}
+          {cur && <Card label="Current run" value={`${cur.length} ${cur.type === "W" ? "win" : cur.type === "L" ? "defeat" : "draw"}${cur.length === 1 ? "" : "s"}`} sub="Most recent league results" />}
           
         </div>
       </section>
@@ -76,7 +79,8 @@ export default async function RecordsPage() {
           {mostAppsSeason && <Card label="Most appearances in a season" value={mostAppsSeason.apps} sub={<><PlayerLink name={mostAppsSeason.player.name} player={mostAppsSeason.player} /> · {season(mostAppsSeason.seasonId)}</>} />}
           {mostAssistsSeason && mostAssistsSeason.assists > 0 && <Card label="Most assists in a season" value={mostAssistsSeason.assists} sub={<><PlayerLink name={mostAssistsSeason.player.name} player={mostAssistsSeason.player} /> · {season(mostAssistsSeason.seasonId)}</>} />}
           {motmKing && motmKing.motm > 0 && <Card label="Most man of the match awards" value={motmKing.motm} sub={<PlayerLink name={motmKing.name} player={motmKing} />} />}
-                    {r.hatTricks[0] && <Card label="Most goals in a match" value={r.hatTricks[0].goals} sub={<><PlayerLink name={r.hatTricks[0].player} player={byName.get(r.hatTricks[0].player)} /> v {r.hatTricks[0].match.opponent}</>} href={`/matches/${r.hatTricks[0].match.id}`} />}
+                    {mostLosses && <Card label="Most defeats played in" value={mostLosses.losses} sub={<PlayerLink name={mostLosses.name} player={mostLosses} />} />}
+          {r.hatTricks[0] && <Card label="Most goals in a match" value={r.hatTricks[0].goals} sub={<><PlayerLink name={r.hatTricks[0].player} player={byName.get(r.hatTricks[0].player)} /> v {r.hatTricks[0].match.opponent}</>} href={`/matches/${r.hatTricks[0].match.id}`} />}
           <Card label="Hat-tricks" value={r.hatTricks.length} sub={r.hatTricks.length ? `by ${hatTrickPlayers} player${hatTrickPlayers === 1 ? "" : "s"}` : "None yet"} />
         </div>
       </section>

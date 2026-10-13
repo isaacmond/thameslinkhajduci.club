@@ -67,9 +67,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <h1 className="display mt-2 text-5xl leading-[0.95] text-ink sm:text-7xl">{p.name}</h1>
           {p.extra.nickname && <p className="display mt-2 text-2xl italic text-muted">“{p.extra.nickname}”</p>}
           {p.extra.bio && <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink/85">{p.extra.bio}</p>}
-          <p className="mt-4 text-sm text-muted">Debut {fmtDate(p.debut, { day: "numeric", month: "long", year: "numeric" })} · {seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}{thisSeason?.apps && current ? ` · in the Season ${current.number} squad` : ""}</p>
+          <p className="mt-4 text-sm text-muted">Debut {fmtDate(p.debut, { day: "numeric", month: "long", year: "numeric" })} · last played {fmtDate(p.lastPlayed, { day: "numeric", month: "long", year: "numeric" })} · {seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}{thisSeason?.apps && current ? ` · in the Season ${current.number} squad` : ""}</p>
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
-            {p.ringer && <Tag>Ringer</Tag>}
+            {p.ringer && <Tag>Ringer · never on the team sheet</Tag>}
             {ranks.map((r) => <Tag key={r.label} tone="gold">{ordinal(r.rank!)} all time {r.label}</Tag>)}
             <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} appearances, ${p.goals} goals and ${p.assists} assists for Thameslink Hajduci.`} />
             <EditProfileLink player={p.name} />
@@ -82,8 +82,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           {([["Appearances", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["Won", `${Math.round(p.winRate)}%`]] as [string, number | string][]).map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k}</dt><dd className="display tabular text-4xl leading-none text-ink sm:text-5xl">{v}</dd></div>)}
         </dl>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat size="sm" label="Goals a game" value={p.goalsPerGame.toFixed(2)} />
-          <Stat size="sm" label="Assists a game" value={p.assistsPerGame.toFixed(2)} />
+          <Stat size="sm" label="Goals a game" value={p.goalsPerGame.toFixed(2)} sub={`over ${p.gpgGames} match${p.gpgGames === 1 ? "" : "es"} with scorers recorded`} />
+          <Stat size="sm" label="Assists a game" value={p.assistsPerGame.toFixed(2)} sub={`over ${p.apgGames} match${p.apgGames === 1 ? "" : "es"} with assists recorded`} />
           <Stat size="sm" label="Man of the match" value={p.motm} sub={bestSeason ? `Best season: ${bestSeason.goals} goals in Season ${bestSeason.seasonId.replace(/^S/, "")}` : undefined} />
           <Stat size="sm" label="Won, drawn, lost" value={`${p.wins}–${p.draws}–${p.losses}`} sub={`${(decided ? (p.wins * 3 + p.draws) / decided : 0).toFixed(2)} points a game`} />
         </div>
@@ -120,8 +120,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <div className="card p-6">
             <SectionTitle sub="How often the team wins with and without them">With and without</SectionTitle>
             <dl className="grid grid-cols-2 gap-3 text-center">
-              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">With {first}</dt><dd className="display tabular text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withGames} matches</span></dd></div>
-              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Without</dt><dd className="display tabular text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withoutGames} matches</span></dd></div>
+              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">With {first}</dt><dd className="display tabular text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withGames} matches<br /><span className="nowrap">Goal difference {imp.gdWith ?? "–"} a game</span></span></dd></div>
+              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Without</dt><dd className="display tabular text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withoutGames} matches<br /><span className="nowrap">Goal difference {imp.gdWithout ?? "–"} a game</span></span></dd></div>
             </dl>
             {delta !== null && imp.withGames >= 3 && imp.withoutGames >= 3 && (
               <p className="mt-3 text-sm text-muted">{Math.abs(delta) > 5 ? <>The team&apos;s win rate is {Math.abs(delta)} points {delta > 0 ? "higher" : "lower"} with {first} playing.</> : <>About the same either way.</>}</p>
@@ -165,7 +165,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                   <td className="num">{l.assists || ""}</td>
                   <td className="hidden text-muted sm:table-cell">{fmtDate(m.date)}</td>
                   <td className="hidden text-muted sm:table-cell"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`}</Link></td>
-                  <td className="hidden text-xs text-muted sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}</td>
+                  <td className="hidden text-xs text-muted sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}{!l.played && "Scored without an appearance recorded"}</td>
                 </tr>); })}
             </tbody>
           </table>

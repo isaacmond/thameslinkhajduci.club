@@ -89,7 +89,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{paceNote && <> {paceNote}</>}</>}
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{s.summary.paidBy && <> Pitch paid for by {s.summary.paidBy}.</>}{paceNote && <> {paceNote}</>}</>}
         right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip text-muted hover:text-ink"><ChevronLeft size={14} aria-hidden />Season {prev.number}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip text-muted hover:text-ink">Season {next.number}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section aria-label="Season summary">
@@ -156,7 +156,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
               {players.map((p) => (
                 <tr key={p.slug}>
                   <td><PlayerLink name={p.name} player={byName.get(p.name)} /></td>
-                  <td className="num">{p.apps}</td><td className={clsx("num", p.goals > 0 && "font-semibold")}>{p.goals}</td><td className="num">{p.assists}</td><td className="num hidden md:table-cell" >{p.goalsPerGame.toFixed(2)}</td>
+                  <td className="num">{p.apps}</td><td className={clsx("num", p.goals > 0 && "font-semibold")}>{p.goals}</td><td className="num">{p.assists}</td><td className="num hidden md:table-cell" title={`${p.goals} goals over ${p.gpgGames} matches with scorers recorded`}>{p.goalsPerGame.toFixed(2)}</td>
                   <td className="num hidden md:table-cell">{p.motm || ""}</td>
                   <td className="num hidden sm:table-cell">{p.wins}</td><td className="num hidden sm:table-cell">{p.draws}</td><td className="num hidden sm:table-cell">{p.losses}</td><td className="num hidden sm:table-cell">{p.winRate.toFixed(0)}%</td>
                   {hasMoney && <td className="num">{fmtMoney(p.seasons[0]?.cost ?? 0)}</td>}

@@ -1,5 +1,5 @@
 import type { ClubData, Player } from "./types";
-import { attendance, chronological, currentStreak, goalContext, headToHead, leaderboard, pace, playedMatches, playerStreaks, recentPlayers, scoreline, upcomingMilestones } from "./stats";
+import { attendance, chronological, currentStreak, fmtDate, goalContext, headToHead, leaderboard, pace, playedMatches, playerStreaks, recentPlayers, scoreline, upcomingMilestones } from "./stats";
 import { londonToday } from "./time";
 
 export interface Insight { key: string; text: string; href?: string; tone: "ok" | "late" | "bad" | "muted"; weight: number }
@@ -50,16 +50,19 @@ const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][(n % 100 - 20) % 
 /** Sentences for one player's page. */
 export function playerInsights(data: ClubData, p: Player): string[] {
   const out: string[] = [];
-  const st = playerStreaks(data, p.name), gc = goalContext(data, p.name);
+  const st = playerStreaks(data, p.name), gc = goalContext(data, p.name), att = attendance(data, p.name);
   const first = p.name.split(" ")[0];
   if (st.scoringRun >= 2) out.push(`Has scored in ${st.scoringRun} matches in a row.`);
   
+  else if (st.drought >= 5 && p.goals > 0) out.push(`${st.drought} matches since ${first}'s last goal.`);
   if (st.longestScoringRun >= 4) out.push(`Longest scoring run: ${st.longestScoringRun} matches.`);
-  if (st.unbeatenRun >= 3) out.push(`Unbeaten in the last ${st.unbeatenRun} matches ${first} has played.`);
+  if (st.winlessRun >= 8) out.push(st.lastWin ? `${st.winlessRun} appearances since ${first}'s last win (${scoreline(st.lastWin)} v ${st.lastWin.opponent}, ${fmtDate(st.lastWin.date, { month: "short", year: "numeric" })}).` : `${st.winlessRun} appearances without a win so far.`);
+  else if (st.unbeatenRun >= 3) out.push(`Unbeaten in the last ${st.unbeatenRun} matches ${first} has played.`);
   if (p.goals >= 5) {
     if (gc.inWins >= Math.ceil(p.goals / 2)) out.push(`${gc.inWins} of ${p.goals} goals came in wins.`);
     if (gc.share !== null && gc.share >= 30) out.push(`Scored ${gc.share}% of the team's goals in the matches ${first} played.`);
   }
+  if (att.possible >= 10) out.push(`Played in ${att.pct}% of possible matches.`);
   const up = upcomingMilestones([p], 3)[0];
   if (up) out.push(`${up.away} ${up.kind === "apps" ? "appearance" : up.kind === "goals" ? "goal" : up.kind === "assists" ? "assist" : "award"}${up.away === 1 ? "" : "s"} short of ${up.target}.`);
   return out.slice(0, 4);

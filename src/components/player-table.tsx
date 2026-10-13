@@ -61,7 +61,7 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
         </table>
         {!rows.length && <p className="px-4 py-8 text-center text-sm text-muted">No players in this scope yet.</p>}
       </div>
-      <p className="mt-2 text-xs text-muted">Points a game counts three for a win and one for a draw.</p>
+      <p className="mt-2 text-xs text-muted">Goals and assists a game are averaged over the matches where scorers (or assists) were recorded, so they can be higher than goals divided by appearances. Hover a value to see how many matches. Points a game counts three for a win and one for a draw.</p>
     </div>
   );
 }

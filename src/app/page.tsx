@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Database, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, form, gwLabel, lastResult, leaderboard, type MilestoneKind, nextFixture, recentPlayers, records, scoreline, seasonHref, seasonPlayers, upcomingMilestones } from "@/lib/stats";
 import { insights, pickInsights } from "@/lib/insights";
@@ -9,6 +9,7 @@ import { TeamBadge } from "@/components/team-badge";
 import { Countdown } from "@/components/countdown";
 import { PageTransition } from "@/components/page-transition";
 import { btn } from "@/components/button";
+import { Sponsors } from "@/components/footer";
 
 const KIND: Record<MilestoneKind, [string, string]> = { apps: ["appearance", "appearances"], goals: ["goal", "goals"], assists: ["assist", "assists"], motm: ["man of the match award", "man of the match awards"] };
 const KIND_LABEL: Record<MilestoneKind, string> = { apps: "Appearances", goals: "Goals", assists: "Assists", motm: "Man of the match" };
@@ -28,6 +29,7 @@ export default async function Home() {
   const milestones = upcomingMilestones(recentPlayers(data), 3).slice(0, 4);
   const since = fmtDate(data.matches.find((m) => m.date)?.date ?? null, { month: "long", year: "numeric" });
   const lastScorers = last ? last.lineup.filter((l) => l.goals > 0).sort((a, b) => b.goals - a.goals) : [];
+  const readAt = new Date(data.fetchedAt).toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" });
   const kickoff = next?.date ? londonEpoch(next.date, next.kickOff ?? "19:00") : null;
 
   return (
@@ -37,6 +39,7 @@ export default async function Home() {
         <div>
           <p className="eyebrow mb-4 flex flex-wrap items-center gap-2">
             {current && <span>Season {current.number} · {current.period}</span>}
+            <span className="inline-flex items-center gap-1.5 normal-case tracking-normal"><span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />Updated {readAt}</span>
             {data.stale && <Tag tone="gold">Showing the last saved copy</Tag>}
           </p>
           <div className="flex items-center gap-5">
@@ -47,6 +50,7 @@ export default async function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/squad" className={btn("primary", "md")}>Meet the squad</Link>
             <Link href="/matches" className={btn("secondary", "md")}>Fixtures and results</Link>
+            <Link href="/data" className={btn("ghost", "md", "hidden sm:inline-flex")}><Database size={16} aria-hidden />Data &amp; API</Link>
           </div>
         </div>
         <Crest size={260} className="hidden lg:block" />
@@ -184,6 +188,8 @@ export default async function Home() {
           {rec.longestUnbeaten && <Link href="/records" className="focus-ring card group p-6 transition-shadow hover:shadow-lg"><p className="eyebrow">Longest unbeaten run</p><p className="display tabular mt-3 text-5xl leading-none text-ink">{rec.longestUnbeaten.length} <span className="text-3xl text-muted">matches</span></p><p className="mt-2 text-sm text-muted">{fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} to {fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}</p></Link>}
         </div>
       </section>
+
+      <Sponsors />
     </div>
     </PageTransition>
   );

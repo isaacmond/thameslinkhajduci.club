@@ -14,6 +14,7 @@ import { matchVerdict, resultWord } from "@/lib/captions";
 import { Crest, LeaderList, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/countdown";
 import { TeamBadge } from "@/components/team-badge";
+import { sponsorFor } from "@/components/footer";
 import { ShareButton } from "@/components/share-button";
 import { MatchPreview } from "@/components/match-preview";
 import { PollButton } from "@/components/poll-button";
@@ -55,6 +56,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const firstWin = m.result === "W" && !seasonCounted.some((x) => x.result === "W" && (x.date ?? "") < (m.date ?? "") && x.id !== m.id);
   const verdict = isForfeit && m.played ? `Forfeit, awarded ${m.ourGoals}–${m.theirGoals}.` : matchVerdict(m, scorers[0]?.goals ?? 0, scorers[0]?.player ?? null, firstWin);
   // A forecast only makes sense before kick-off: an old fixture that never got a score would otherwise be "predicted" from games played after it.
+  const sponsor = sponsorFor(m.id);
   const today = londonToday();
   const showPreview = !m.played && !isForfeit && (!m.date || m.date >= today);
   // The who's-in poll: for this game while it is still ahead, otherwise for the next one still to be played in the same competition.
@@ -100,6 +102,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
           {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
+          <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip text-muted hover:text-ink" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
           <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
           <Link href={`/submit?match=${m.id}`} className="focus-ring chip gap-1.5 text-ink transition-colors hover:border-ink/30">{isForfeit && m.played ? "Edit the forfeit" : m.played ? "Edit the result" : "Add the result"}</Link>
           {pollFor && <PollButton fixture={pollFor} label={pollFor.id === m.id ? "Ask who's playing" : `Ask who's playing ${gwLabel(pollFor)}`} />}
@@ -140,7 +143,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                         <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}</td>
                       </tr>
                     ))}
-                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> </td><td className="num display text-2xl">{l.goals || "·"}</td><td className="num display text-2xl">{l.assists || "·"}</td><td></td></tr>)}
+                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num display text-2xl">{l.goals || "·"}</td><td className="num display text-2xl">{l.assists || "·"}</td><td></td></tr>)}
                   </tbody>
                 </table>
               </div>
@@ -194,6 +197,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                         : poll.winner ? <>{poll.winner}, with {poll.counts?.[0]?.votes ?? 0} of {poll.voted} vote{poll.voted === 1 ? "" : "s"}. {poll.voted} of {poll.ballots} ballots returned.</>
                         : <>Closed without votes.{m.motm ? ` ${m.motm} was named with the result.` : ""}</>}
                       {poll.counts && poll.counts.some((c) => c.votes > 0) && <span className="mt-1 block text-xs text-muted">{poll.counts.filter((c) => c.votes > 0).map((c) => `${c.player} ${c.votes}`).join(" · ")}</span>}
+                      {poll.noVote.length > 0 && <span className="mt-1 block text-xs text-muted">No ballot for {poll.noVote.join(", ")}: no email on the members list.</span>}
                       
                     </dd>
                   </div>

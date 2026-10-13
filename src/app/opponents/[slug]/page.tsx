@@ -97,12 +97,13 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
       <header className="flex flex-col gap-6 border-b border-ink/10 pb-8 animate-rise sm:flex-row sm:items-center sm:gap-8">
         <TeamBadge name={o.opponent} size={112} className="h-20 w-20 sm:h-28 sm:w-28" />
         <div className="min-w-0 flex-1">
-          <p className="eyebrow">Opponent · {o.seasons.length} season{o.seasons.length === 1 ? "" : "s"}</p>
+          <p className="eyebrow">Opponent #{all.indexOf(o) + 1} by matches played · {o.seasons.length} season{o.seasons.length === 1 ? "" : "s"}</p>
           <h1 className="display mt-1 break-words text-5xl leading-[0.95] text-ink sm:text-7xl">{o.opponent}</h1>
           <p className="mt-3 max-w-2xl text-lg text-muted">{headline(o)}</p>
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
             {v && <Tag tone={v.tone}>{v.word}</Tag>}
             <Tag>First played {fmtDate(first.date)}</Tag>
+            <Tag>Last played {fmtDate(last.date)}</Tag>
             {o.seasons.map((s) => <Link key={s} href={seasonHref(s)} className="focus-ring chip text-muted transition-colors hover:text-ink">Season {s.replace(/^S/, "")}</Link>)}
           </div>
         </div>

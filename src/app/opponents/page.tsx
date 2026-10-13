@@ -48,7 +48,7 @@ export default async function OpponentsPage() {
                     {v && <Tag tone={v.tone} className="ml-auto shrink-0 !text-[10px]">{v.word}</Tag>}
                   </div>
                   <p className="tabular mt-1 text-xs text-muted">Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</p>
-                  <p className="mt-0.5 truncate text-[11px] text-muted/80">Last played {fmtDate(last)}</p>
+                  <p className="mt-0.5 truncate text-[11px] text-muted/80">{o.seasons.join(" ")} · last played {fmtDate(last)}</p>
                 </div>
                 <span className="display tabular shrink-0 text-2xl leading-none text-ink" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>
               </Link>
@@ -61,7 +61,7 @@ export default async function OpponentsPage() {
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full">
               <thead>
-                <tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Goals</th><th className="num">GD</th><th className="hidden md:table-cell">Last played</th><th><span className="sr-only">Note</span></th></tr>
+                <tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">Goals</th><th className="num">GD</th><th className="hidden lg:table-cell">Seasons</th><th className="hidden md:table-cell">Last played</th><th><span className="sr-only">Note</span></th></tr>
               </thead>
               <tbody>
                 {rows.map(({ o, rank, gd, last, v }) => (
@@ -79,6 +79,7 @@ export default async function OpponentsPage() {
                     <td className="num">{o.lost}</td>
                     <td className="num">{o.gf}–{o.ga}</td>
                     <td className={clsx("num font-semibold", gdTone(gd))}>{signed(gd)}</td>
+                    <td className="hidden !whitespace-normal max-w-[9rem] text-xs leading-relaxed text-muted lg:table-cell">{o.seasons.join(" ")}</td>
                     <td className="hidden text-muted md:table-cell">{fmtDate(last)}</td>
                     <td>{v && <Tag tone={v.tone}>{v.word}</Tag>}</td>
                   </tr>

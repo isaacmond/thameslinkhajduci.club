@@ -26,7 +26,8 @@ export default async function StatsPage() {
   const MIN_POSSIBLE = 15, MIN_GOALS = 5;
   const punctuality = data.players.map((p) => ({ player: p, a: attendance(data, p.name) })).filter((x) => x.a.possible >= MIN_POSSIBLE && x.a.apps > 0).map((x) => ({ player: x.player, value: x.a.pct })).sort((a, b) => b.value - a.value || b.player.apps - a.player.apps || a.player.name.localeCompare(b.player.name));
   const goalsInWins = data.players.filter((p) => p.goals >= MIN_GOALS).map((p) => ({ player: p, value: goalContext(data, p.name).inWins })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value || b.player.goals - a.player.goals || a.player.name.localeCompare(b.player.name));
-    const boards: { title: string; sub?: string; items: { player: Player; value: number }[]; color?: string; fmt?: (v: number) => string }[] = [
+    const notBeaten = opponents.filter((o) => o.played >= 5 && o.won === 0);
+  const boards: { title: string; sub?: string; items: { player: Player; value: number }[]; color?: string; fmt?: (v: number) => string }[] = [
     { title: "Appearances", items: leaderboard(data.players, "apps").slice(0, 5), color: "bg-ink" },
     { title: "Goals", items: leaderboard(data.players, "goals").slice(0, 5) },
     { title: "Assists", items: leaderboard(data.players, "assists").slice(0, 5), color: "bg-assist" },
@@ -72,12 +73,20 @@ export default async function StatsPage() {
           </div>
         </div>
         <div className="space-y-6">
+        <div className="card p-6">
+          <SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Played five or more times without a win">Yet to beat</SectionTitle>
+          {notBeaten.length ? (
+            <ul className="space-y-2 text-sm">
+              {notBeaten.map((o) => <li key={o.key} className="flex items-baseline gap-3"><Link href={`/opponents/${o.slug}`} className="link min-w-0 truncate font-medium text-ink" title={o.opponent}>{o.opponent}</Link><span className="ml-auto shrink-0 text-xs text-muted">{o.played} played</span><span className="tabular shrink-0 text-xs text-muted">drew {o.drawn}, lost {o.lost}</span><span className="tabular w-10 shrink-0 text-right text-xs font-semibold text-ink">{signed(o.gf - o.ga)}</span></li>)}
+            </ul>
+          ) : <p className="text-sm text-muted">Every team played five or more times has been beaten at least once.</p>}
+        </div>
         <div className="card overflow-hidden">
           <div className="p-6 pb-2"><SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Most played first">Head to head</SectionTitle></div>
           <div className="scroll-x overflow-x-auto sm:max-h-[560px] sm:overflow-auto">
             <table className="stats w-full">
-              <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th></tr></thead>
-              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[14rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td></tr>; })}</tbody>
+              <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th><th className="hidden md:table-cell">Seasons</th></tr></thead>
+              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[14rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td><td className="hidden !whitespace-normal max-w-[7rem] text-xs leading-relaxed text-muted md:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
             </table>
           </div>
         </div>
