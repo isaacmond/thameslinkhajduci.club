@@ -41,7 +41,7 @@ function headline(o: OpponentRecord): string {
 function RecordCard({ label, m, empty }: { label: string; m: Match | null; empty: string }) {
   const body = (
     <>
-      <span className="eyebrow block">{label}</span>
+      <span className="eyebrow block min-h-[2lh] leading-snug">{label}</span>
       <span className="display tabular mt-3 block text-5xl leading-none text-ink">{m ? scoreline(m) : "—"}</span>
     </>
   );

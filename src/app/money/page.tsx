@@ -54,7 +54,7 @@ export default async function MoneyPage() {
                       {paidSeasons.map((s) => <td key={s.id} className="num hidden text-muted sm:table-cell">{r.charges[s.id] ? fmtMoney(r.charges[s.id]) : ""}</td>)}
                       <td className="num hidden sm:table-cell">{fmtMoney(r.totalCharged)}</td>
                       <td className="num hidden sm:table-cell" title={r.pitchCovered > 0 ? `includes ${fmtMoney(r.pitchCovered)} of pitch hire paid` : undefined}>{fmtMoney(r.paid)}{r.pitchCovered > 0 && <span className="block text-[10px] text-muted">incl. pitch {fmtMoney(r.pitchCovered)}</span>}</td>
-                      <td className={clsx("num display text-2xl", Math.abs(r.balance) <= 0.01 ? "text-muted" : "text-ink")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block font-sans text-[10px] tracking-wider text-accent">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block font-sans text-[10px] tracking-wider text-loss">to pay</span></> : "£0.00"}</td>
+                      <td className={clsx("num font-semibold", Math.abs(r.balance) <= 0.01 ? "text-muted" : "text-ink")}>{r.balance < -0.01 ? <>{fmtMoney(-r.balance)}<span className="block font-sans text-[10px] tracking-wider text-accent">owed to them</span></> : r.balance > 0.01 ? <>{fmtMoney(r.balance)}<span className="block font-sans text-[10px] tracking-wider text-loss">to pay</span></> : "£0.00"}</td>
                     </tr>
                   ))}
                 </tbody>

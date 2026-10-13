@@ -13,8 +13,8 @@ export const metadata: Metadata = { title: "Records", description: "Thameslink H
 function Card({ label, value, sub, href }: { label: string; value: React.ReactNode; sub?: React.ReactNode; href?: string }) {
   const head = (
     <>
-      <span className="eyebrow block">{label}</span>
-      <span className="display tabular mt-3 block text-[2.75rem] leading-none text-ink">{value}</span>
+      <span className="eyebrow block min-h-[2lh] leading-snug">{label}</span>
+      <span className="display tabular mt-3 block whitespace-nowrap text-[2.75rem] leading-none text-ink">{value}</span>
     </>
   );
   return (
@@ -64,11 +64,11 @@ export default async function RecordsPage() {
 
       <section><SectionTitle>Runs</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          {r.longestWin && <Card label="Longest winning run" value={`${r.longestWin.length} matches`} sub={streakSub(r.longestWin)} />}
-          {r.longestUnbeaten && <Card label="Longest unbeaten run" value={`${r.longestUnbeaten.length} matches`} sub={streakSub(r.longestUnbeaten)} />}
-          {r.longestLosing && <Card label="Longest losing run" value={`${r.longestLosing.length} matches`} sub={streakSub(r.longestLosing)} />}
-          {r.longestWinless && <Card label="Longest winless run" value={`${r.longestWinless.length} matches`} sub={streakSub(r.longestWinless)} />}
-          {cur && <Card label="Current run" value={`${cur.length} ${cur.type === "W" ? "win" : cur.type === "L" ? "defeat" : "draw"}${cur.length === 1 ? "" : "s"}`} sub="Most recent league results" />}
+          {r.longestWin && <Card label="Longest winning run" value={<>{r.longestWin.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWin)} />}
+          {r.longestUnbeaten && <Card label="Longest unbeaten run" value={<>{r.longestUnbeaten.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestUnbeaten)} />}
+          {r.longestLosing && <Card label="Longest losing run" value={<>{r.longestLosing.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestLosing)} />}
+          {r.longestWinless && <Card label="Longest winless run" value={<>{r.longestWinless.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWinless)} />}
+          {cur && <Card label="Current run" value={<>{cur.length} <span className="text-2xl text-muted">{cur.type === "W" ? "win" : cur.type === "L" ? "defeat" : "draw"}{cur.length === 1 ? "" : "s"}</span></>} sub="Most recent league results" />}
           
         </div>
       </section>
@@ -89,9 +89,9 @@ export default async function RecordsPage() {
         <div className="card overflow-hidden"><div className="p-6 pb-2"><SectionTitle sub="Three or more in a match">Hat-tricks</SectionTitle></div>
           {r.hatTricks.length ? (
             <div className="scroll-x overflow-x-auto">
-              <table className="stats w-full">
-                <thead><tr><th>Player</th><th className="num">Goals</th><th>Match</th></tr></thead>
-                <tbody>{r.hatTricks.map((h) => <tr key={`${h.match.id}-${h.player}`}><td className="h-12 w-[1%] whitespace-nowrap"><PlayerLink name={h.player} player={byName.get(h.player)} avatar /></td><td className="num display w-[1%] text-2xl">{h.goals}</td><td className="!whitespace-normal min-w-[9rem]"><Link href={`/matches/${h.match.id}`} className="link">{scoreline(h.match)} v {h.match.opponent}</Link><span className="block text-xs text-muted">{fmtDate(h.match.date)}</span></td></tr>)}</tbody>
+              <table className="stats w-full table-fixed">
+                <thead><tr><th className="w-[42%]">Player</th><th className="num w-16">Goals</th><th>Match</th></tr></thead>
+                <tbody>{r.hatTricks.map((h) => <tr key={`${h.match.id}-${h.player}`}><td className="h-16 truncate"><PlayerLink name={h.player} player={byName.get(h.player)} avatar /></td><td className="num font-semibold">{h.goals}</td><td className="truncate"><Link href={`/matches/${h.match.id}`} className="link block max-w-full truncate align-bottom" title={`${scoreline(h.match)} v ${h.match.opponent}`}>{scoreline(h.match)} v {h.match.opponent}</Link><span className="block text-xs text-muted">{fmtDate(h.match.date)}</span></td></tr>)}</tbody>
               </table>
             </div>
           ) : <p className="px-6 pb-6 text-sm text-muted">No hat-tricks yet.</p>}
@@ -99,7 +99,7 @@ export default async function RecordsPage() {
         <div className="card overflow-hidden"><div className="p-6 pb-2"><SectionTitle sub="Played every match of a season">Ever-presents</SectionTitle></div>
           {everPresent.length ? (
             <div className="scroll-x overflow-x-auto">
-              <table className="stats w-full"><thead><tr><th>Player</th><th>Season</th><th className="num">Games</th></tr></thead><tbody>{everPresent.map((e) => <tr key={`${e.player.slug}-${e.season.id}`}><td className="h-12"><PlayerLink name={e.player.name} player={e.player} avatar /></td><td><Link href={`/seasons/${e.season.id.toLowerCase()}`} className="link">{season(e.season.id)}</Link> <span className="text-muted">{e.season.period}</span></td><td className="num">{e.n}</td></tr>)}</tbody></table>
+              <table className="stats w-full"><thead><tr><th>Player</th><th>Season</th><th className="num">Games</th></tr></thead><tbody>{everPresent.map((e) => <tr key={`${e.player.slug}-${e.season.id}`}><td className="h-16"><PlayerLink name={e.player.name} player={e.player} avatar /></td><td><Link href={`/seasons/${e.season.id.toLowerCase()}`} className="link">{season(e.season.id)}</Link> <span className="text-muted">{e.season.period}</span></td><td className="num">{e.n}</td></tr>)}</tbody></table>
             </div>
           ) : <p className="px-6 pb-6 text-sm text-muted">No one has played every match of a season yet.</p>}
         </div>

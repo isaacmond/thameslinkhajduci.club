@@ -138,12 +138,12 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                     {lineup.map((l) => (
                       <tr key={l.player}>
                         <td><span className="inline-flex max-w-full items-center gap-2"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{l.ringer && <Tag className="text-[10px]">Ringer</Tag>}</span></td>
-                        <td className={clsx("num display text-2xl", l.goals > 0 ? "text-ink" : "text-muted/40")}>{l.goals || "·"}</td>
-                        <td className={clsx("num display text-2xl", l.assists > 0 ? "text-ink" : "text-muted/40")}>{l.assists || "·"}</td>
+                        <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/40")}>{l.goals || "·"}</td>
+                        <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/40")}>{l.assists || "·"}</td>
                         <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}</td>
                       </tr>
                     ))}
-                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num display text-2xl">{l.goals || "·"}</td><td className="num display text-2xl">{l.assists || "·"}</td><td></td></tr>)}
+                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num font-semibold">{l.goals || "·"}</td><td className="num font-semibold">{l.assists || "·"}</td><td></td></tr>)}
                   </tbody>
                 </table>
               </div>

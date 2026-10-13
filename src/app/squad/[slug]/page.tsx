@@ -160,7 +160,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
                 <tr key={m.id}>
                   <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-ink sm:inline">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <span className="ml-1 text-gold">★</span>}</span>{m.type && <span className="chip ml-2 hidden text-muted sm:inline-flex">{m.type}</span>}</td>
                   <td><ResultPill result={m.result} size="sm" /></td>
-                  <td className="num display text-lg">{scoreline(m)}</td>
+                  <td className="num font-medium">{scoreline(m)}</td>
                   <td className={clsx("num", l.goals > 0 && "font-semibold")}>{l.goals || ""}</td>
                   <td className="num">{l.assists || ""}</td>
                   <td className="hidden text-muted sm:table-cell">{fmtDate(m.date)}</td>
