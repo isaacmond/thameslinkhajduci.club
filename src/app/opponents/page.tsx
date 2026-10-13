@@ -27,7 +27,7 @@ export default async function OpponentsPage() {
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Opponents summary">
         <Stat label="Opponents" value={opps.length} sub="in the league" />
-        <Stat label="Beaten at least once" value={beaten} sub={`${neverBeaten} not yet`} />
+        <Stat label="Beaten" value={beaten} sub={`${neverBeaten} not yet`} />
         <Stat label="Yet to beat" value={bogey} sub="after five or more meetings" />
         <Stat label="Unbeaten against" value={unbeaten} sub="after three or more meetings" />
       </section>
@@ -50,7 +50,7 @@ export default async function OpponentsPage() {
                   <p className="tabular mt-1 text-xs text-muted">Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</p>
                   <p className="mt-0.5 truncate text-[11px] text-muted/80">{o.seasons.join(" ")} · last played {fmtDate(last)}</p>
                 </div>
-                <span className="display tabular shrink-0 text-2xl leading-none text-ink" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>
+                <span className="display shrink-0 text-2xl leading-none text-ink" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>
               </Link>
             </li>
           ))}

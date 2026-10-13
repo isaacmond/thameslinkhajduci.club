@@ -26,7 +26,7 @@ export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {
           <Image src="/crest.png" alt="Thameslink Hajduci crest" width={44} height={44} priority className="h-9 w-9 sm:h-10 sm:w-10" />
           <div className="leading-none">
             <div className="display text-[1.4rem] text-ink sm:text-[1.6rem]">Thameslink Hajduci</div>
-            <div className="eyebrow mt-0.5 hidden !text-[10px] sm:block">Football club · Est. 2024</div>
+            <div className="eyebrow eyebrow-sm mt-0.5 hidden sm:block">Football club · Est. 2024</div>
           </div>
         </Link>
         <nav aria-label="Primary" className="-mb-px ml-auto hidden gap-0.5 self-stretch lg:flex">

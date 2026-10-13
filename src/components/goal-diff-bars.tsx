@@ -53,7 +53,7 @@ export function GoalDiffBars({ matches, opponent }: { matches: Match[]; opponent
           const kind = kindOf(gds[i]);
           return (
             <div key={m.id} className="min-w-0 px-0.5">
-              <span className={clsx("display tabular block leading-none", showLabels ? "text-lg" : "text-base", TEXT[kind])}>{fmtGd(gds[i])}</span>
+              <span className={clsx("tabular block text-xs font-semibold leading-none", TEXT[kind])}>{fmtGd(gds[i])}</span>
               {showLabels && <span className="mt-0.5 block text-[10px] leading-tight text-muted">{m.seasonId} {gwLabel(m)}</span>}
             </div>
           );

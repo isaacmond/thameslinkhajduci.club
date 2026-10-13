@@ -115,9 +115,9 @@ export function moneyCard(money: GameMoney): { html: string; text: string } {
   const why = money.ringer ? "Ringers don't pay: your share is on the regulars who stayed at home." : money.paidPitch ? `You paid the pitch, so the other ${money.heads - 1} owe you theirs.` : split + ".";
   const html = `
     <div style="margin:22px 0 0;background:#fffcf6;border:1px solid rgba(23,34,27,.12);border-radius:10px;padding:14px 16px">
-      <p style="margin:0 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#64716a">Your share tonight</p>
+      <p style="margin:0 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6861">Your share tonight</p>
       <p style="margin:0 0 6px;font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:${money.ringer || money.paidPitch ? "#1f5135" : "#17221b"}">${esc(amount)}</p>
-      <p style="margin:0;font-size:13px;line-height:1.45;color:#64716a">${esc(why)} ${esc(running)}</p>
+      <p style="margin:0;font-size:13px;line-height:1.45;color:#5b6861">${esc(why)} ${esc(running)}</p>
       <p style="margin:10px 0 0;font-size:13px"><a href="${esc(moneyUrl())}" style="color:#1f5135;font-weight:600;text-decoration:none">See all balances</a></p>
     </div>`;
   const text = [`Your share tonight: ${amount}${money.ringer || money.paidPitch ? "" : ` (${split})`}. ${money.ringer || money.paidPitch ? `${why} ` : ""}${running}`, `Money: ${moneyUrl()}`].join("\n");
@@ -126,9 +126,9 @@ export function moneyCard(money: GameMoney): { html: string; text: string } {
 
 const shell = (eyebrow: string, body: string) => `<!doctype html><html><body style="margin:0;background:#f5f1e8;color:#17221b;font-family:Inter,system-ui,sans-serif">
   <div style="max-width:640px;margin:0 auto;padding:28px 20px">
-    <p style="margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#64716a">${eyebrow} · Thameslink Hajduci</p>
+    <p style="margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6861">${eyebrow} · Thameslink Hajduci</p>
     ${body}
-    <p style="margin:22px 0 0;font-size:12px;color:#64716a">You're getting this because you played, according to <a href="${esc(SITE_URL)}" style="color:#1f5135">thameslinkhajduci.club</a>.</p>
+    <p style="margin:22px 0 0;font-size:12px;color:#5b6861">You're getting this because you played, according to <a href="${esc(SITE_URL)}" style="color:#1f5135">thameslinkhajduci.club</a>.</p>
   </div></body></html>`;
 
 export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Candidate[]; token: string; closesAt: Date; /** the voter's share of the pitch, when money is tracked for the game */ money?: GameMoney | null };
@@ -146,7 +146,7 @@ export function ballotBody({ voter, candidates, token, closesAt, money }: Ballot
     <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match? Tap a name.</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(ballotUrl(token))}" style="display:inline-block;background:#1f5135;color:#f5f1e8;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px">Open the ballot</a></p>
-    <p style="margin:18px 0 0;font-size:13px;color:#64716a">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself.</p>${card?.html ?? ""}`;
+    <p style="margin:18px 0 0;font-size:13px;color:#5b6861">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself.</p>${card?.html ?? ""}`;
   const text = ["Who was the man of the match?", "", ...options.map((c) => `  ${c.player}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
   return { html, text };
 }
@@ -157,7 +157,7 @@ export function renderBallot(input: BallotEmailInput): { subject: string; html: 
   const subject = `Man of the match vote: ${scoreTitle(m)}`;
   const html = shell("Man of the match", `
     <h1 style="margin:0 0 6px;font-family:'Instrument Serif',Georgia,'Times New Roman',serif;font-weight:400;font-size:34px;line-height:1.05">${esc(scoreTitle(m))}</h1>
-    <p style="margin:0 0 18px;font-size:14px;color:#64716a">${esc(fixtureLine(m))}</p>${body.html}`);
+    <p style="margin:0 0 18px;font-size:14px;color:#5b6861">${esc(fixtureLine(m))}</p>${body.html}`);
   const text = [scoreTitle(m), fixtureLine(m), "", body.text].join("\n");
   return { subject, html, text };
 }
@@ -170,10 +170,10 @@ export function renderResult({ match: m, winner, counts, ballots, reason }: Resu
   const subject = `Man of the match: ${winner} · ${scoreTitle(m)}`;
   const how = reason === "everyone voted" ? "Everyone voted, so the poll closed early." : reason === "deadline" ? "Time was up." : `Closed by ${reason}.`;
   const tied = counts.filter((c) => c.votes === (top?.votes ?? 0) && c.player !== winner);
-  const rows = counts.filter((c) => c.votes > 0).map((c) => `<tr><td style="padding:6px 10px;${c.player === winner ? "color:#9c7210;font-weight:700" : ""}">${esc(c.player)}</td><td style="padding:6px 10px;text-align:right;font-family:ui-monospace,Menlo,monospace;color:${c.player === winner ? "#9c7210" : "#64716a"}">${c.votes}</td></tr>`).join("");
+  const rows = counts.filter((c) => c.votes > 0).map((c) => `<tr><td style="padding:6px 10px;${c.player === winner ? "color:#856109;font-weight:700" : ""}">${esc(c.player)}</td><td style="padding:6px 10px;text-align:right;font-family:ui-monospace,Menlo,monospace;color:${c.player === winner ? "#856109" : "#5b6861"}">${c.votes}</td></tr>`).join("");
   const html = shell("Man of the match", `
-    <h1 style="margin:0 0 6px;font-family:'Instrument Serif',Georgia,'Times New Roman',serif;font-weight:400;font-size:34px;line-height:1.05"><span style="color:#9c7210">★</span> ${esc(winner)}</h1>
-    <p style="margin:0 0 18px;font-size:14px;color:#64716a">${esc(scoreTitle(m))} · ${esc(fixtureLine(m))}</p>
+    <h1 style="margin:0 0 6px;font-family:'Instrument Serif',Georgia,'Times New Roman',serif;font-weight:400;font-size:34px;line-height:1.05"><span style="color:#856109">★</span> ${esc(winner)}</h1>
+    <p style="margin:0 0 18px;font-size:14px;color:#5b6861">${esc(scoreTitle(m))} · ${esc(fixtureLine(m))}</p>
     <p style="margin:0 0 14px;font-size:16px;line-height:1.4">${top?.votes ?? 0} of ${voted} vote${voted === 1 ? "" : "s"}${tied.length ? `, level with ${esc(tied.map((c) => c.player).join(" and "))} and ahead on what happened in the game` : ""}. ${voted} of ${ballots} ballot${ballots === 1 ? "" : "s"} came back. ${how}</p>
     <table style="width:100%;border-collapse:collapse;background:#fffcf6;border:1px solid rgba(23,34,27,.12);border-radius:10px;font-size:14px">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(SITE_URL)}/matches/${esc(m.id)}" style="display:inline-block;background:#1f5135;color:#f5f1e8;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px">Match page</a></p>`);

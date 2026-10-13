@@ -28,7 +28,7 @@ function TipBox({ title, rows }: { title: ReactNode; rows: { label: ReactNode; v
 function DefaultTip({ active, payload, label }: TipProps) {
   if (!active || !payload?.length) return null;
   const rows = payload.filter((p) => p.value !== undefined && p.value !== 0).map((p) => ({ label: String(p.name ?? ""), value: String(p.value ?? ""), color: p.color ?? p.fill }));
-  return <TipBox title={String(label ?? "")} rows={rows.length ? rows : [{ label: "—", value: "0" }]} />;
+  return <TipBox title={String(label ?? "")} rows={rows.length ? rows : [{ label: "–", value: "0" }]} />;
 }
 const axis = { tick: { fill: C.ink, fontSize: 11 }, axisLine: false, tickLine: false } as const;
 const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 11, color: C.ink, letterSpacing: "0.08em", textTransform: "uppercase" as const } };

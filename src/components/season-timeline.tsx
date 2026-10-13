@@ -30,7 +30,7 @@ export function SeasonTimeline({ season, today }: { season: Season; today: strin
           return (
             <li key={m.id} style={{ width: STEP }} className="shrink-0">
               <Link href={`/matches/${m.id}`} aria-label={describe(m, kind)} className="focus-ring group flex flex-col items-center gap-1.5 rounded-lg px-1 py-1 text-center">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted">{gwLabel(m)}</span>
+                <span className="eyebrow eyebrow-sm">{gwLabel(m)}</span>
                 <span className={clsx("relative flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold",
                   kind === "played" ? `result-${m.result ?? "X"}` : kind === "next" ? "border-accent bg-accent text-paper" : kind === "pending" ? "border-dashed border-ink/25 bg-surface text-muted" : "border-ink/15 bg-surface text-muted")}>
                   {kind === "played" ? (m.result ?? "·") : kind === "next" ? "•" : ""}

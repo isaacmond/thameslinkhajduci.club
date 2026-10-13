@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import clsx from "clsx";
 import { CalendarClock } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match, Player, PlayerMatchLine, SeasonSummary } from "@/lib/types";
@@ -9,7 +8,7 @@ import type { OpponentRecord } from "@/lib/stats";
 import { chronological, fmtDate, gwLabel, headToHead, opponentKey, scoreline, seasonHref } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { slugify } from "@/lib/slug";
-import { Breadcrumb, LeaderList, MatchRow, RecordStrip, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Breadcrumb, LeaderList, MatchRow, RecordCard, RecordStrip, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffBars } from "@/components/goal-diff-bars";
 import { TeamBadge, opponentVerdict } from "@/components/team-badge";
 import { PageTransition } from "@/components/page-transition";
@@ -38,20 +37,7 @@ function headline(o: OpponentRecord): string {
   return `${lost} defeats to ${won} wins across ${games}.`;
 }
 
-function RecordCard({ label, m, empty }: { label: string; m: Match | null; empty: string }) {
-  const body = (
-    <>
-      <span className="eyebrow block min-h-[2lh] leading-snug">{label}</span>
-      <span className="display tabular mt-3 block text-5xl leading-none text-ink">{m ? scoreline(m) : "—"}</span>
-    </>
-  );
-  return (
-    <div className={clsx("card h-full p-6", m && "transition-shadow hover:shadow-lg")}>
-      {m ? <Link href={`/matches/${m.id}`} className="focus-ring block rounded-lg">{body}</Link> : body}
-      <p className="mt-2 text-sm text-muted">{m ? <>Season {m.seasonId.replace(/^S/, "")}, {gwLabel(m)} · <span className="nowrap">{fmtDate(m.date)}</span></> : empty}</p>
-    </div>
-  );
-}
+const meetingSub = (m: Match | null, empty: string) => (m ? <>Season {m.seasonId.replace(/^S/, "")}, {gwLabel(m)} · <span className="nowrap">{fmtDate(m.date)}</span></> : empty);
 
 export default async function OpponentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -115,7 +101,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
           <Stat size="sm" label="Scored per game" value={per(o.gf)} sub={`${o.gf} in ${o.played}`} />
           <Stat size="sm" label="Conceded per game" value={per(o.ga)} sub={`${o.ga} in ${o.played}`} />
           <Stat size="sm" label="Clean sheets" value={cleanSheets} />
-          <Stat size="sm" label="Last meeting" value={<span className="inline-flex items-center gap-2"><ResultPill result={last.result} size="sm" />{scoreline(last)}</span>} sub={fmtDate(last.date, { day: "numeric", month: "short", year: "numeric" })} />
+          <Stat size="sm" label="Last meeting" value={scoreline(last)} sub={<span className="inline-flex items-center gap-1.5"><ResultPill result={last.result} size="sm" className="-my-1" />{fmtDate(last.date, { day: "numeric", month: "short", year: "numeric" })}</span>} />
         </div>
       </section>
 
@@ -126,8 +112,8 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
       )}
 
       <section className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <RecordCard label="Biggest win" m={biggestWin} empty="No wins yet." />
-        <RecordCard label="Heaviest defeat" m={heaviest} empty="Never beaten us." />
+        <RecordCard compact label="Biggest win" value={biggestWin ? scoreline(biggestWin) : "–"} sub={meetingSub(biggestWin, "No wins yet.")} href={biggestWin ? `/matches/${biggestWin.id}` : undefined} />
+        <RecordCard compact label="Heaviest defeat" value={heaviest ? scoreline(heaviest) : "–"} sub={meetingSub(heaviest, "Never beaten us.")} href={heaviest ? `/matches/${heaviest.id}` : undefined} />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">

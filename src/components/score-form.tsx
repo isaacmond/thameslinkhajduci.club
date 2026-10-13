@@ -9,6 +9,7 @@ import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { PollButton } from "./poll-button";
+import { SectionTitle } from "./ui";
 
 /**
  * `lineup` is who the records say played (roster players only); `ringers` the outsiders recorded alongside them; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
@@ -29,7 +30,7 @@ function Counter({ value, onChange, max = 30, label }: { value: number; onChange
   return (
     <span className="flex h-[38px] w-full max-w-[9rem] items-center justify-between rounded-lg border border-ink/15 bg-ink/5">
       <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className="focus-ring flex h-full items-center rounded-l-lg px-3 text-muted hover:text-ink"><Minus size={16} aria-hidden /></button>
-      <span className="display tabular w-8 text-center text-2xl leading-none translate-y-[0.05em] text-ink" aria-live="polite">{value}</span>
+      <span className="tabular w-8 text-center text-xl font-semibold leading-none text-ink" aria-live="polite">{value}</span>
       <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(max, value + 1))} className="focus-ring flex h-full items-center rounded-r-lg px-3 text-muted hover:text-ink"><Plus size={16} aria-hidden /></button>
     </span>
   );
@@ -128,7 +129,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
         <Select label="Fixture" value={matchId} onChange={pick} options={fixtures.map((f) => ({ value: f.id, label: f.label }))} className="min-w-0" />
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-3 text-xs sm:gap-4">
           <div className="min-w-0"><p className="eyebrow mb-1 truncate">Hajduci</p><Counter value={ours} onChange={setOurs} label="Hajduci goals" /></div>
-          <span className="display flex h-[38px] items-center text-3xl text-muted">–</span>
+          <span className="flex h-[38px] items-center text-2xl text-muted">–</span>
           <div className="min-w-0"><p className="eyebrow mb-1 truncate" title={fx?.opponent}>{fx?.opponent ?? "Them"}</p><Counter value={theirs} onChange={setTheirs} label="opponent goals" /></div>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 lg:col-span-2">
@@ -140,7 +141,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
 
       {forfeit ? (
         <div className="card p-5 sm:p-6">
-          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="display text-2xl leading-none text-ink">Pitch charges</h2><p className="text-xs text-muted">Tick who shares the {pitch > 0 ? pounds(pitch) : ""} pitch fee.</p></div>
+          <SectionTitle sub={`Tick who shares the ${pitch > 0 ? `${pounds(pitch)} ` : ""}pitch fee.`}>Pitch charges</SectionTitle>
           <p className={clsx("mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-3 py-2 text-xs", played.size ? "border-ink/10 bg-sunken/60 text-ink/90" : "border-ink/10 bg-sunken/40 text-muted")} role="status">
             <span>{played.size ? <>{played.size} player{played.size === 1 ? "" : "s"}{pitch > 0 && <>, <span className="text-ink">{pounds(each)} each</span></>}.</> : <>No one ticked{fx?.seasonId !== "FR" ? ", so the pitch stays with whoever booked it" : ""}.</>}</span>
             {fx && fx.expected.length > 0 && !sameSet(played, fx.expected) && <button type="button" onClick={() => setPlayed(new Set(fx.expected))} className="focus-ring link ml-auto text-xs">Tick the whole team sheet</button>}
@@ -155,7 +156,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
         </div>
       ) : (
       <div className="card p-5 sm:p-6">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 className="display text-2xl leading-none text-ink">Line-up</h2><p className="text-xs text-muted">Tap the players who played, then add goals and assists. {goalsLogged} of {ours} goals assigned.</p></div>
+        <SectionTitle sub={<>Tap the players who played, then add goals and assists. {goalsLogged} of {ours} goals assigned.</>}>Line-up</SectionTitle>
         {fromSheet && (
           <p className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-sunken/60 px-3 py-2 text-xs text-ink/90" role="status">
             <ClipboardList size={14} className="shrink-0 text-accent" aria-hidden />
@@ -167,17 +168,17 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           {roster.map((n) => { const on = played.has(n); return (
             <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
               <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
-              {on && <span className="flex shrink-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>}
+              {on && <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>}
             </li>); })}
         </ul>
         <div className="mt-5 border-t border-ink/10 pt-4">
-          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2"><h3 className="display text-xl leading-none text-ink">Ringers</h3><p className="text-xs text-muted">Players from outside the squad. They don&apos;t pay; their share goes to the regulars who weren&apos;t playing.</p></div>
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2"><h3 className="display text-2xl leading-none text-ink">Ringers</h3><p className="text-xs text-muted">Players from outside the squad. They don&apos;t pay; their share goes to the regulars who weren&apos;t playing.</p></div>
           {ringers.length > 0 && (
             <ul className="mb-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
               {ringers.map((n) => (
                 <li key={n} className="flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/[0.06] px-3 py-2">
                   <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink"><span className="chip shrink-0 text-[10px] text-muted">Ringer</span><span className="truncate">{n}</span></span>
-                  <span className="flex shrink-0 items-center gap-1 text-[10px] uppercase tracking-wider text-muted"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
+                  <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
                   <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring shrink-0 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>
                 </li>
               ))}
@@ -218,7 +219,7 @@ function MiniCounter({ label, value, onChange }: { label: string; value: number;
   return (
     <span className="inline-flex items-center rounded-md border border-ink/15 bg-ink/5">
       <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className={`${btn} rounded-l-md`}><Minus size={12} aria-hidden /></button>
-      <span className="tabular w-5 text-center text-sm font-semibold text-ink">{value}</span>
+      <span className="tabular w-5 text-center text-sm font-semibold tracking-normal text-ink">{value}</span>
       <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(30, value + 1))} className={`${btn} rounded-r-md`}><Plus size={12} aria-hidden /></button>
     </span>
   );

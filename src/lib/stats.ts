@@ -4,7 +4,7 @@ import { londonToday } from "./time";
 export const fmtDate = (iso: string | null, opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
   iso ? new Date(iso + "T12:00:00").toLocaleDateString("en-GB", opts) : "TBC";
 export const fmtMoney = (n: number) => `£${n.toFixed(2)}`;
-export const scoreline = (m: Pick<Match, "played" | "ourGoals" | "theirGoals">) => (m.played ? `${m.ourGoals}–${m.theirGoals}` : "—");
+export const scoreline = (m: Pick<Match, "played" | "ourGoals" | "theirGoals">) => (m.played ? `${m.ourGoals}–${m.theirGoals}` : "–");
 export const ppg = (s: { won: number; drawn: number; played: number }) => (s.played ? +((s.won * 3 + s.drawn) / s.played).toFixed(2) : 0);
 export const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 export const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);

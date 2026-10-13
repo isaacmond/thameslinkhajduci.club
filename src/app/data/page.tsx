@@ -46,7 +46,7 @@ export default async function DataPage() {
               return (
                 <div key={s} className="card min-w-0 p-5">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="inline-flex items-center gap-2 font-semibold text-ink">{SEVERITY_UI[s].icon}{SEVERITY_LABEL[s]}</p>
+                    <h3 className="display inline-flex items-center gap-2 text-2xl leading-none text-ink">{SEVERITY_UI[s].icon}{SEVERITY_LABEL[s]}</h3>
                     <Tag tone={list.length ? SEVERITY_UI[s].tone : "default"}>{list.length}</Tag>
                   </div>
                   <p className="mt-1 text-xs text-muted">{SEVERITY_UI[s].blurb}</p>
@@ -60,7 +60,7 @@ export default async function DataPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-3 text-sm text-muted/70">None</p>
+                    <p className="mt-3 text-sm text-muted">None</p>
                   )}
                 </div>
               );

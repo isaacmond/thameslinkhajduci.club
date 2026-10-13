@@ -86,15 +86,15 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               <span className="display min-w-0 text-xl leading-tight [text-wrap:balance] sm:text-4xl">Thameslink Hajduci</span>
             </span>
             <span className="flex flex-col items-center gap-2">
-              {m.played ? <span className="display tabular whitespace-nowrap text-6xl leading-none sm:text-8xl">{m.ourGoals}<span className="mx-1.5 text-muted/60 sm:mx-3">–</span>{m.theirGoals}</span> : <span className="display text-4xl text-muted sm:text-6xl">v</span>}
-              {m.played && m.result && <span className={clsx("eyebrow !tracking-[0.2em]", resultText[m.result])}>{resultWord(m.result)}</span>}
+              {m.played ? <span className="display whitespace-nowrap text-6xl leading-none sm:text-8xl">{m.ourGoals}<span className="mx-1.5 text-muted/60 sm:mx-3">–</span>{m.theirGoals}</span> : <span className="display text-4xl text-muted sm:text-6xl">v</span>}
+              {m.played && m.result && <span className={clsx("eyebrow", resultText[m.result])}>{resultWord(m.result)}</span>}
             </span>
             <span className="flex min-w-0 flex-col items-center gap-3 text-center sm:flex-row sm:justify-start sm:text-left">
               {!/^forfeit$/i.test(m.opponent) && <TeamBadge name={m.opponent} size={64} className="h-12 w-12 sm:h-16 sm:w-16" />}
               <span className="display min-w-0 break-words text-xl leading-tight [text-wrap:balance] sm:text-4xl">{opponentLabel}</span>
             </span>
           </h1>
-          {!m.played && kickoff && <p className="mt-8 text-center"><span className="eyebrow block">Kick-off in</span><Countdown target={kickoff} className="display mt-1 text-4xl text-ink" /></p>}
+          {!m.played && kickoff && <p className="mt-8 text-center"><span className="eyebrow block">Kick-off in</span><Countdown target={kickoff} className="tabular mt-1 text-4xl font-semibold tracking-tight text-ink" /></p>}
           {(m.comment || verdict) && <p className="display mx-auto mt-8 max-w-2xl text-center text-xl italic leading-snug text-ink/85 sm:text-2xl">{m.comment ? <>“{m.comment}”</> : verdict}</p>}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2 border-t border-ink/10 bg-sunken/40 px-5 py-4">
@@ -138,8 +138,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                     {lineup.map((l) => (
                       <tr key={l.player}>
                         <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{l.ringer && <Tag className="!py-0 text-[10px] leading-5">Ringer</Tag>}</span></td>
-                        <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/40")}>{l.goals || "·"}</td>
-                        <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/40")}>{l.assists || "·"}</td>
+                        <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/70")}>{l.goals || "·"}</td>
+                        <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/70")}>{l.assists || "·"}</td>
                         <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}</td>
                       </tr>
                     ))}

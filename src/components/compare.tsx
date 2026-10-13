@@ -116,7 +116,7 @@ function Bars({ a, b, m }: { a: ComparePlayer; b: ComparePlayer; m: Metric }) {
   const level = va !== null && vb !== null && va === vb;
   const nA = short(a, b), nB = short(b, a);
   // Mint is colour-only, so each number is prefixed with whose it is and the better one says so, for screen readers.
-  const val = (v: number | null, better: boolean, name: string) => <span className={clsx("display tabular text-2xl leading-none sm:text-3xl", better ? "text-accent" : v === null ? "text-muted" : "text-ink/70")}><span className="sr-only">{name}: </span>{v === null ? "–" : m.fmt(v)}{better && <span className="sr-only"> (leads)</span>}</span>;
+  const val = (v: number | null, better: boolean, name: string) => <span className={clsx("display text-2xl leading-none sm:text-3xl", better ? "text-accent" : v === null ? "text-muted" : "text-ink/70")}><span className="sr-only">{name}: </span>{v === null ? "–" : m.fmt(v)}{better && <span className="sr-only"> (leads)</span>}</span>;
   const bar = (better: boolean) => clsx("h-full rounded-full transition-[width] duration-500", better ? "bg-accent" : level ? "bg-ink/40" : "bg-ink/25");
   const subA = m.sub?.(a), subB = m.sub?.(b);
   return (
@@ -176,9 +176,10 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
   const cell = (label: string, xs: CompareMatch[], highlight = false) => {
     const pct = winPct(xs);
     return (
-      <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-3 text-center">
-        <dt className="eyebrow mt-1 !text-[10px] !tracking-[0.14em]">{label}</dt>
-        <dd className={clsx("display tabular text-3xl leading-none sm:text-4xl", pct === null ? "text-muted" : highlight ? "text-ink" : "text-ink")}>{pct === null ? "–" : `${pct}%`}<span className="mt-1 block font-sans text-[11px] leading-tight text-muted">{xs.length} match{xs.length === 1 ? "" : "es"}{xs.length > 0 && <span className="block tabular">{wdl(xs)}</span>}</span></dd>
+      <div className="rounded-xl bg-sunken/60 p-3 text-center">
+        <dt className="eyebrow">{label}</dt>
+        <dd className={clsx("display mt-1.5 text-3xl leading-none sm:text-4xl", pct === null ? "text-muted" : highlight ? "text-ink" : "text-ink")}>{pct === null ? "–" : `${pct}%`}</dd>
+        <dd className="mt-1.5 text-[11px] leading-tight text-muted">{xs.length} match{xs.length === 1 ? "" : "es"}{xs.length > 0 && <span className="block tabular">{wdl(xs)}</span>}</dd>
       </div>
     );
   };
@@ -205,8 +206,8 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
           <Head p={A} other={B} align="left" tone={toneA} />
           <div className="flex flex-col items-center self-center">
             <span className="display text-3xl italic leading-none text-muted sm:text-5xl" aria-hidden>v</span>
-            <span className="display tabular mt-3 text-2xl leading-none text-ink sm:text-3xl" title="Categories led">{t.a}–{t.b}</span>
-            <span className="eyebrow mt-1 !text-[9px]">categories</span>
+            <span className="display mt-3 text-2xl leading-none text-ink sm:text-3xl" title="Categories led">{t.a}–{t.b}</span>
+            <span className="eyebrow eyebrow-sm mt-1">categories</span>
           </div>
           <Head p={B} other={A} align="right" tone={toneB} />
         </div>
@@ -245,8 +246,8 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
                     {seasonRows.map((r) => { const ga = r.a?.goals ?? 0, gb = r.b?.goals ?? 0; return (
                       <tr key={r.sid}>
                         <td className="font-medium text-ink"><Link href={`/seasons/${r.sid.toLowerCase()}`} className="link">Season {r.sid.replace(/^S/, "")}</Link></td>
-                        <td className={clsx("num", !r.a?.apps && "text-muted/50")}>{r.a?.apps ?? 0}</td><td className={clsx("num font-semibold", ga > gb ? "text-ink" : ga ? "text-ink/70" : "text-muted/50")}>{ga}</td>
-                        <td className={clsx("num", !r.b?.apps && "text-muted/50")}>{r.b?.apps ?? 0}</td><td className={clsx("num font-semibold", gb > ga ? "text-ink" : gb ? "text-ink/70" : "text-muted/50")}>{gb}</td>
+                        <td className={clsx("num", !r.a?.apps && "text-muted")}>{r.a?.apps ?? 0}</td><td className={clsx("num font-semibold", ga > gb ? "text-ink" : ga ? "text-ink/70" : "text-muted")}>{ga}</td>
+                        <td className={clsx("num", !r.b?.apps && "text-muted")}>{r.b?.apps ?? 0}</td><td className={clsx("num font-semibold", gb > ga ? "text-ink" : gb ? "text-ink/70" : "text-muted")}>{gb}</td>
                       </tr>); })}
                     <tr className="font-semibold"><td className="text-ink">Total</td><td className="num">{A.apps}</td><td className="num">{A.goals}</td><td className="num">{B.apps}</td><td className="num">{B.goals}</td></tr>
                   </tbody>

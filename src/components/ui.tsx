@@ -50,9 +50,25 @@ export function SectionTitle({ children, sub, right, id }: { children: React.Rea
 export function Stat({ label, value, sub, tone = "default", size = "md", money = false }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "default" | "win" | "draw" | "loss" | "gold"; size?: "sm" | "md" | "lg"; money?: boolean }) {
   return (
     <div className={clsx("card h-full", size === "sm" ? "px-3 py-3" : "px-4 py-4")}>
-      <p className={clsx("eyebrow", size === "sm" && "!text-[10px] truncate")}>{label}</p>
+      <p className={clsx("eyebrow", size === "sm" && "eyebrow-sm truncate")}>{label}</p>
       <p className={clsx("tabular leading-none", money ? "font-semibold tracking-tight" : "display", money ? (size === "lg" ? "mt-2 text-4xl" : size === "sm" ? "mt-1.5 text-2xl" : "mt-2 text-3xl") : size === "lg" ? "mt-2 text-5xl" : size === "sm" ? "mt-1.5 text-3xl" : "mt-2 text-4xl", tone === "win" && "text-win", tone === "loss" && "text-loss", tone === "draw" && "text-draw", tone === "gold" && "text-gold", tone === "default" && "text-ink")}>{value}</p>
       {sub && <p className={clsx("mt-1.5 text-muted", size === "sm" ? "text-[11px]" : "text-xs")}>{sub}</p>}
+    </div>
+  );
+}
+
+/** A record: label, a large figure (units as `<span className="text-2xl text-muted">`), and a line of detail. The label keeps two lines so figures line up across a row; `compact` drops that from lg up, where short labels fit on one line. */
+export function RecordCard({ label, value, sub, href, compact = false }: { label: string; value: React.ReactNode; sub?: React.ReactNode; href?: string; compact?: boolean }) {
+  const head = (
+    <>
+      <span className={clsx("eyebrow block min-h-[2lh] leading-snug", compact && "lg:min-h-0")}>{label}</span>
+      <span className="display mt-3 block whitespace-nowrap text-5xl leading-none text-ink">{value}</span>
+    </>
+  );
+  return (
+    <div className={clsx("card h-full p-6", href && "transition-shadow hover:shadow-lg")}>
+      {href ? <Link href={href} className="focus-ring block rounded-lg">{head}</Link> : head}
+      {sub && <p className="mt-2 text-sm text-muted">{sub}</p>}
     </div>
   );
 }
@@ -63,7 +79,7 @@ export function RecordStrip({ s, className, animate = false }: { s: SeasonSummar
   return (
     <div className={className}>
       <dl className="grid grid-cols-4 divide-x divide-ink/10 text-center">
-        {cells.map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k}</dt><dd className="display tabular text-4xl leading-none text-ink sm:text-5xl">{animate ? <CountUp value={v} /> : v}</dd></div>)}
+        {cells.map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k}</dt><dd className="display text-4xl leading-none text-ink sm:text-5xl">{animate ? <CountUp value={v} /> : v}</dd></div>)}
       </dl>
       <p className="border-t border-ink/10 px-4 py-2.5 text-center text-xs text-muted">Scored <span className="font-medium text-ink">{s.goalsFor}</span> · Conceded <span className="font-medium text-ink">{s.goalsAgainst}</span> · Difference <span className="font-medium text-ink">{signed(s.goalsFor - s.goalsAgainst)}</span> · <span className="font-medium text-ink">{ppg(s).toFixed(2)}</span> points a game</p>
     </div>
@@ -85,7 +101,7 @@ export function Shirt({ number, name, className }: { number: number | null; name
 
 export function ResultPill({ result, className, size = "md" }: { result: Result | null; className?: string; size?: "sm" | "md" | "lg" }) {
   const r = result ?? "X";
-  return <span className={clsx("chip justify-center font-bold", `result-${r}`, size === "sm" && "h-6 w-6 !p-0 text-[11px]", size === "md" && "h-7 w-7 !p-0 text-xs", size === "lg" && "h-9 w-9 !p-0 text-sm", className)} aria-label={result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "Not played"}>{r === "X" ? "–" : r}</span>;
+  return <span className={clsx("chip justify-center font-sans font-bold", `result-${r}`, size === "sm" && "h-6 w-6 !p-0 text-[11px]", size === "md" && "h-7 w-7 !p-0 text-xs", size === "lg" && "h-9 w-9 !p-0 text-sm", className)} aria-label={result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "Not played"}>{r === "X" ? "–" : r}</span>;
 }
 
 export function FormStrip({ matches, size = "md" }: { matches: (Match | MatchLite)[]; size?: "sm" | "md" }) {
@@ -143,7 +159,7 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match | MatchLit
           {m.motm && <span className="hidden text-gold sm:inline"> · ★ {m.motm}</span>}
         </div>
       </div>
-      <span className="display tabular text-right text-3xl leading-none text-ink">{m.played ? `${m.ourGoals}–${m.theirGoals}` : <span className="font-sans text-sm text-muted">{rel ?? m.kickOff ?? "TBC"}{rel && m.kickOff && <span className="block text-[11px] text-muted/80">{m.kickOff}</span>}</span>}</span>
+      <span className="tabular text-right text-2xl font-semibold leading-none tracking-tight text-ink">{m.played ? `${m.ourGoals}–${m.theirGoals}` : <span className="font-sans text-sm text-muted">{rel ?? m.kickOff ?? "TBC"}{rel && m.kickOff && <span className="block text-[11px] text-muted">{m.kickOff}</span>}</span>}</span>
     </Link>
   );
 }
@@ -169,7 +185,7 @@ export function LeaderList({ items, color = "bg-accent", format = (v: number) =>
             <span className="tabular w-4 shrink-0 text-xs font-semibold text-muted">{i + 1}</span>
             <Avatar name={x.player.name} photo={x.player.extra.photo} size={28} />
             <PlayerLink name={x.player.name} player={x.player} className="min-w-0 truncate text-sm" />
-            <span className="display tabular ml-auto shrink-0 text-2xl leading-none text-ink">{format(x.value)}</span>
+            <span className="tabular ml-auto shrink-0 text-lg font-semibold text-ink">{format(x.value)}</span>
           </span>
         </li>
       ))}

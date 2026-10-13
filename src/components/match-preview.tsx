@@ -40,7 +40,7 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
             <li key={o.key}>
               <div className="flex items-baseline justify-between gap-2">
                 <span className="eyebrow">{o.label}</span>
-                <span className="display tabular text-2xl leading-none text-ink">{v}%</span>
+                <span className="display text-2xl leading-none text-ink">{v}%</span>
               </div>
               <div className="mt-1 h-2 overflow-hidden rounded-full bg-ink/[0.06]" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={v} aria-label={`${o.label}: ${v}%`}>
                 <div className={clsx("h-full rounded-full", o.bar)} style={{ width: `${Math.max(v, 1)}%` }} />
@@ -51,8 +51,8 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
       </ul>
 
       <dl className="mt-5 grid grid-cols-2 gap-2 text-center">
-        <div className="flex flex-col-reverse rounded-lg bg-sunken/60 px-2 py-3"><dt className="eyebrow mt-1">Expected for</dt><dd className="display tabular text-3xl leading-none text-ink">{p.expectedFor.toFixed(1)}</dd></div>
-        <div className="flex flex-col-reverse rounded-lg bg-sunken/60 px-2 py-3"><dt className="eyebrow mt-1">Expected against</dt><dd className="display tabular text-3xl leading-none text-ink">{p.expectedAgainst.toFixed(1)}</dd></div>
+        <div className="rounded-lg bg-sunken/60 px-2 py-3"><dt className="eyebrow">xG for</dt><dd className="display mt-1.5 text-3xl leading-none text-ink">{p.expectedFor.toFixed(1)}</dd></div>
+        <div className="rounded-lg bg-sunken/60 px-2 py-3"><dt className="eyebrow">xG against</dt><dd className="display mt-1.5 text-3xl leading-none text-ink">{p.expectedAgainst.toFixed(1)}</dd></div>
       </dl>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
@@ -78,7 +78,7 @@ export function MatchPreview({ data, match }: { data: ClubData; match: Match }) 
         )}
       </div>
 
-      <p className="mt-4 text-xs text-muted/70">A Poisson model of recent scoring rates.</p>
+      <p className="mt-4 text-xs text-muted">A Poisson model of recent scoring rates.</p>
     </div>
   );
 }

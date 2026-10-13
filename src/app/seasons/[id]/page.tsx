@@ -104,7 +104,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
           <Stat label="Scored" value={s.summary.goalsFor} />
           <Stat label="Conceded" value={s.summary.goalsAgainst} />
           <Stat label="Difference" value={signed(diff)} />
-          <Stat label="Points a game" value={ppg(s.summary).toFixed(2)} />
+          <Stat label="Per game" value={ppg(s.summary).toFixed(2)} />
         </div>
       </section>
 

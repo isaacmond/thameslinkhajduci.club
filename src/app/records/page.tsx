@@ -1,29 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import clsx from "clsx";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import type { Streak } from "@/lib/stats";
 import { currentStreak, fmtDate, playedMatches, ppg, records, scoreline } from "@/lib/stats";
-import { PageHeader, PlayerLink, SectionTitle } from "@/components/ui";
+import { PageHeader, PlayerLink, RecordCard, SectionTitle } from "@/components/ui";
 import { PageTransition } from "@/components/page-transition";
 
 export const metadata: Metadata = { title: "Records", description: "Thameslink Hajduci club records: biggest wins, longest runs, hat-tricks and more." };
 
-function Card({ label, value, sub, href }: { label: string; value: React.ReactNode; sub?: React.ReactNode; href?: string }) {
-  const head = (
-    <>
-      <span className="eyebrow block min-h-[2lh] leading-snug">{label}</span>
-      <span className="display tabular mt-3 block whitespace-nowrap text-[2.75rem] leading-none text-ink">{value}</span>
-    </>
-  );
-  return (
-    <div className={clsx("card h-full p-6", href && "transition-shadow hover:shadow-lg")}>
-      {href ? <Link href={href} className="focus-ring block rounded-lg">{head}</Link> : head}
-      {sub && <p className="mt-2 text-sm text-muted">{sub}</p>}
-    </div>
-  );
-}
 const season = (id: string) => (id === "FR" ? "Friendly" : `Season ${id.replace(/^S/, "")}`);
 const matchSub = (m: Match) => <>v {m.opponent} · <span className="nowrap">{fmtDate(m.date)}</span></>;
 const streakSub = (s: Streak) => <><span className="nowrap">{fmtDate(s.start.date, { day: "numeric", month: "short", year: "numeric" })}</span> to <span className="nowrap">{fmtDate(s.end.date, { day: "numeric", month: "short", year: "numeric" })}</span></>;
@@ -51,37 +36,37 @@ export default async function RecordsPage() {
 
       <section><SectionTitle>Team</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {r.biggestWin && <Card label="Biggest win" value={scoreline(r.biggestWin)} sub={matchSub(r.biggestWin)} href={`/matches/${r.biggestWin.id}`} />}
-          {r.heaviestDefeat && <Card label="Heaviest defeat" value={scoreline(r.heaviestDefeat)} sub={matchSub(r.heaviestDefeat)} href={`/matches/${r.heaviestDefeat.id}`} />}
-          {r.highestScoring && <Card label="Highest-scoring match" value={`${r.highestScoring.ourGoals! + r.highestScoring.theirGoals!} goals`} sub={<>{scoreline(r.highestScoring)} {matchSub(r.highestScoring)}</>} href={`/matches/${r.highestScoring.id}`} />}
-          {r.mostGoalsScored && <Card label="Most goals scored" value={r.mostGoalsScored.ourGoals} sub={<>{scoreline(r.mostGoalsScored)} {matchSub(r.mostGoalsScored)}</>} href={`/matches/${r.mostGoalsScored.id}`} />}
-          {r.mostConceded && <Card label="Most conceded" value={r.mostConceded.theirGoals} sub={<>{scoreline(r.mostConceded)} {matchSub(r.mostConceded)}</>} href={`/matches/${r.mostConceded.id}`} />}
-          <Card label="Clean sheets" value={r.cleanSheets.length} sub={r.cleanSheets.length ? <>{r.cleanSheets.slice(0, 3).map((m) => <Link key={m.id} href={`/matches/${m.id}`} className="mr-2 text-muted transition-colors hover:text-accent">{scoreline(m)} v {m.opponent}</Link>)}</> : undefined} />
-          {best && <Card label="Best season" value={season(best.id)} sub={<>{ppg(best.summary).toFixed(2)} points a game · won {best.summary.won}, drew {best.summary.drawn}, lost {best.summary.lost}</>} href={`/seasons/${best.id.toLowerCase()}`} />}
-          {worst && <Card label="Toughest season" value={season(worst.id)} sub={<>{ppg(worst.summary).toFixed(2)} points a game · won {worst.summary.won}, drew {worst.summary.drawn}, lost {worst.summary.lost}</>} href={`/seasons/${worst.id.toLowerCase()}`} />}
+          {r.biggestWin && <RecordCard label="Biggest win" value={scoreline(r.biggestWin)} sub={matchSub(r.biggestWin)} href={`/matches/${r.biggestWin.id}`} />}
+          {r.heaviestDefeat && <RecordCard label="Heaviest defeat" value={scoreline(r.heaviestDefeat)} sub={matchSub(r.heaviestDefeat)} href={`/matches/${r.heaviestDefeat.id}`} />}
+          {r.highestScoring && <RecordCard label="Highest-scoring match" value={<>{r.highestScoring.ourGoals! + r.highestScoring.theirGoals!} <span className="text-2xl text-muted">goals</span></>} sub={<>{scoreline(r.highestScoring)} {matchSub(r.highestScoring)}</>} href={`/matches/${r.highestScoring.id}`} />}
+          {r.mostGoalsScored && <RecordCard label="Most goals scored" value={r.mostGoalsScored.ourGoals} sub={<>{scoreline(r.mostGoalsScored)} {matchSub(r.mostGoalsScored)}</>} href={`/matches/${r.mostGoalsScored.id}`} />}
+          {r.mostConceded && <RecordCard label="Most goals conceded" value={r.mostConceded.theirGoals} sub={<>{scoreline(r.mostConceded)} {matchSub(r.mostConceded)}</>} href={`/matches/${r.mostConceded.id}`} />}
+          <RecordCard label="Clean sheets" value={r.cleanSheets.length} sub={r.cleanSheets.length ? <>{r.cleanSheets.slice(0, 3).map((m) => <Link key={m.id} href={`/matches/${m.id}`} className="mr-2 text-muted transition-colors hover:text-accent">{scoreline(m)} v {m.opponent}</Link>)}</> : undefined} />
+          {best && <RecordCard label="Best season" value={season(best.id)} sub={<>{ppg(best.summary).toFixed(2)} points a game · won {best.summary.won}, drew {best.summary.drawn}, lost {best.summary.lost}</>} href={`/seasons/${best.id.toLowerCase()}`} />}
+          {worst && <RecordCard label="Toughest season" value={season(worst.id)} sub={<>{ppg(worst.summary).toFixed(2)} points a game · won {worst.summary.won}, drew {worst.summary.drawn}, lost {worst.summary.lost}</>} href={`/seasons/${worst.id.toLowerCase()}`} />}
         </div>
       </section>
 
       <section><SectionTitle>Runs</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          {r.longestWin && <Card label="Longest winning run" value={<>{r.longestWin.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWin)} />}
-          {r.longestUnbeaten && <Card label="Longest unbeaten run" value={<>{r.longestUnbeaten.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestUnbeaten)} />}
-          {r.longestLosing && <Card label="Longest losing run" value={<>{r.longestLosing.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestLosing)} />}
-          {r.longestWinless && <Card label="Longest winless run" value={<>{r.longestWinless.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWinless)} />}
-          {cur && <Card label="Current run" value={<>{cur.length} <span className="text-2xl text-muted">{cur.type === "W" ? "win" : cur.type === "L" ? "defeat" : "draw"}{cur.length === 1 ? "" : "s"}</span></>} sub="Most recent league results" />}
+          {r.longestWin && <RecordCard label="Longest winning run" value={<>{r.longestWin.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWin)} />}
+          {r.longestUnbeaten && <RecordCard label="Longest unbeaten run" value={<>{r.longestUnbeaten.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestUnbeaten)} />}
+          {r.longestLosing && <RecordCard label="Longest losing run" value={<>{r.longestLosing.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestLosing)} />}
+          {r.longestWinless && <RecordCard label="Longest winless run" value={<>{r.longestWinless.length} <span className="text-2xl text-muted">matches</span></>} sub={streakSub(r.longestWinless)} />}
+          {cur && <RecordCard label="Current run" value={<>{cur.length} <span className="text-2xl text-muted">{cur.type === "W" ? "win" : cur.type === "L" ? "defeat" : "draw"}{cur.length === 1 ? "" : "s"}</span></>} sub="Most recent league results" />}
           
         </div>
       </section>
 
       <section><SectionTitle>Players</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {mostGoalsSeason && <Card label="Most goals in a season" value={mostGoalsSeason.goals} sub={<><PlayerLink name={mostGoalsSeason.player.name} player={mostGoalsSeason.player} /> · {season(mostGoalsSeason.seasonId)}</>} />}
-          {mostAppsSeason && <Card label="Most appearances in a season" value={mostAppsSeason.apps} sub={<><PlayerLink name={mostAppsSeason.player.name} player={mostAppsSeason.player} /> · {season(mostAppsSeason.seasonId)}</>} />}
-          {mostAssistsSeason && mostAssistsSeason.assists > 0 && <Card label="Most assists in a season" value={mostAssistsSeason.assists} sub={<><PlayerLink name={mostAssistsSeason.player.name} player={mostAssistsSeason.player} /> · {season(mostAssistsSeason.seasonId)}</>} />}
-          {motmKing && motmKing.motm > 0 && <Card label="Most man of the match awards" value={motmKing.motm} sub={<PlayerLink name={motmKing.name} player={motmKing} />} />}
-                    {mostLosses && <Card label="Most defeats played in" value={mostLosses.losses} sub={<PlayerLink name={mostLosses.name} player={mostLosses} />} />}
-          {r.hatTricks[0] && <Card label="Most goals in a match" value={r.hatTricks[0].goals} sub={<><PlayerLink name={r.hatTricks[0].player} player={byName.get(r.hatTricks[0].player)} /> v {r.hatTricks[0].match.opponent}</>} href={`/matches/${r.hatTricks[0].match.id}`} />}
-          <Card label="Hat-tricks" value={r.hatTricks.length} sub={r.hatTricks.length ? `by ${hatTrickPlayers} player${hatTrickPlayers === 1 ? "" : "s"}` : "None yet"} />
+          {mostGoalsSeason && <RecordCard label="Most goals in a season" value={mostGoalsSeason.goals} sub={<><PlayerLink name={mostGoalsSeason.player.name} player={mostGoalsSeason.player} /> · {season(mostGoalsSeason.seasonId)}</>} />}
+          {mostAppsSeason && <RecordCard label="Most appearances in a season" value={mostAppsSeason.apps} sub={<><PlayerLink name={mostAppsSeason.player.name} player={mostAppsSeason.player} /> · {season(mostAppsSeason.seasonId)}</>} />}
+          {mostAssistsSeason && mostAssistsSeason.assists > 0 && <RecordCard label="Most assists in a season" value={mostAssistsSeason.assists} sub={<><PlayerLink name={mostAssistsSeason.player.name} player={mostAssistsSeason.player} /> · {season(mostAssistsSeason.seasonId)}</>} />}
+          {motmKing && motmKing.motm > 0 && <RecordCard label="Most man of the match awards" value={motmKing.motm} sub={<PlayerLink name={motmKing.name} player={motmKing} />} />}
+                    {mostLosses && <RecordCard label="Most defeats played in" value={mostLosses.losses} sub={<PlayerLink name={mostLosses.name} player={mostLosses} />} />}
+          {r.hatTricks[0] && <RecordCard label="Most goals in a match" value={r.hatTricks[0].goals} sub={<><PlayerLink name={r.hatTricks[0].player} player={byName.get(r.hatTricks[0].player)} /> v {r.hatTricks[0].match.opponent}</>} href={`/matches/${r.hatTricks[0].match.id}`} />}
+          <RecordCard label="Hat-tricks" value={r.hatTricks.length} sub={r.hatTricks.length ? `by ${hatTrickPlayers} player${hatTrickPlayers === 1 ? "" : "s"}` : "None yet"} />
         </div>
       </section>
 

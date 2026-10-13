@@ -4,7 +4,7 @@ import { getData } from "@/lib/data";
 import { chronological, fmtDate, form, gwLabel, lastResult, leaderboard, type MilestoneKind, nextFixture, recentPlayers, records, scoreline, seasonHref, seasonPlayers, upcomingMilestones } from "@/lib/stats";
 import { insights, pickInsights } from "@/lib/insights";
 import { londonEpoch, londonToday } from "@/lib/time";
-import { Avatar, Crest, FormStrip, LeaderList, MatchRow, PlayerLink, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { Avatar, Crest, FormStrip, LeaderList, MatchRow, PlayerLink, RecordCard, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { TeamBadge } from "@/components/team-badge";
 import { Countdown } from "@/components/countdown";
 import { PageTransition } from "@/components/page-transition";
@@ -70,8 +70,8 @@ export default async function Home() {
               <span className="min-h-6 flex-1" aria-hidden />
               <div className="flex items-end justify-between gap-4 border-t border-ink/10 pt-5">
                 <div>
-                  <p className="eyebrow !text-[10px]">Kick-off in</p>
-                  {kickoff !== null ? <Countdown target={kickoff} className="display mt-1 text-3xl text-ink" /> : <p className="display mt-1 text-3xl text-ink">TBC</p>}
+                  <p className="eyebrow">Kick-off in</p>
+                  {kickoff !== null ? <Countdown target={kickoff} className="tabular mt-1 text-3xl font-semibold tracking-tight text-ink" /> : <p className="display mt-1 text-3xl text-ink">TBC</p>}
                 </div>
                 <span className="inline-flex items-center gap-1 text-sm font-medium text-accent">Match details <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" aria-hidden /></span>
               </div>
@@ -79,12 +79,12 @@ export default async function Home() {
           )}
           {last && (
             <Link href={`/matches/${last.id}`} className="focus-ring card group flex flex-col p-6 transition-shadow hover:shadow-lg">
-              <p className="eyebrow flex items-center justify-between gap-2"><span>Latest result</span><span className="font-medium normal-case tracking-normal">{fmtDate(last.date, { weekday: "short", day: "numeric", month: "short" })}</span></p>
+              <p className="eyebrow">Latest result</p>
               <div className="mt-5 flex items-center gap-4">
                 <ResultPill result={last.result} size="lg" />
                 <div className="min-w-0">
                   <p className="display text-[2rem] leading-tight text-ink"><span className="tabular">{scoreline(last)}</span> <span className="text-muted">v</span> {last.opponent}</p>
-                  <p className="text-sm text-muted">{last.seasonId === "FR" ? "Friendly" : `Season ${last.seasonNumber} · ${gwLabel(last)}`}</p>
+                  <p className="text-sm text-muted">{last.seasonId === "FR" ? "Friendly" : `Season ${last.seasonNumber} · ${gwLabel(last)}`} · {fmtDate(last.date, { weekday: "short", day: "numeric", month: "short" })}</p>
                 </div>
               </div>
               <span className="min-h-6 flex-1" aria-hidden />
@@ -107,8 +107,8 @@ export default async function Home() {
             </header>
             <RecordStrip s={current.summary} animate />
             <div className="grid grid-cols-1 gap-6 border-t border-ink/10 p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <div><p className="eyebrow mb-3">Appearances</p><LeaderList items={sApps} color="bg-ink" emptyText="The season hasn't started yet" /></div>
-              <div><p className="eyebrow mb-3">Goals</p><LeaderList items={sScorers} emptyText="No goals yet this season" /></div>
+              <div><p className="eyebrow mb-3">Most appearances</p><LeaderList items={sApps} color="bg-ink" emptyText="The season hasn't started yet" /></div>
+              <div><p className="eyebrow mb-3">Top scorers</p><LeaderList items={sScorers} emptyText="No goals yet this season" /></div>
             </div>
           </article>
         )}
@@ -168,8 +168,8 @@ export default async function Home() {
                       <span className="block text-xs text-muted">{ms.away} {KIND[ms.kind][ms.away === 1 ? 0 : 1]} to go</span>
                     </span>
                     <span className="shrink-0 text-right leading-none">
-                      <span className="display tabular block text-3xl leading-none text-ink">{ms.target}</span>
-                      <span className="eyebrow !text-[9px] !tracking-[0.1em]">{KIND_LABEL[ms.kind]}</span>
+                      <span className="display block text-3xl leading-none text-ink">{ms.target}</span>
+                      <span className="eyebrow eyebrow-sm">{KIND_LABEL[ms.kind]}</span>
                     </span>
                   </li>
                 ))}
@@ -182,9 +182,9 @@ export default async function Home() {
       <section>
         <SectionTitle right={<Link href="/records" className="link text-sm">All records</Link>}>Records</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {rec.biggestWin && <Link href={`/matches/${rec.biggestWin.id}`} className="focus-ring card group p-6 transition-shadow hover:shadow-lg"><p className="eyebrow">Biggest win</p><p className="display tabular mt-3 text-5xl leading-none text-ink">{scoreline(rec.biggestWin)}</p><p className="mt-2 text-sm text-muted">v {rec.biggestWin.opponent} · {fmtDate(rec.biggestWin.date)}</p></Link>}
-          {rec.heaviestDefeat && <Link href={`/matches/${rec.heaviestDefeat.id}`} className="focus-ring card group p-6 transition-shadow hover:shadow-lg"><p className="eyebrow">Heaviest defeat</p><p className="display tabular mt-3 text-5xl leading-none text-ink">{scoreline(rec.heaviestDefeat)}</p><p className="mt-2 text-sm text-muted">v {rec.heaviestDefeat.opponent} · {fmtDate(rec.heaviestDefeat.date)}</p></Link>}
-          {rec.longestUnbeaten && <Link href="/records" className="focus-ring card group p-6 transition-shadow hover:shadow-lg"><p className="eyebrow">Longest unbeaten run</p><p className="display tabular mt-3 text-5xl leading-none text-ink">{rec.longestUnbeaten.length} <span className="text-3xl text-muted">matches</span></p><p className="mt-2 text-sm text-muted">{fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} to {fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}</p></Link>}
+          {rec.biggestWin && <RecordCard compact label="Biggest win" value={scoreline(rec.biggestWin)} sub={`v ${rec.biggestWin.opponent} · ${fmtDate(rec.biggestWin.date)}`} href={`/matches/${rec.biggestWin.id}`} />}
+          {rec.heaviestDefeat && <RecordCard compact label="Heaviest defeat" value={scoreline(rec.heaviestDefeat)} sub={`v ${rec.heaviestDefeat.opponent} · ${fmtDate(rec.heaviestDefeat.date)}`} href={`/matches/${rec.heaviestDefeat.id}`} />}
+          {rec.longestUnbeaten && <RecordCard compact label="Longest unbeaten run" value={<>{rec.longestUnbeaten.length} <span className="text-2xl text-muted">matches</span></>} sub={`${fmtDate(rec.longestUnbeaten.start.date, { month: "short", year: "numeric" })} to ${fmtDate(rec.longestUnbeaten.end.date, { month: "short", year: "numeric" })}`} href="/records" />}
         </div>
       </section>
 

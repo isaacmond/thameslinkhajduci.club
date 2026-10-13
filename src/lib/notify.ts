@@ -23,12 +23,12 @@ export async function emailSubmission(input: { subject: string; text: string; su
     : `Submitted by ${esc(input.submittedBy)}. Nothing changes on the site until you apply this.`;
   const html = `<!doctype html><html><body style="margin:0;background:#f5f1e8;color:#17221b;font-family:Inter,system-ui,sans-serif">
   <div style="max-width:640px;margin:0 auto;padding:28px 20px">
-    <p style="margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#64716a">${label} ${state} · Thameslink Hajduci</p>
+    <p style="margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6861">${label} ${state} · Thameslink Hajduci</p>
     <h1 style="margin:0 0 14px;font-family:'Instrument Serif',Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.1">${esc(input.summary)}</h1>
     <pre style="white-space:pre-wrap;background:#fffcf6;border:1px solid rgba(23,34,27,.12);border-radius:10px;padding:14px;font-size:13px;line-height:1.5;color:#17221b">${esc(details)}</pre>
     ${cta}
-    ${input.extra ? `<hr style="margin:26px 0;border:0;border-top:1px solid rgba(23,34,27,.12)"><p style="margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#64716a">${esc(input.extra.title)}</p>${input.extra.html}` : ""}
-    <p style="margin:18px 0 0;font-size:12px;color:#64716a">${footer}</p>
+    ${input.extra ? `<hr style="margin:26px 0;border:0;border-top:1px solid rgba(23,34,27,.12)"><p style="margin:0 0 6px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b6861">${esc(input.extra.title)}</p>${input.extra.html}` : ""}
+    <p style="margin:18px 0 0;font-size:12px;color:#5b6861">${footer}</p>
   </div></body></html>`;
   const text = input.extra ? `${input.text}\n\n— ${input.extra.title} —\n${input.extra.text}` : input.text;
   try {

@@ -44,7 +44,7 @@ export default async function SeasonsPage() {
                   <div className="relative z-10 mt-2 w-fit"><FormStrip matches={form(s.matches, 8)} size="sm" /></div>
                 </div>
                 <dl className="grid grid-cols-4 gap-x-2 text-center sm:grid-cols-7 lg:w-[23rem]">
-                  {([["P", s.summary.played], ["W", s.summary.won], ["D", s.summary.drawn], ["L", s.summary.lost], ["F", s.summary.goalsFor], ["A", s.summary.goalsAgainst], ["GD", signed(gd)]] as [string, number | string][]).map(([k, v]) => <div key={k}><dd className="display tabular text-2xl text-ink">{v}</dd><dt className="text-[10px] font-semibold uppercase tracking-wider text-muted">{k}</dt></div>)}
+                  {([["P", s.summary.played], ["W", s.summary.won], ["D", s.summary.drawn], ["L", s.summary.lost], ["F", s.summary.goalsFor], ["A", s.summary.goalsAgainst], ["GD", signed(gd)]] as [string, number | string][]).map(([k, v]) => <div key={k}><dd className="display text-2xl text-ink">{v}</dd><dt className="eyebrow eyebrow-sm">{k}</dt></div>)}
                 </dl>
                 <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end"><span className="text-xs text-muted">{ppg(s.summary).toFixed(2)} points a game</span><ArrowRight className="text-muted transition-transform group-hover:translate-x-1 group-hover:text-ink" aria-hidden /></div>
               </article>

@@ -79,7 +79,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
 
       <section aria-label="Career totals">
         <dl className="card grid grid-cols-4 divide-x divide-ink/10 text-center">
-          {([["Appearances", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["Won", `${Math.round(p.winRate)}%`]] as [string, number | string][]).map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k === "Appearances" ? <><span className="sm:hidden">Apps</span><span className="hidden sm:inline">Appearances</span></> : k}</dt><dd className="display tabular text-4xl leading-none text-ink sm:text-5xl">{v}</dd></div>)}
+          {([["Appearances", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["Won", `${Math.round(p.winRate)}%`]] as [string, number | string][]).map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k === "Appearances" ? <><span className="sm:hidden">Apps</span><span className="hidden sm:inline">Appearances</span></> : k}</dt><dd className="display text-4xl leading-none text-ink sm:text-5xl">{v}</dd></div>)}
         </dl>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat size="sm" label="Goals a game" value={p.goalsPerGame.toFixed(2)} sub={`over ${p.gpgGames} match${p.gpgGames === 1 ? "" : "es"} with scorers recorded`} />
@@ -94,19 +94,19 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
         <FormStrip matches={lastEight} />
         <dl className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {p.goals === 0 ? (
-            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Goals</dt><dd className="display tabular text-4xl leading-none text-ink">0<span className="mt-1 block font-sans text-xs text-muted">No goals yet</span></dd></div>
+            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Goals</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">0</dd><dd className="mt-1.5 text-xs text-muted">No goals yet</dd></div>
           ) : st.scoringRun > 0 ? (
-            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Scoring run</dt><dd className="display tabular text-4xl leading-none text-ink">{st.scoringRun}<span className="mt-1 block font-sans text-xs text-muted">{st.scoringRun === 1 ? "match" : "matches in a row"} with a goal · best {st.longestScoringRun}</span></dd></div>
+            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Scoring run</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.scoringRun}</dd><dd className="mt-1.5 text-xs text-muted">{st.scoringRun === 1 ? "match" : "matches in a row"} with a goal · best {st.longestScoringRun}</dd></div>
           ) : (
-            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Since last goal</dt><dd className="display tabular text-4xl leading-none text-ink">{st.drought}<span className="mt-1 block font-sans text-xs text-muted">{st.drought === 1 ? "match" : "matches"} · best scoring run {st.longestScoringRun}</span></dd></div>
+            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Since last goal</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.drought}</dd><dd className="mt-1.5 text-xs text-muted">{st.drought === 1 ? "match" : "matches"} · best scoring run {st.longestScoringRun}</dd></div>
           )}
           {showUnbeaten ? (
-            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Unbeaten run</dt><dd className="display tabular text-4xl leading-none text-ink">{st.unbeatenRun}<span className="mt-1 block font-sans text-xs text-muted">{st.unbeatenRun === 1 ? "match" : "matches"} without defeat</span></dd></div>
+            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Unbeaten run</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.unbeatenRun}</dd><dd className="mt-1.5 text-xs text-muted">{st.unbeatenRun === 1 ? "match" : "matches"} without defeat</dd></div>
           ) : (
-            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Since last win</dt><dd className="display tabular text-4xl leading-none text-ink">{st.winlessRun}<span className="mt-1 block font-sans text-xs text-muted">{st.lastWin ? <>{st.winlessRun === 1 ? "match" : "matches"} · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} v {st.lastWin.opponent}</Link></> : st.winlessRun > 0 ? "matches" : "No matches yet"}</span></dd></div>
+            <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Since last win</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{st.winlessRun}</dd><dd className="mt-1.5 text-xs text-muted">{st.lastWin ? <>{st.winlessRun === 1 ? "match" : "matches"} · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} v {st.lastWin.opponent}</Link></> : st.winlessRun > 0 ? "matches" : "No matches yet"}</dd></div>
           )}
-          <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Attendance</dt><dd className="display tabular text-4xl leading-none text-ink">{att.possible ? `${att.pct}%` : "–"}<span className="mt-1 block font-sans text-xs text-muted">{att.possible ? `${att.apps} of ${att.possible} matches` : "Not yet on a season squad"}</span></dd></div>
-          <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Goals in wins</dt><dd className="display tabular text-4xl leading-none text-ink">{gc.inWins}<span className="mt-1 block font-sans text-xs text-muted">{p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats` : "No goals yet"}</span></dd></div>
+          <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Attendance</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{att.possible ? `${att.pct}%` : "–"}</dd><dd className="mt-1.5 text-xs text-muted">{att.possible ? `${att.apps} of ${att.possible} matches` : "Not yet on a season squad"}</dd></div>
+          <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Goals in wins</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{gc.inWins}</dd><dd className="mt-1.5 text-xs text-muted">{p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats` : "No goals yet"}</dd></div>
         </dl>
         {notes.length > 0 && (
           <ul className="mt-5 space-y-1.5 border-t border-ink/8 pt-4 text-sm text-muted" aria-label="Notes">
@@ -120,8 +120,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           <div className="card p-6">
             <SectionTitle sub="How often the team wins with and without them">With and without</SectionTitle>
             <dl className="grid grid-cols-2 gap-3 text-center">
-              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">With {first}</dt><dd className="display tabular text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withGames} matches<span className="mt-0.5 block">Goal difference {imp.gdWith ?? "–"} a game</span></span></dd></div>
-              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Without</dt><dd className="display tabular text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withoutGames} matches<span className="mt-0.5 block">Goal difference {imp.gdWithout ?? "–"} a game</span></span></dd></div>
+              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">With {first}</dt><dd className="display mt-1.5 text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withGames} matches<span className="mt-0.5 block">Goal difference {imp.gdWith ?? "–"} a game</span></dd></div>
+              <div className="rounded-xl bg-sunken/60 p-4"><dt className="eyebrow">Without</dt><dd className="display mt-1.5 text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%</dd><dd className="mt-1.5 text-xs text-muted">won, from {imp.withoutGames} matches<span className="mt-0.5 block">Goal difference {imp.gdWithout ?? "–"} a game</span></dd></div>
             </dl>
             {delta !== null && imp.withGames >= 3 && imp.withoutGames >= 3 && (
               <p className="mt-3 text-sm text-muted">{Math.abs(delta) > 5 ? <>The team&apos;s win rate is {Math.abs(delta)} points {delta > 0 ? "higher" : "lower"} with {first} playing.</> : <>About the same either way.</>}</p>

@@ -12,4 +12,4 @@ export async function serifFont(): Promise<ArrayBuffer | null> {
 export const ogFonts = (data: ArrayBuffer | null) => (data ? { fonts: [{ name: "Instrument Serif", data, style: "normal" as const, weight: 400 as const }] } : {});
 export const display = (data: ArrayBuffer | null) => (data ? '"Instrument Serif", Georgia, serif' : "Georgia, serif");
 /** The share-image palette: the site's light theme. */
-export const OG = { paper: "#f5f1e8", surface: "#fffcf6", ink: "#17221b", muted: "#64716a", accent: "#1f5135", gold: "#9c7210", line: "rgba(23,34,27,0.12)", win: "#1d7244", draw: "#8c6400", loss: "#ad3530" } as const;
+export const OG = { paper: "#f5f1e8", surface: "#fffcf6", ink: "#17221b", muted: "#5b6861", accent: "#1f5135", gold: "#856109", line: "rgba(23,34,27,0.12)", win: "#1d7244", draw: "#7a5700", loss: "#ad3530" } as const;

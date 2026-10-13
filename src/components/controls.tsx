@@ -2,7 +2,7 @@
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
 
-export const inputClass = "control focus-ring w-full rounded-lg border border-ink/15 bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted/70";
+export const inputClass = "control focus-ring w-full rounded-lg border border-ink/15 bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted";
 
 export function Switch({ checked, onChange, label, className }: { checked: boolean; onChange: (v: boolean) => void; label: React.ReactNode; className?: string }) {
   return (
