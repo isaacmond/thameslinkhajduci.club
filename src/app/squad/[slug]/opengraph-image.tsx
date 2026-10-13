@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 import { getData } from "@/lib/data";
 import { display, OG, ogFonts, serifFont } from "@/lib/og-font";
+import { fmtDate } from "@/lib/stats";
 
 export const alt = "Player card";
 export const revalidate = 3600;
@@ -52,7 +53,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontSize: 110, lineHeight: 0.95, fontFamily: display(font) }}>{p?.name ?? "Player"}</div>
-            <div style={{ marginTop: 18, fontSize: 28, color: OG.accent }}>{p?.extra.bio ?? `Debut ${p?.debut ?? "TBC"}${p?.extra.shirt !== null && p?.extra.shirt !== undefined ? ` · Number ${p.extra.shirt}` : ""}`}</div>
+            <div style={{ marginTop: 18, fontSize: 28, color: OG.accent }}>{p?.extra.bio ?? `Debut ${p?.debut ? fmtDate(p.debut, { month: "short", year: "numeric" }) : "TBC"}${p?.extra.shirt !== null && p?.extra.shirt !== undefined ? ` · Number ${p.extra.shirt}` : ""}`}</div>
           </div>
           <div style={{ display: "flex", gap: 48, borderTop: `1px solid ${OG.line}`, paddingTop: 28 }}>
             {stats.map(([k, v]) => <div key={k} style={{ display: "flex", flexDirection: "column" }}><div style={{ fontSize: 80, lineHeight: 1, fontFamily: display(font) }}>{v}</div><div style={{ fontSize: 18, letterSpacing: 4, color: OG.muted, textTransform: "uppercase", marginTop: 6 }}>{k}</div></div>)}

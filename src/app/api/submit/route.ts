@@ -123,7 +123,7 @@ export async function POST(req: Request) {
   const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/admin` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
   const text = `${built.text}\n\n${status}${motm ? `\n${motm}` : ""}`;
   const subject = (applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject) + (held.length ? " · your man of the match ballot inside" : "");
-  const extra = held.length ? { title: held.length === 1 ? `Your man-of-the-match ballot, ${held[0].player.split(" ")[0]}` : "Man-of-the-match ballots", html: held.map((h) => h.body.html).join('<hr style="margin:22px 0;border:0;border-top:1px solid rgba(255,255,255,.12)">'), text: held.map((h) => h.body.text).join("\n\n") } : undefined;
+  const extra = held.length ? { title: held.length === 1 ? `Your man-of-the-match ballot, ${held[0].player.split(" ")[0]}` : "Man-of-the-match ballots", html: held.map((h) => h.body.html).join('<hr style="margin:22px 0;border:0;border-top:1px solid rgba(23,34,27,.12)">'), text: held.map((h) => h.body.text).join("\n\n") } : undefined;
 
   const hook = process.env.SCORE_WEBHOOK_URL;
   const [emailed, hooked] = canNotify
