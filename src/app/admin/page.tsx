@@ -12,6 +12,7 @@ import { fmtDate, gwLabel } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { PageHeader, SectionTitle } from "@/components/ui";
 import { PendingAdmin, type PendingItem } from "@/components/pending-admin";
+import { PlayersAdmin } from "@/components/players-admin";
 import { MembersAdmin } from "@/components/members-admin";
 import { FixturesAdmin } from "@/components/fixtures-admin";
 import { SquadAdmin } from "@/components/squad-admin";
@@ -67,7 +68,7 @@ export default async function AdminPage() {
     <div className="space-y-8">
       <PageHeader eyebrow="Club admin" title="Admin" sub="Approvals, the team sheet, the man of the match vote, members and fixtures. Changes appear on the site within a minute." right={<Link href="/account" className={btn("secondary")}>Your account</Link>} />
       <nav aria-label="Admin sections" className="flex flex-wrap gap-2 text-sm">
-        {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip focus-ring hover:border-ink/30">{label}</a>)}
+        {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#players", "Players"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip focus-ring hover:border-ink/30">{label}</a>)}
       </nav>
       <section id="pending" className="card scroll-mt-24 p-5 sm:p-6">
         <SectionTitle sub="Results, payments and new players sent in by people who were not signed in. Recording one writes it into the records.">Waiting for approval{pending.length ? ` · ${pending.length}` : ""}</SectionTitle>
@@ -76,6 +77,10 @@ export default async function AdminPage() {
       <section id="squad" className="card scroll-mt-24 p-5 sm:p-6">
         <SectionTitle sub="Who is expected for the next game. Everyone picked gets an email the day before with the details, the squad and your note; you can also send it straight away. The fixture page shows the squad too.">Team sheet</SectionTitle>
         <SquadAdmin fixtures={upcoming} roster={squadRoster} squads={squads} />
+      </section>
+      <section id="players" className="card scroll-mt-24 p-5 sm:p-6">
+        <SectionTitle sub="Edit anyone's name, nickname, positions, shirt number, bio or photo. A new name is carried through every match, payment and vote.">Players</SectionTitle>
+        <PlayersAdmin players={[...data.players].sort((a, b) => a.name.localeCompare(b.name)).map((p) => ({ name: p.name, nickname: p.extra.nickname ?? "", positions: p.extra.positions ?? [], shirt: p.extra.shirt ?? null, bio: p.extra.bio ?? "", photo: p.extra.photo ?? null }))} />
       </section>
       <section id="motm" className="card scroll-mt-24 p-5 sm:p-6">
         <SectionTitle sub="Every league result opens a vote by itself: everyone who played gets a ballot by email, the poll closes after 48 hours or when the last ballot is in, and the winner goes into the records. Here you can call one early, chase missing ballots, or open one on an older result.">Man of the match</SectionTitle>

@@ -1,5 +1,4 @@
 "use server";
-import { put } from "@vercel/blob";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { getWorkOS } from "@workos-inc/authkit-nextjs";
 import { currentMember } from "@/lib/auth";
@@ -7,13 +6,10 @@ import { getData } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
 import { updateProfile } from "@/lib/writes";
 import { log } from "@/lib/log";
-import { slugify } from "@/lib/slug";
+import { uploadPlayerPhoto } from "@/lib/photo";
 import { clean, POSITIONS, type Position } from "@/lib/submissions";
 
 export type ProfileState = { ok: boolean; message: string; photo?: string | null } | null;
-
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
-const PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
 
 /** Save the signed-in member's own profile: their players row (photo in Blob storage), plus their name in WorkOS. */
 export async function saveProfile(_prev: ProfileState, form: FormData): Promise<ProfileState> {
@@ -42,13 +38,9 @@ export async function saveProfile(_prev: ProfileState, form: FormData): Promise<
   let photo: string | undefined;
   if (removePhoto) photo = "";
   else if (file instanceof File && file.size > 0) {
-    const ext = PHOTO_TYPES[file.type];
-    if (!ext) return { ok: false, message: "Photos need to be JPEG, PNG or WebP." };
-    if (file.size > MAX_PHOTO_BYTES) return { ok: false, message: "That photo is over 5 MB. Shrink it a little first." };
-    try {
-      const blob = await put(`players/${slugify(s.member.player)}.${ext}`, file, { access: "public", addRandomSuffix: true, contentType: file.type });
-      photo = blob.url;
-    } catch (err) { console.error("blob:", err); return { ok: false, message: "The photo upload failed. Try again in a moment." }; }
+    const up = await uploadPlayerPhoto(s.member.player, file);
+    if ("error" in up) return { ok: false, message: up.error };
+    photo = up.url;
   }
 
   try {

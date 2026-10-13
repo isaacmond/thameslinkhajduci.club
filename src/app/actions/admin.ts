@@ -4,7 +4,9 @@ import { currentMember, forgetMembers } from "@/lib/auth";
 import { purge } from "@/lib/apply";
 import { getData } from "@/lib/data";
 import { clean, rosterName, validEmailAddress } from "@/lib/admin-validation";
-import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, saveSquad, setAdmin, upsertFixture, upsertSeason } from "@/lib/writes";
+import { addMember, applySubmission, deleteFixture, listMembers, rejectSubmission, removeMember, renamePlayer, saveSquad, setAdmin, updateProfile, upsertFixture, upsertSeason } from "@/lib/writes";
+import { uploadPlayerPhoto } from "@/lib/photo";
+import { POSITIONS, type Position } from "@/lib/submissions";
 import { sendReminderPreview, sendSquadReminders } from "@/lib/reminders";
 import { afterScoreRecorded, ballotsForNewMember, closeMotmPoll } from "@/lib/motm-polls";
 import { log } from "@/lib/log";
@@ -173,4 +175,50 @@ export async function previewReminderAction(matchId: string): Promise<ActionStat
   const r = await sendReminderPreview(matchId, s.email, s.member.player);
   log("reminders.preview", { matchId, by: s.member.player, ok: r.ok });
   return r;
+}
+
+/* ------------------------------------------------------------------ players */
+/** Any player's details, as the admin: name (renamed everywhere), nickname, positions, shirt number, bio and photo. */
+export async function savePlayerAction(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const s = await admin();
+  const original = clean(form.get("original"), 60);
+  const name = clean(form.get("name"), 60);
+  if (!original) return fail("Pick a player.");
+  if (name.length < 2) return fail("Give the player a name.");
+  const data = await getData();
+  if (!data.players.some((p) => p.name === original)) return fail(`No player called ${original}.`);
+  const nickname = clean(form.get("nickname"), 40);
+  const positions = form.getAll("positions").map(String).filter((p): p is Position => (POSITIONS as readonly string[]).includes(p));
+  const bio = clean(form.get("bio"), 280);
+  const shirtRaw = clean(form.get("shirt"), 3);
+  let shirt: number | null = null;
+  if (shirtRaw) {
+    const n = Number(shirtRaw);
+    if (!Number.isInteger(n) || n < 1 || n > 99) return fail("Shirt numbers run from 1 to 99.");
+    const clash = data.players.find((p) => p.name !== original && p.extra.shirt === n);
+    if (clash) return fail(`${clash.name} already wears ${n}.`);
+    shirt = n;
+  }
+  let photo: string | undefined;
+  const file = form.get("photo");
+  if (form.get("removePhoto") === "on") photo = "";
+  else if (file instanceof File && file.size > 0) {
+    const up = await uploadPlayerPhoto(name, file);
+    if ("error" in up) return fail(up.error);
+    photo = up.url;
+  }
+  try {
+    if (name !== original) {
+      const r = await renamePlayer(original, name, s.member.player);
+      if (!r.ok) return fail(r.error);
+      forgetMembers();
+    }
+    await updateProfile(name, { nickname, positions, shirt, bio, ...(photo !== undefined ? { photo } : {}) }, s.member.player);
+  } catch (err) {
+    console.error("player save:", err);
+    return fail("Could not save to the records. Try again in a moment.");
+  }
+  purge(); revalidatePath("/admin");
+  log("player.saved", { player: name, renamedFrom: name !== original ? original : null, by: s.member.player });
+  return { ok: true, message: name !== original ? `Saved. ${original} is now ${name} everywhere on the site.` : `Saved ${name}.` };
 }

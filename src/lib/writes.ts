@@ -85,6 +85,39 @@ export async function updateProfile(player: string, c: ProfileChange, by: string
   if (!updated.length) await db.insert(schema.players).values({ name: player, slug: slugify(player), ...set });
 }
 
+/**
+ * Rename a player everywhere they appear. The players row's primary key cascades to appearances, season rosters and
+ * ballots; everything that stores the name as plain text (payments, members, man of the match, pitch payer, team sheets,
+ * votes, aliases) is rewritten in the same transaction. The old spelling is kept as an alias of the new one.
+ */
+export async function renamePlayer(from: string, to: string, by: string, db: Db = getDb()): Promise<{ ok: true } | { ok: false; error: string }> {
+  const name = to.trim().replace(/\s+/g, " ");
+  if (!name) return { ok: false, error: "Give the player a name." };
+  if (name === from) return { ok: true };
+  const [old] = await db.select().from(schema.players).where(eq(schema.players.name, from));
+  if (!old) return { ok: false, error: `No player called ${from}.` };
+  const slug = slugify(name);
+  const clash = await db.select({ name: schema.players.name }).from(schema.players).where(sql`${schema.players.name} = ${name} or (${schema.players.slug} = ${slug} and ${schema.players.name} <> ${from})`);
+  if (clash.length) return { ok: false, error: `${clash[0].name} already exists. Pick a different name.` };
+  const now = new Date();
+  await atomic(db, [
+    db.update(schema.players).set({ name, slug, updatedAt: now, updatedBy: by }).where(eq(schema.players.name, from)),
+    db.update(schema.payments).set({ player: name }).where(eq(schema.payments.player, from)),
+    db.update(schema.payments).set({ paidTo: name }).where(eq(schema.payments.paidTo, from)),
+    db.update(schema.members).set({ player: name }).where(eq(schema.members.player, from)),
+    db.update(schema.matches).set({ motm: name }).where(eq(schema.matches.motm, from)),
+    db.update(schema.seasons).set({ paidBy: name }).where(eq(schema.seasons.paidBy, from)),
+    db.update(schema.squads).set({ players: sql`array_replace(${schema.squads.players}, ${from}, ${name})` }).where(sql`${from} = any(${schema.squads.players})`),
+    db.update(schema.motmPolls).set({ candidates: sql`array_replace(${schema.motmPolls.candidates}, ${from}, ${name})` }).where(sql`${from} = any(${schema.motmPolls.candidates})`),
+    db.update(schema.motmPolls).set({ winner: name }).where(eq(schema.motmPolls.winner, from)),
+    db.update(schema.motmBallots).set({ vote: name }).where(eq(schema.motmBallots.vote, from)),
+    db.update(schema.aliases).set({ toName: name }).where(eq(schema.aliases.toName, from)),
+    db.delete(schema.aliases).where(eq(schema.aliases.fromName, name)),
+    db.insert(schema.aliases).values({ fromName: from, toName: name }).onConflictDoUpdate({ target: schema.aliases.fromName, set: { toName: name } }),
+  ]);
+  return { ok: true };
+}
+
 /* ------------------------------------------------------------------ members */
 export async function listMembers(db: Db = getDb()) {
   return db.select().from(schema.members).orderBy(asc(schema.members.player), asc(schema.members.email));

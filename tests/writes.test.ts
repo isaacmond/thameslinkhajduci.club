@@ -3,8 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { parseWorkbook, lastParsedAliases, ALIASES, OPPONENTS } from "@/lib/sheet";
 import { importClubData } from "@/lib/db-import";
 import { loadClubData } from "@/lib/db-data";
-import { addMember, addPlayer, applySubmission, deleteFixture, listMembers, pendingSubmissions, queueSubmission, recordPayment, recordScore, rejectSubmission, removeMember, updateProfile, upsertFixture, upsertSeason } from "@/lib/writes";
-import type { Db } from "@/lib/db";
+import { addMember, addPlayer, applySubmission, deleteFixture, listMembers, pendingSubmissions, queueSubmission, recordPayment, recordScore, rejectSubmission, removeMember, renamePlayer, saveSquad, updateProfile, upsertFixture, upsertSeason } from "@/lib/writes";
+import { schema, type Db } from "@/lib/db";
 import { testDb } from "./db";
 
 /** The write path against the real schema, seeded from the corrected workbook. */
@@ -179,5 +179,40 @@ describe("team sheets and the admin flag", () => {
     expect((await listMembers(db)).filter((m) => m.player === "Phil Knott").every((m) => m.admin)).toBe(true);
     await setAdmin("Phil Knott", false, db);
     expect((await listMembers(db)).some((m) => m.player === "Phil Knott" && m.admin)).toBe(false);
+  });
+});
+
+describe("renaming a player", () => {
+  it("carries the new name through matches, stats, money, members, team sheets and aliases", async () => {
+    const before = await loadClubData(db);
+    const old = before.players.find((p) => p.name === "Ben Merrett")!;
+    const fixture = before.seasons.find((s) => s.id === "S8")!.matches.find((m) => !m.played)!;
+    await recordPayment({ player: "Ben Merrett", to: "Isaac Mond", amount: 5, date: "2026-10-01", note: "" }, "test", db);
+    await addMember("ben.rename@example.com", "Ben Merrett", false, "test", db);
+    await saveSquad(fixture.id, ["Ben Merrett", "Phil Knott"], null, "test", db);
+    const motmMatch = before.matches.find((m) => m.motm === "Ben Merrett");
+
+    expect(await renamePlayer("Ben Merrett", "Phil Knott", "test", db)).toMatchObject({ ok: false });
+    expect(await renamePlayer("Nobody Here", "Someone", "test", db)).toMatchObject({ ok: false });
+    expect(await renamePlayer("Ben Merrett", "Benjamin Merrett", "test", db)).toEqual({ ok: true });
+
+    const after = await loadClubData(db);
+    expect(after.players.some((p) => p.name === "Ben Merrett")).toBe(false);
+    const ben = after.players.find((p) => p.name === "Benjamin Merrett")!;
+    expect(ben.slug).toBe("benjamin-merrett");
+    expect(ben.apps).toBe(old.apps); expect(ben.goals).toBe(old.goals);
+    if (motmMatch) expect(after.matches.find((m) => m.id === motmMatch.id)!.motm).toBe("Benjamin Merrett");
+    expect(after.money.payments.some((x) => x.player === "Benjamin Merrett")).toBe(true);
+    expect(after.money.payments.some((x) => x.player === "Ben Merrett")).toBe(false);
+    expect((await listMembers(db)).find((m) => m.email === "ben.rename@example.com")!.player).toBe("Benjamin Merrett");
+    const [sq] = await db.select().from(schema.squads).where((await import("drizzle-orm")).eq(schema.squads.matchId, fixture.id));
+    expect(sq.players).toEqual(["Benjamin Merrett", "Phil Knott"]);
+    const aliases = await db.select().from(schema.aliases);
+    expect(aliases.find((a) => a.fromName === "Ben Merrett")!.toName).toBe("Benjamin Merrett");
+    // renaming back works and leaves no alias pointing a name at itself
+    expect(await renamePlayer("Benjamin Merrett", "Ben Merrett", "test", db)).toEqual({ ok: true });
+    const back = await db.select().from(schema.aliases);
+    expect(back.some((a) => a.fromName === a.toName)).toBe(false);
+    expect(back.find((a) => a.fromName === "Benjamin Merrett")!.toName).toBe("Ben Merrett");
   });
 });
