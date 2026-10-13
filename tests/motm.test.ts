@@ -6,7 +6,7 @@ import { parseWorkbook, lastParsedAliases, ALIASES, OPPONENTS } from "@/lib/shee
 import { importClubData } from "@/lib/db-import";
 import { loadClubData } from "@/lib/db-data";
 import { addMember, recordScore } from "@/lib/writes";
-import { decide, pollEligible, renderBallot, renderResult, shuffled, tally } from "@/lib/motm";
+import { ballotBody, decide, gameMoney, moneyCard, pollEligible, renderBallot, renderResult, shuffled, tally } from "@/lib/motm";
 import { ballotView, ballotsForNewMember, castVote, closeDuePolls, closeMotmPoll, listMotmPolls, openMotmPoll, pollSummary, sendBallots } from "@/lib/motm-polls";
 import { schema, type Db } from "@/lib/db";
 import { testDb } from "./db";
@@ -70,6 +70,21 @@ describe("the emails", () => {
     expect(mail.text).toContain("Everyone voted");
     expect(mail.text).not.toContain("Phil Knott: 0");
   });
+  it("the ballot carries a card with the night's share, the running total and a link to the money page", () => {
+    const money = { share: 7.5, pitch: 45, heads: 6, ringer: false, paidPitch: false, balance: 22.5, payer: "Seb Burgess" };
+    const body = ballotBody({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z"), money });
+    expect(body.text).toContain("Your share tonight: £7.50 (£45.00 pitch, 6 on it). All in, you owe Seb £22.50.");
+    expect(body.text).toContain("/money");
+    expect(body.html).toContain("Your share tonight"); expect(body.html).toContain("£7.50"); expect(body.html).toContain('/money"');
+    // the full email and the one that rides inside the score confirmation both have it
+    expect(renderBallot({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z"), money }).html).toContain("Your share tonight");
+    // no money, no card
+    expect(ballotBody({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z") }).text).not.toContain("Your share");
+    // the pitch payer is owed, a ringer pays nothing, and a settled player is told so
+    expect(moneyCard({ ...money, paidPitch: true, payer: null, balance: -37.5 }).text).toContain("Your share tonight: £7.50. You paid the pitch, so the other 5 owe you theirs. All in, you're owed £37.50.");
+    expect(moneyCard({ ...money, share: 0, ringer: true, balance: 0 }).text).toContain("Your share tonight: Nothing. Ringers don't pay: your share is on the regulars who stayed at home. All in, you're square.");
+    expect(moneyCard({ ...money, payer: null, balance: 0.004 }).text).toContain("All in, you're square.");
+  });
 });
 
 describe("the vote against the records", () => {
@@ -103,6 +118,12 @@ describe("the vote against the records", () => {
     expect(r.noEmail).toEqual(["Ben Merrett"]);
     expect(r.closesAt!.toISOString()).toBe("2026-09-23T20:00:00.000Z");
     expect(r.fixture!.candidates.map((c) => c.player)).toContain("Ben Merrett");
+    // the ballots know what the night cost: the pitch split five ways, straight from the records as they now stand
+    const after = await loadClubData(db);
+    const game = after.matches.find((x) => x.id === id)!;
+    expect(game.matchCost).toBeGreaterThan(0);
+    expect(r.money).toEqual(gameMoney(after, id));
+    expect(r.money!["Isaac Mond"]).toMatchObject({ share: game.matchCost / 5, pitch: game.matchCost, heads: 5, ringer: false, balance: after.money.rows.find((x) => x.player === "Isaac Mond")!.balance });
     // no Resend key in tests: nothing goes out, and that is reported rather than thrown
     expect((await sendBallots(r, db)).skipped).toMatch(/RESEND_API_KEY/);
     // the recorder's own ballot is held back, rendered, to ride inside the score email rather than arrive as a second message
@@ -110,6 +131,7 @@ describe("the vote against the records", () => {
     expect(heldRun.held.map((h) => h.player)).toEqual(["Isaac Mond"]);
     expect(heldRun.held[0].body.text).toContain("Who was the man of the match, Isaac?");
     expect(heldRun.held[0].body.text).toContain(`/motm/${heldRun.held[0].token}?pick=`);
+    expect(heldRun.held[0].body.text).toContain(`Your share tonight: £${(game.matchCost / 5).toFixed(2)}`);
     expect(heldRun.failed).not.toContain("Isaac Mond");
     // opening again changes nothing
     expect((await openMotmPoll(id, "test", db, t0)).outcome).toBe("unchanged");

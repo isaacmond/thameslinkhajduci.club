@@ -5,11 +5,13 @@ import { atomic, getDb, schema, type Db } from "./db";
 import { groupMembers } from "./members";
 import { REMINDER_FROM } from "./reminder-email";
 import { log } from "./log";
-import { ballotBody, decide, fmtCloses, MOTM_POLL_HOURS, pollEligible, renderBallot, renderResult, type Candidate, type Count, type MotmMatch } from "./motm";
+import { ballotBody, decide, fmtCloses, gameMoney, MOTM_POLL_HOURS, pollEligible, renderBallot, renderResult, type Candidate, type Count, type GameMoney, type MotmMatch } from "./motm";
+import { loadClubData } from "./db-data";
 
 /**
  * The man-of-the-match vote, the database half. A poll opens when a league result is recorded (openMotmPoll), everyone who
- * played and has an address gets a ballot link (sendBallots), votes come in through castVote, and the poll closes when the
+ * played and has an address gets a ballot link (sendBallots) with a card saying what the night cost them, votes come in
+ * through castVote, and the poll closes when the
  * last ballot lands, when the 48 hours are up (closeDuePolls, from the daily cron and whenever a ballot is opened late), or
  * when the admin says so. Closing writes the winner to matches.motm. Callers purge the page cache; nothing here imports next.
  */
@@ -33,6 +35,11 @@ async function emailsByPlayer(db: Db): Promise<Map<string, string[]>> {
   return new Map(members.map((m) => [lower(m.player), m.emails]));
 }
 const ballotsOf = (db: Db, matchId: string) => db.select().from(schema.motmBallots).where(eq(schema.motmBallots.matchId, matchId)).orderBy(asc(schema.motmBallots.player));
+/** The money card's numbers, read fresh from the records (the page cache still holds the data from before the score went in). Best effort: a ballot without its card beats no ballot. */
+async function matchMoney(db: Db, matchId: string): Promise<Record<string, GameMoney> | null> {
+  try { return gameMoney(await loadClubData(db), matchId); }
+  catch (err) { console.error("motm money:", err); return null; }
+}
 
 /* ------------------------------------------------------------------ opening */
 export type ToSend = { ballot: MotmBallot; emails: string[] };
@@ -44,6 +51,8 @@ export type OpenResult = {
   /** played, but no address on the members list, so no vote */
   noEmail: string[];
   fixture?: Fixture;
+  /** what the game cost each player, for the card in their ballot; absent when the pitch was free or money is not tracked for the season */
+  money?: Record<string, GameMoney> | null;
   closesAt?: Date;
   closed?: CloseResult | null;
 };
@@ -84,7 +93,7 @@ export async function openMotmPoll(matchId: string, by: string, db: Db = getDb()
       db.insert(schema.motmBallots).values(ballots),
     ]);
     const saved = await ballotsOf(db, matchId);
-    return { outcome: "opened", message: `Man-of-the-match vote open until ${fmtCloses(closesAt)}: ${saved.length} ballot${saved.length === 1 ? "" : "s"}.`, toSend: saved.map((b) => ({ ballot: b, emails: emails.get(lower(b.player)) ?? [] })), noEmail, fixture: fx, closesAt };
+    return { outcome: "opened", message: `Man-of-the-match vote open until ${fmtCloses(closesAt)}: ${saved.length} ballot${saved.length === 1 ? "" : "s"}.`, toSend: saved.map((b) => ({ ballot: b, emails: emails.get(lower(b.player)) ?? [] })), noEmail, fixture: fx, closesAt, money: await matchMoney(db, matchId) };
   }
 
   // Open already: a correction changed the line-up, so the ballots follow it.
@@ -106,7 +115,7 @@ export async function openMotmPoll(matchId: string, by: string, db: Db = getDb()
   // Everyone left has voted (a non-voter was dropped from the line-up): nothing to wait for.
   const closed = after.length && after.every((b) => b.vote) ? await closeMotmPoll(matchId, "everyone voted", db, now) : null;
   const bits = [added.length ? `${added.length} new ballot${added.length === 1 ? "" : "s"}` : "", dropped.length ? `${dropped.length} withdrawn` : "", stale.length ? `${stale.length} vote${stale.length === 1 ? "" : "s"} cleared` : ""].filter(Boolean);
-  return { outcome: changed ? "updated" : "unchanged", message: changed ? `Man-of-the-match vote brought up to date: ${bits.join(", ")}.${closed ? ` Closed: ${closed.winner ?? "no votes"}.` : ""}` : `Man-of-the-match vote already open until ${fmtCloses(existing.closesAt)}; everyone who played and has an email has a ballot.`, toSend, noEmail, fixture: fx, closesAt: existing.closesAt, closed };
+  return { outcome: changed ? "updated" : "unchanged", message: changed ? `Man-of-the-match vote brought up to date: ${bits.join(", ")}.${closed ? ` Closed: ${closed.winner ?? "no votes"}.` : ""}` : `Man-of-the-match vote already open until ${fmtCloses(existing.closesAt)}; everyone who played and has an email has a ballot.`, toSend, noEmail, fixture: fx, closesAt: existing.closesAt, closed, money: toSend.length ? await matchMoney(db, matchId) : null };
 }
 
 /* ------------------------------------------------------------------ sending */
@@ -123,12 +132,13 @@ export async function sendBallots(r: OpenResult, db: Db = getDb(), holdBack: str
   const { match, candidates } = r.fixture;
   const closesAt = r.closesAt;
   const hold = new Set(holdBack.map(lower));
-  const held: HeldBallot[] = r.toSend.filter((t) => t.emails.some((e) => hold.has(lower(e)))).map((t) => ({ player: t.ballot.player, token: t.ballot.token, emails: t.emails, body: ballotBody({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt }) }));
+  const money = (player: string) => r.money?.[player] ?? null;
+  const held: HeldBallot[] = r.toSend.filter((t) => t.emails.some((e) => hold.has(lower(e)))).map((t) => ({ player: t.ballot.player, token: t.ballot.token, emails: t.emails, body: ballotBody({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt, money: money(t.ballot.player) }) }));
   const rest = r.toSend.filter((t) => t.emails.length && !held.some((h) => h.token === t.ballot.token));
   if (!rest.length) return { sent: [], failed: [], held };
   const players = rest.map((t) => t.ballot.player);
   if (!key) return { sent: [], failed: players, held, skipped: "RESEND_API_KEY is not set" };
-  const mails = rest.map((t) => ({ from: REMINDER_FROM, to: t.emails, ...renderBallot({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt }) }));
+  const mails = rest.map((t) => ({ from: REMINDER_FROM, to: t.emails, ...renderBallot({ match, voter: t.ballot.player, candidates, token: t.ballot.token, closesAt, money: money(t.ballot.player) }) }));
   try {
     const { error } = await new Resend(key).batch.send(mails);
     if (error) { console.error("motm ballots:", error); return { sent: [], failed: players, held }; }

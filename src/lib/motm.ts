@@ -1,5 +1,6 @@
 import { SITE_URL } from "./config";
-import { fmtDate, gwLabel } from "./stats";
+import { fmtDate, fmtMoney, gwLabel } from "./stats";
+import type { ClubData } from "./types";
 
 /**
  * The man-of-the-match vote, the pure half: who qualifies for one, who wins it, and the two emails. Nothing here touches the
@@ -74,6 +75,56 @@ const whatTheyDid = (c: Candidate) => [c.goals ? `${c.goals} goal${c.goals === 1
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
 export const ballotUrl = (token: string, pick?: string) => `${SITE_URL}/motm/${token}${pick ? `?pick=${encodeURIComponent(pick)}` : ""}`;
 
+/** What a player's night cost them, for the card inside the ballot: their share of the pitch and where that leaves their running total. */
+export type GameMoney = {
+  /** their share of the pitch for this game; 0 for a ringer */
+  share: number;
+  /** what the pitch cost and how many ways it was split */
+  pitch: number;
+  heads: number;
+  ringer: boolean;
+  /** they paid for the pitch this season, so the others' shares are owed to them */
+  paidPitch: boolean;
+  /** running balance with this game in: positive owes, negative is owed */
+  balance: number;
+  /** who the money goes to (the season's pitch payer), unless that is them */
+  payer: string | null;
+};
+/**
+ * Everyone who played, with what the game cost them, from the records as they stand after the score went in. Null when there
+ * is no money to talk about: the pitch was free, or the season is before money was tracked (no money row carries it).
+ */
+export function gameMoney(data: ClubData, matchId: string): Record<string, GameMoney> | null {
+  const m = data.matches.find((x) => x.id === matchId);
+  if (!m || !m.played || m.matchCost <= 0 || m.playersInGame <= 0) return null;
+  if (!data.money.rows.some((r) => m.seasonId in r.charges)) return null;
+  const payer = data.money.paidBy[m.seasonId] ?? null;
+  const out: Record<string, GameMoney> = {};
+  for (const l of m.lineup) if (l.played) {
+    const row = data.money.rows.find((r) => r.player === l.player);
+    out[l.player] = { share: l.cost, pitch: m.matchCost, heads: m.playersInGame, ringer: l.ringer, paidPitch: payer === l.player, balance: row?.balance ?? 0, payer: payer && payer !== l.player ? payer : null };
+  }
+  return out;
+}
+export const moneyUrl = () => `${SITE_URL}/money`;
+/** The small card under the ballot: tonight's share, the running total, and a link to the money page. */
+export function moneyCard(money: GameMoney): { html: string; text: string } {
+  const split = `${fmtMoney(money.pitch)} pitch, ${money.heads} on it`;
+  const first = money.payer?.split(" ")[0] ?? null;
+  const running = Math.abs(money.balance) <= 0.01 ? "All in, you're square." : money.balance < 0 ? `All in, you're owed ${fmtMoney(-money.balance)}.` : `All in, you owe ${first ?? "the club"} ${fmtMoney(money.balance)}.`;
+  const amount = money.ringer ? "Nothing" : fmtMoney(money.share);
+  const why = money.ringer ? "Ringers don't pay: your share is on the regulars who stayed at home." : money.paidPitch ? `You paid the pitch, so the other ${money.heads - 1} owe you theirs.` : split + ".";
+  const html = `
+    <table role="presentation" style="width:100%;border-collapse:collapse;margin:22px 0 0"><tr><td style="background:#0d2b19;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px">
+      <p style="margin:0 0 4px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a7b8ab">Your share tonight</p>
+      <p style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.1;color:${money.ringer || money.paidPitch ? "#7fe0a3" : "#f6f1e6"}">${esc(amount)}</p>
+      <p style="margin:0;font-size:13px;line-height:1.45;color:#a7b8ab">${esc(why)} ${esc(running)}</p>
+      <p style="margin:10px 0 0;font-size:13px"><a href="${esc(moneyUrl())}" style="color:#7fe0a3;font-weight:600;text-decoration:none">See who owes what →</a></p>
+    </td></tr></table>`;
+  const text = [`Your share tonight: ${amount}${money.ringer || money.paidPitch ? "" : ` (${split})`}. ${money.ringer || money.paidPitch ? `${why} ` : ""}${running}`, `Money: ${moneyUrl()}`].join("\n");
+  return { html, text };
+}
+
 const shell = (eyebrow: string, body: string) => `<!doctype html><html><body style="margin:0;background:#06140c;color:#f6f1e6;font-family:Inter,system-ui,sans-serif">
   <div style="max-width:640px;margin:0 auto;padding:28px 20px">
     <p style="margin:0 0 6px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a7b8ab">${eyebrow} · Thameslink Hajduci</p>
@@ -81,12 +132,13 @@ const shell = (eyebrow: string, body: string) => `<!doctype html><html><body sty
     <p style="margin:22px 0 0;font-size:12px;color:#a7b8ab">You're getting this because you played, according to <a href="${esc(SITE_URL)}" style="color:#7fe0a3">thameslinkhajduci.club</a>. Running approximately twelve minutes behind schedule since 2024.</p>
   </div></body></html>`;
 
-export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Candidate[]; token: string; closesAt: Date };
+export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Candidate[]; token: string; closesAt: Date; /** the voter's share of the pitch, when money is tracked for the game */ money?: GameMoney | null };
 /**
- * The voting part of the ballot on its own (question, names, button, small print), so it can sit inside another email: the
+ * The voting part of the ballot on its own (question, names, button, small print, the money card), so it can sit inside another email: the
  * admin who records a score and played gets their ballot in the score confirmation rather than as a second message.
  */
-export function ballotBody({ voter, candidates, token, closesAt }: BallotEmailInput): { html: string; text: string } {
+export function ballotBody({ voter, candidates, token, closesAt, money }: BallotEmailInput): { html: string; text: string } {
+  const card = money ? moneyCard(money) : null;
   const first = voter.split(" ")[0];
   const options = shuffled(candidates.filter((c) => c.player !== voter), token);
   const closes = fmtCloses(closesAt);
@@ -95,8 +147,8 @@ export function ballotBody({ voter, candidates, token, closesAt }: BallotEmailIn
     <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match, ${esc(first)}? Tap a name.</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(ballotUrl(token))}" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Open the ballot</a></p>
-    <p style="margin:18px 0 0;font-size:13px;color:#a7b8ab">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>`;
-  const text = [`Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}${whatTheyDid(c) ? ` (${whatTheyDid(c)})` : ""}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`].join("\n");
+    <p style="margin:18px 0 0;font-size:13px;color:#a7b8ab">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>${card?.html ?? ""}`;
+  const text = [`Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}${whatTheyDid(c) ? ` (${whatTheyDid(c)})` : ""}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
   return { html, text };
 }
 /** The ballot as its own email: one tap on a name opens the vote page with that name picked, one more confirms it. Nobody can vote for themselves. */
