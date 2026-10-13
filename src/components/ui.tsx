@@ -38,9 +38,9 @@ export function Breadcrumb({ items }: { items: { href?: string; label: React.Rea
 export function SectionTitle({ children, sub, right, id }: { children: React.ReactNode; sub?: React.ReactNode; right?: React.ReactNode; id?: string }) {
   return (
     <div className="mb-4">
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-2">
         <h2 id={id} className="display min-w-0 text-[1.75rem] leading-tight text-ink">{children}</h2>
-        {right && <div className="shrink-0">{right}</div>}
+        {right && <div className="max-w-full shrink-0">{right}</div>}
       </div>
       {sub && <p className="mt-0.5 text-sm text-muted">{sub}</p>}
     </div>
@@ -58,11 +58,11 @@ export function Stat({ label, value, sub, tone = "default", size = "md", money =
   );
 }
 
-/** A record: label, a large figure (units as `<span className="text-2xl text-muted">`), and a line of detail. The label keeps two lines so figures line up across a row; `compact` drops that from lg up, where short labels fit on one line. */
+/** A record: label, a large figure (units as `<span className="text-2xl text-muted">`), and a line of detail. The label keeps two lines from sm up, where cards sit side by side, so figures line up across a row; `compact` drops that from lg up, where short labels fit on one line. */
 export function RecordCard({ label, value, sub, href, compact = false }: { label: string; value: React.ReactNode; sub?: React.ReactNode; href?: string; compact?: boolean }) {
   const head = (
     <>
-      <span className={clsx("eyebrow block min-h-[2lh] leading-snug", compact && "lg:min-h-0")}>{label}</span>
+      <span className={clsx("eyebrow block leading-snug sm:min-h-[2lh]", compact && "lg:min-h-0")}>{label}</span>
       <span className="display mt-3 block whitespace-nowrap text-5xl leading-none text-ink">{value}</span>
     </>
   );
@@ -154,8 +154,8 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match | MatchLit
           <span className="min-w-0 truncate font-semibold text-ink" title={m.opponent}>{m.opponent}</span>
           {m.type && <span className="chip shrink-0 text-muted">{m.type}</span>}
         </div>
-        <div className="mt-0.5 truncate text-xs text-muted">
-          {showSeason && <span className="font-medium text-ink/70">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`} · </span>}{gwLabel(m)} · {fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.played && m.kickOff && ` · ${m.kickOff}`}
+        <div className="mt-0.5 text-xs text-muted">
+          {showSeason && <span className="font-medium text-ink/70">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`} · </span>}{gwLabel(m)} · <span className="whitespace-nowrap">{fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.played && m.kickOff && ` · ${m.kickOff}`}</span>
         </div>
         {(scorers.length > 0 || m.motm) && (
           <div className="hidden truncate text-xs text-muted sm:block">

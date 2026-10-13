@@ -67,7 +67,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
               </div>
               <dl className="mt-auto grid grid-cols-3 border-t border-ink/8 text-center">
                 {[["Apps", p.apps], ["Goals", p.goals], ["Assists", p.assists]].map(([k, v]) => (
-                  <div key={k} className="flex flex-col-reverse px-1 py-2.5"><dt className="eyebrow eyebrow-sm">{k}</dt><dd className="display text-2xl leading-tight text-ink">{v}</dd></div>
+                  <div key={k} className="flex min-w-0 flex-col-reverse px-0.5 py-2.5"><dt className="eyebrow eyebrow-sm tracking-[0.06em] sm:tracking-[0.12em]">{k}</dt><dd className="display text-2xl leading-tight text-ink">{v}</dd></div>
                 ))}
               </dl>
               <p className="hidden border-t border-ink/8 px-4 py-2 text-[11px] text-muted sm:block">Debut {fmtDate(p.debut, { month: "short", year: "numeric" })} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"}</p>

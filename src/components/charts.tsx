@@ -134,6 +134,11 @@ export function GoalDiffTimeline({ data }: { data: { label: string; gd: number; 
   );
 }
 
+/** A one-line player label: Recharts' own tick wraps by its own measure, which split some names from their totals. */
+function NameTick({ x, y, payload }: { x?: number | string; y?: number | string; payload?: { value: string } }) {
+  return <text x={Number(x)} y={Number(y)} dy={3.5} textAnchor="end" fill={C.ink} fontSize={10}>{payload?.value}</text>;
+}
+
 /** Horizontal stacked bars: one row per player, one segment per season. Rows carry `name` (with total baked in) plus a numeric field per season id. */
 export function StackedBySeason({ data, seasons }: { data: Record<string, number | string>[]; seasons: string[] }) {
   const narrow = useNarrow();
@@ -144,7 +149,7 @@ export function StackedBySeason({ data, seasons }: { data: Record<string, number
       <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }} barCategoryGap="25%">
         <CartesianGrid horizontal={false} stroke={C.grid} />
         <XAxis type="number" {...axis} allowDecimals={false} />
-        <YAxis type="category" dataKey="name" width={labelWidth} {...axis} tick={{ fill: C.ink, fontSize: 10, width: labelWidth }} interval={0} />
+        <YAxis type="category" dataKey="name" width={labelWidth} {...axis} tick={NameTick} interval={0} />
         <Tooltip content={<DefaultTip />} cursor={cursor} />
         <Legend {...legend} />
         {seasons.map((s, i) => <Bar key={s} dataKey={s} name={s} stackId="a" fill={seasonColor(i)} stroke={C.surface} strokeWidth={2} />)}

@@ -54,7 +54,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
             <summary className="focus-ring grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 px-5 py-4 hover:bg-ink/[0.02]">
               <div className="min-w-0">
                 <h3 className="display text-2xl leading-none text-ink"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h3>
-                {s?.title.split("·")[1]?.trim() && <span className="mt-1 block truncate text-xs text-muted">{s.title.split("·")[1].trim()}</span>}
+                {s?.title.split("·")[1]?.trim() && <span className="mt-1 block text-xs text-muted">{s.title.split("·")[1].trim()}</span>}
               </div>
               <span className="tabular text-right text-xs text-muted">{ms.length} match{ms.length === 1 ? "" : "es"} · {cw}–{cd}–{cl}</span>
               <span className="text-muted transition-transform group-open/season:rotate-180" aria-hidden>▾</span>

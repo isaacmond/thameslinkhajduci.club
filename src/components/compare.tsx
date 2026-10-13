@@ -124,7 +124,7 @@ function Bars({ a, b, m }: { a: ComparePlayer; b: ComparePlayer; m: Metric }) {
     <li className="py-3">
       <div className="flex items-baseline justify-between gap-2">
         {val(va, aBetter, nA)}
-        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-muted/90">(level)</span>}</span>
+        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-muted">(level)</span>}</span>
         {val(vb, bBetter, nB)}
       </div>
       <div className="mt-1.5 grid grid-cols-2 gap-1" aria-hidden>

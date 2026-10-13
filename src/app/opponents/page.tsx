@@ -47,7 +47,7 @@ export default async function OpponentsPage() {
                     <span className="min-w-0 truncate font-semibold leading-tight text-ink" title={o.opponent}>{o.opponent}</span>
                   </div>
                   <p className="tabular mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted"><span>Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</span>{v && <Tag tone={v.tone} className="shrink-0 !py-0 !text-[10px] leading-5">{v.word}</Tag>}</p>
-                  <p className="mt-0.5 truncate text-[11px] text-muted/80">{o.seasons.join(" ")} · last played {fmtDate(last)}</p>
+                  <p className="mt-0.5 text-[11px] text-muted">{o.seasons.join(" ")} · <span className="whitespace-nowrap">last played {fmtDate(last)}</span></p>
                 </div>
                 <span className="display shrink-0 text-2xl leading-none text-ink" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>
               </Link>
