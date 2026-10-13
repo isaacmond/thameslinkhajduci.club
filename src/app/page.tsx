@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Database, Star } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, form, gwLabel, lastResult, leaderboard, type MilestoneKind, nextFixture, recentPlayers, records, scoreline, seasonHref, seasonPlayers, upcomingMilestones } from "@/lib/stats";
 import { insights, pickInsights } from "@/lib/insights";
@@ -50,7 +50,6 @@ export default async function Home() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/squad" className={btn("primary", "md")}>Meet the squad</Link>
             <Link href="/matches" className={btn("secondary", "md")}>Fixtures and results</Link>
-            <Link href="/data" className={btn("ghost", "md", "hidden sm:inline-flex")}><Database size={16} aria-hidden />Data &amp; API</Link>
           </div>
         </div>
         <Crest size={260} className="hidden lg:block" />

@@ -12,7 +12,7 @@ const LINKS = [
   { href: "/stats", label: "Stats" }, { href: "/opponents", label: "Opponents" }, { href: "/records", label: "Records" }, { href: "/money", label: "Money" }, { href: "/submit", label: "Add result" },
 ];
 const TABS = [{ href: "/", label: "Home", Icon: House }, { href: "/matches", label: "Matches", Icon: CalendarDays }, { href: "/squad", label: "Squad", Icon: Users }, { href: "/stats", label: "Stats", Icon: BarChart3 }];
-const MORE = [{ href: "/submit", label: "Add a result", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/opponents", label: "Opponents", Icon: Shield }, { href: "/compare", label: "Compare players", Icon: Swords }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data & API", Icon: Database }];
+const MORE = [{ href: "/submit", label: "Add a result", Icon: ClipboardPen }, { href: "/seasons", label: "Seasons", Icon: Trophy }, { href: "/opponents", label: "Opponents", Icon: Shield }, { href: "/compare", label: "Compare players", Icon: Swords }, { href: "/records", label: "Records", Icon: Medal }, { href: "/money", label: "Money", Icon: Coins }, { href: "/data", label: "Data", Icon: Database }];
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
 export function Nav({ authEnabled = false }: { authEnabled?: boolean }) {

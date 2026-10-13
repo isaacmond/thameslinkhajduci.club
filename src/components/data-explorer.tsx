@@ -1,23 +1,21 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Download, ExternalLink } from "lucide-react";
+import { Download } from "lucide-react";
 import clsx from "clsx";
 import { Select } from "./controls";
 import { btn } from "./button";
 
 type Preview = { table: string; columns: string[]; rows: Record<string, string | number | boolean | null>[] };
 
-export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tables: { name: string; info: string }[]; seasons: string[]; siteUrl: string; initialPreview?: Preview }) {
+export function DataExplorer({ tables, seasons, initialPreview }: { tables: { name: string; info: string }[]; seasons: string[]; initialPreview?: Preview }) {
   const [table, setTable] = useState(tables[0]?.name ?? "players");
   const [season, setSeason] = useState("");
   const [preview, setPreview] = useState<Preview | null>(initialPreview ?? null);
   const [loading, setLoading] = useState(!initialPreview);
   const [skipFirst, setSkipFirst] = useState(Boolean(initialPreview));
-  const [copied, setCopied] = useState<string | null>(null);
   const seasonable = !["seasons", "money", "payments", "opponents"].includes(table) || table === "opponents";
   const qs = useMemo(() => `table=${table}${season && seasonable ? `&season=${season}` : ""}`, [table, season, seasonable]);
   const url = (format: string) => `/api/export?${qs}&format=${format}`;
-  const absolute = (format: string) => `${siteUrl}${url(format)}`;
 
   const jsonUrl = `/api/export?${qs}&format=json`;
   useEffect(() => {
@@ -29,9 +27,6 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
   }, [jsonUrl]);
   const pick = (fn: () => void) => { setSkipFirst(false); setLoading(true); fn(); };
 
-  const copy = async (label: string, text: string | (() => Promise<string>)) => {
-    try { const t = typeof text === "string" ? text : await text(); await navigator.clipboard.writeText(t); setCopied(label); setTimeout(() => setCopied(null), 2000); } catch { setCopied("failed"); setTimeout(() => setCopied(null), 2000); }
-  };
   const info = tables.find((t) => t.name === table)?.info;
 
   return (
@@ -42,13 +37,8 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
         <p className="flex-1 text-xs text-muted sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
       </div>
       <div className="flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] p-3 text-sm">
-        <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />CSV</a>
-        <a href={url("json")} target="_blank" rel="noopener" className={btn("secondary", "xs", "font-medium")}><ExternalLink size={15} aria-hidden />JSON</a>
-        <Btn onClick={() => copy("md", async () => (await fetch(url("md"))).text())} done={copied === "md"}>Copy Markdown</Btn>
-        <Btn onClick={() => copy("sheets", `=IMPORTDATA("${absolute("csv")}")`)} done={copied === "sheets"}>Copy Google Sheets formula</Btn>
-        <Btn onClick={() => copy("curl", `curl -s '${absolute("json")}' | jq .rows`)} done={copied === "curl"}>Copy curl</Btn>
-        <Btn onClick={() => copy("url", absolute("csv"))} done={copied === "url"}>Copy URL</Btn>
-        {copied === "failed" && <span className="self-center text-xs text-loss">Clipboard blocked</span>}
+        <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />Download this table</a>
+        <a href="/api/export?format=xlsx" className={btn("secondary", "xs", "font-medium")}><Download size={15} aria-hidden />Every table as a spreadsheet</a>
       </div>
       <div className="scroll-x max-h-[520px] overflow-auto">
         {loading && !preview && <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>}
@@ -66,8 +56,4 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
       {preview && <p className="border-t border-ink/10 px-4 py-2 text-xs text-muted">{preview.rows.length} row{preview.rows.length === 1 ? "" : "s"}{preview.rows.length > 200 && " (showing first 200; the download has them all)"} · {preview.columns.length} columns</p>}
     </div>
   );
-}
-
-function Btn({ onClick, done, children }: { onClick: () => void; done: boolean; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className={btn("secondary", "xs", "font-medium")}>{done ? <Check size={15} className="text-accent" aria-hidden /> : <Copy size={15} aria-hidden />}{done ? "Copied" : children}</button>;
 }

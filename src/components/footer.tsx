@@ -73,7 +73,7 @@ export function Footer() {
           <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
             <Link className="text-muted transition-colors hover:text-ink" href="/records">Records</Link>
             <Link className="text-muted transition-colors hover:text-ink" href="/compare">Compare players</Link>
-            <Link className="text-muted transition-colors hover:text-ink" href="/data">Data &amp; API</Link>
+            <Link className="text-muted transition-colors hover:text-ink" href="/data">Data</Link>
             <a className="text-muted transition-colors hover:text-ink" href="https://github.com/isaacmond/thameslinkhajduci.club" target="_blank" rel="noopener noreferrer">GitHub</a>
           </nav>
         </div>

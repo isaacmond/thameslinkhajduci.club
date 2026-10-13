@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, CircleAlert, CircleCheck, Database, Download, ExternalLink, Info, Table2, TriangleAlert } from "lucide-react";
+import { ArrowUpRight, CircleAlert, CircleCheck, Download, Info, TriangleAlert } from "lucide-react";
 import { getData } from "@/lib/data";
-import { SITE_URL } from "@/lib/config";
 import { buildTable, TABLES, TABLE_INFO } from "@/lib/tables";
 import { SEVERITY_LABEL, sheetHealth, type Severity } from "@/lib/health";
 import { Callout, PageHeader, SectionTitle, Tag } from "@/components/ui";
@@ -10,7 +9,7 @@ import { DataExplorer } from "@/components/data-explorer";
 import { RefreshButton } from "@/components/refresh-button";
 import { PageTransition } from "@/components/page-transition";
 
-export const metadata: Metadata = { title: "Data & API", description: "Export Thameslink Hajduci stats as CSV, JSON, Markdown or a full spreadsheet, or pull a table straight into a sheet of your own." };
+export const metadata: Metadata = { title: "Data", description: "Download Thameslink Hajduci stats as a spreadsheet." };
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const SEVERITY_UI: Record<Severity, { tone: "loss" | "gold" | "default"; icon: React.ReactNode; blurb: string }> = {
@@ -26,7 +25,7 @@ export default async function DataPage() {
   return (
     <PageTransition>
     <div className="space-y-10">
-      <PageHeader eyebrow="Open data" title="Data" sub="Everything on this site, as tables you can download or connect to a spreadsheet." right={<RefreshButton />} />
+      <PageHeader eyebrow="The records" title="Data" sub="Everything on this site, as tables you can download." right={<RefreshButton />} />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="card min-w-0 p-5"><p className="eyebrow">Source of truth</p><p className="display mt-1 text-2xl leading-none text-ink">The records database</p><a href="/api/export?format=xlsx" className="link mt-1 inline-flex items-center gap-1 text-sm"><Download size={14} aria-hidden />Download it all as a spreadsheet</a></div>
@@ -71,26 +70,11 @@ export default async function DataPage() {
       </section>
 
       <section className="min-w-0">
-        <SectionTitle sub="Choose a table and a season, then download it or copy a Google Sheets formula">Tables</SectionTitle>
-        <DataExplorer tables={TABLES.map((t) => ({ name: t, info: TABLE_INFO[t] }))} seasons={[...data.seasons].reverse().map((s) => s.id)} siteUrl={SITE_URL} initialPreview={{ table: "players", ...buildTable(data, "players") }} />
+        <SectionTitle sub="Choose a table and a season, then download it">Tables</SectionTitle>
+        <DataExplorer tables={TABLES.map((t) => ({ name: t, info: TABLE_INFO[t] }))} seasons={[...data.seasons].reverse().map((s) => s.id)} initialPreview={{ table: "players", ...buildTable(data, "players") }} />
       </section>
 
-      <section className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
-        <div className="card min-w-0 p-5">
-          <SectionTitle><span className="inline-flex items-center gap-2"><Table2 size={20} className="text-accent" aria-hidden />Tabular export</span></SectionTitle>
-          <pre className="whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg bg-sunken p-4 text-xs text-ink/90 lg:overflow-x-auto lg:whitespace-pre"><code>{`GET /api/export?table=<name>&format=csv|json|md[&season=S7]\nGET /api/export?format=xlsx   # every table, one workbook\n\ntables: ${TABLES.join(", ")}\n\n# examples\n${SITE_URL}/api/export?table=players&format=csv\n${SITE_URL}/api/export?table=goals&season=S7&format=json\n${SITE_URL}/api/export?table=opponents&format=md`}</code></pre>
-          <ul className="mt-4 space-y-1 text-sm text-muted">{TABLES.map((t) => <li key={t}><a href={`/api/export?table=${t}&format=json`} target="_blank" rel="noopener" className="link font-mono text-xs">{t}</a> <span>· {TABLE_INFO[t]}</span></li>)}</ul>
-        </div>
-        <div className="min-w-0 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:first-child]:flex-1">
-          <div className="card min-w-0 p-5">
-            <SectionTitle><span className="inline-flex items-center gap-2"><Database size={20} className="text-accent" aria-hidden />Full dataset</span></SectionTitle>
-            <pre className="whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg bg-sunken p-4 text-xs text-ink/90 lg:overflow-x-auto lg:whitespace-pre"><code>{`GET /api/data           # everything, nested JSON\nGET /api/data?pretty=1  # same, indented for humans\nPOST /api/revalidate    # force a fresh read of the records`}</code></pre>
-            <p className="mt-3 text-sm text-muted">The JSON has <code className="text-ink">seasons[].matches[].lineup[]</code>, <code className="text-ink">players[].seasons[]</code> and <code className="text-ink">money</code>, matching what the site shows. CORS is open and responses are cached for a minute.</p>
-            <a href="/api/data?pretty=1" target="_blank" rel="noopener" className="link mt-3 inline-flex items-center gap-1 text-sm">Open /api/data <ExternalLink size={14} aria-hidden /></a>
-          </div>
-          <Callout>Results, payments and new players are added through <Link href="/submit" className="link">Add a result</Link>. Signed-in members are recorded straight away; everyone else is approved by the admin.</Callout>
-        </div>
-      </section>
+      <Callout>Results, payments and new players are added through <Link href="/submit" className="link">Add a result</Link>. Signed-in members are recorded straight away; everyone else is approved by the admin.</Callout>
     </div>
     </PageTransition>
   );
