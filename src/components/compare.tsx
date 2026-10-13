@@ -7,6 +7,7 @@ import { fmtDate } from "@/lib/stats";
 import { Avatar, SectionTitle, Shirt, Tag } from "./ui";
 import { Select } from "./controls";
 import { ShareButton } from "./share-button";
+import { btn } from "./button";
 
 /** Compact per-player dataset built on the server; everything the duel needs and nothing it doesn't. */
 export interface ComparePlayer {
@@ -100,8 +101,8 @@ function Head({ p, other, align, tone }: { p: ComparePlayer; other: ComparePlaye
         {p.nickname && <p className="mt-0.5 truncate text-sm italic text-muted">“{p.nickname}”</p>}
         <div className={clsx("mt-2 flex flex-wrap gap-1.5", right && "justify-end")}>
           <Tag>Debut {fmtDate(p.debut, { month: "short", year: "numeric" })}</Tag>
-          <Link href={`/squad/${p.slug}`} className="focus-ring chip chip-tap text-muted hover:text-ink">Profile</Link>
-        </div>
+          </div>
+        <Link href={`/squad/${p.slug}`} className="link focus-ring mt-2 inline-block rounded text-sm">Profile</Link>
         <span className="sr-only">{tone === "lead" ? `Leads ${short(other, p)} on more categories` : tone === "trail" ? `Trails ${short(other, p)} on more categories` : "Level on categories"}</span>
       </div>
     </div>
@@ -192,11 +193,11 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
       <div className="card p-6">
         <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           <Select label="Player" value={A.slug} onChange={pickA} options={options} />
-          <button type="button" onClick={swap} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-surface px-3 text-xs font-semibold text-ink transition-colors hover:border-ink/30 sm:w-auto" aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
+          <button type="button" onClick={swap} className={btn("secondary", "sm", "px-3")} aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
           <Select label="Compared with" value={B.slug} onChange={pickB} options={options} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button type="button" onClick={shuffle} className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-surface px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-ink/30"><Shuffle size={14} aria-hidden />Random pair</button>
+          <button type="button" onClick={shuffle} className={btn("secondary", "xs")}><Shuffle size={14} aria-hidden />Random pair</button>
           <ShareButton title={`${A.name} v ${B.name} · Thameslink Hajduci`} text={shareText} />
         </div>
       </div>

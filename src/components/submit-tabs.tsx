@@ -14,7 +14,7 @@ export function SubmitTabs({ active }: { active: SubmitKind }) {
   return (
     <nav aria-label="What to submit" className="flex flex-wrap gap-2">
       {SUBMIT_KINDS.map(({ id, label, short, icon: Icon }) => (
-        <Link key={id} href={submitHref(id)} scroll={false} aria-current={active === id ? "page" : undefined} className={clsx("focus-ring inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors", active === id ? "border-accent/50 bg-accent/15 text-ink" : "border-ink/10 text-muted hover:border-ink/25 hover:text-ink")}>
+        <Link key={id} href={submitHref(id)} scroll={false} aria-current={active === id ? "page" : undefined} className={clsx("focus-ring inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors", active === id ? "chip-on" : "chip-off border-ink/10 hover:border-ink/25")}>
           <Icon size={15} aria-hidden /><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{short}</span>
         </Link>
       ))}

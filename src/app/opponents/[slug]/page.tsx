@@ -90,8 +90,8 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
             {v && <Tag tone={v.tone}>{v.word}</Tag>}
             <Tag>First played {fmtDate(first.date)}</Tag>
             <Tag>Last played {fmtDate(last.date)}</Tag>
-            {o.seasons.map((s) => <Link key={s} href={seasonHref(s)} className="focus-ring chip chip-tap text-muted transition-colors hover:text-ink">Season {s.replace(/^S/, "")}</Link>)}
           </div>
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">{o.seasons.map((s) => <Link key={s} href={seasonHref(s)} className="link focus-ring rounded">Season {s.replace(/^S/, "")}</Link>)}</p>
         </div>
       </header>
 

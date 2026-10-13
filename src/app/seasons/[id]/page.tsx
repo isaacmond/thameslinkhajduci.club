@@ -11,6 +11,7 @@ import { GoalDiffTimeline } from "@/components/charts";
 import { GoalRaceChart } from "@/components/charts-race";
 import { SeasonTimeline } from "@/components/season-timeline";
 import { PageTransition } from "@/components/page-transition";
+import { btn } from "@/components/button";
 
 export async function generateStaticParams() {
   const data = await getData();
@@ -91,8 +92,8 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
     <PageTransition>
     <div className="space-y-10">
       <Breadcrumb items={[{ href: "/seasons", label: "Seasons" }, { label: `Season ${s.number}` }]} />
-      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="mint">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{s.summary.paidBy && <> Pitch paid for by {s.summary.paidBy}.</>}{paceNote && <> {paceNote}</>}</>}
-        right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className="focus-ring chip chip-tap text-muted hover:text-ink"><ChevronLeft size={14} aria-hidden />Season {prev.number}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className="focus-ring chip chip-tap text-muted hover:text-ink">Season {next.number}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
+      <PageHeader eyebrow={<>{s.venue} · {s.period}</>} title={<>Season {s.number}</>} sub={<><span className="mb-2 block">{s.isCurrent ? <Tag tone="accent">In progress · {remaining} to play</Tag> : <Tag>Complete</Tag>}</span>{s.matches.length} fixtures, {played} played.{s.summary.paidBy && <> Pitch paid for by {s.summary.paidBy}.</>}{paceNote && <> {paceNote}</>}</>}
+        right={<nav className="flex gap-2" aria-label="Other seasons">{prev && <Link href={`/seasons/${prev.id.toLowerCase()}`} className={btn("secondary", "xs")}><ChevronLeft size={14} aria-hidden />Season {prev.number}</Link>}{next && <Link href={`/seasons/${next.id.toLowerCase()}`} className={btn("secondary", "xs")}>Season {next.number}<ChevronRight size={14} aria-hidden /></Link>}</nav>} />
 
       <section aria-label="Season summary">
         <RecordStrip s={s.summary} className="card lg:hidden" />

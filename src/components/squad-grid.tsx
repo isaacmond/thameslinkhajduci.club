@@ -2,9 +2,9 @@
 import { useMemo, useState, ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import clsx from "clsx";
 import { fmtDate } from "@/lib/stats";
 import { Shirt } from "./ui";
+import { chipToggle } from "./controls";
 
 export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null; ringer: boolean };
 type SortKey = "apps" | "goals" | "assists" | "goalsPerGame" | "winRate" | "motm" | "debut" | "name";
@@ -28,17 +28,16 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
   }, [players, sort, filter]);
   const POS: Record<string, string> = { GK: "Goalkeepers", DEF: "Defenders", MID: "Midfielders", FWD: "Forwards" };
   const filterLabel = (f: Filter) => f === "all" ? `Everyone (${players.length})` : f === "active" ? "This season" : POS[f];
-  const chip = (active: boolean) => clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? "border-ink bg-ink text-paper" : "bg-surface text-muted hover:text-ink");
 
   return (
     <div>
       <div className="mb-6 flex flex-col gap-3">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter players">
-          {FILTERS.filter((f) => f !== "active" || currentSeason).map((f) => <button key={f} type="button" onClick={() => setFilter(f)} aria-pressed={filter === f} className={chip(filter === f)}>{filterLabel(f)}</button>)}
+          {FILTERS.filter((f) => f !== "active" || currentSeason).map((f) => <button key={f} type="button" onClick={() => setFilter(f)} aria-pressed={filter === f} className={chipToggle(filter === f)}>{filterLabel(f)}</button>)}
         </div>
         <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort players">
           <span className="eyebrow mr-1 shrink-0">Sort by</span>
-          {SORTS.map((s) => <button key={s.key} type="button" onClick={() => setSort(s.key)} aria-pressed={sort === s.key} className={chip(sort === s.key)}>{s.label}</button>)}
+          {SORTS.map((s) => <button key={s.key} type="button" onClick={() => setSort(s.key)} aria-pressed={sort === s.key} className={chipToggle(sort === s.key)}>{s.label}</button>)}
         </div>
       </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">

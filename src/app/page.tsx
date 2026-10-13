@@ -40,7 +40,7 @@ export default async function Home() {
           <p className="eyebrow mb-4 flex flex-wrap items-center gap-2">
             {current && <span>Season {current.number} · {current.period}</span>}
             <span className="inline-flex items-center gap-1.5 normal-case tracking-normal"><span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />Updated {readAt}</span>
-            {data.stale && <Tag tone="gold">Showing the last saved copy</Tag>}
+            {data.stale && <Tag>Showing the last saved copy</Tag>}
           </p>
           <div className="flex items-center gap-5">
             <Crest size={88} className="h-20 w-20 shrink-0 lg:hidden" />

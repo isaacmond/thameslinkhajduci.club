@@ -1,8 +1,8 @@
 "use client";
 import { useActionState, useState } from "react";
-import { Camera, Check, Save } from "lucide-react";
+import { Camera, Save } from "lucide-react";
 import { saveProfile, type ProfileState } from "@/app/actions/profile";
-import { inputClass } from "./controls";
+import { FormStatus, inputClass } from "./controls";
 import { btn } from "./button";
 import { Avatar } from "./ui";
 
@@ -39,13 +39,13 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
           <label className={label}>
             <span className="eyebrow">Shirt number</span>
             <input name="shirt" value={shirt} onChange={(e) => setShirt(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1 to 99" className={`${inputClass} tabular`} />
-            <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? <span className="text-gold">{clash} already wears {shirt}.</span> : "Optional. Shows on your card and page."}</span>
+            <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? <span className="text-loss">{clash} already wears {shirt}.</span> : "Optional. Shows on your card and page."}</span>
           </label>
           <fieldset className="sm:col-span-2">
             <legend className="eyebrow mb-1">Positions</legend>
             <div className="flex flex-wrap gap-2">
               {POSITIONS.map(([code, name]) => (
-                <label key={code} className="chip focus-within:ring-2 focus-within:ring-accent/60 cursor-pointer hover:border-ink/25 has-[:checked]:border-accent/60 has-[:checked]:bg-accent/15 has-[:checked]:text-accent">
+                <label key={code} className="chip chip-off chip-check cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent/60 hover:border-ink/25">
                   <input type="checkbox" name="positions" value={code} defaultChecked={initial.positions.includes(code)} className="sr-only" />{code} <span className="font-normal text-muted">{name}</span>
                 </label>
               ))}
@@ -56,7 +56,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending || Boolean(clash)} className={btn("primary", "md")}><Save size={16} aria-hidden />{pending ? "Saving…" : "Save changes"}</button>
-        {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
+        {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}
       </div>
     </form>
   );

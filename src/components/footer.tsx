@@ -25,12 +25,12 @@ export function Sponsors() {
       <ul className="stagger grid grid-cols-2 gap-4 sm:grid-cols-4">
         {SPONSORS.map((s) => (
           <li key={s.name}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring group flex h-full flex-col rounded-[var(--radius-xl)] border border-ink/10 bg-white p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-lg">
+            <a href={s.url} target="_blank" rel="noopener noreferrer" className="focus-ring group flex h-full flex-col rounded-[var(--radius-xl)] border border-ink/10 bg-logo-tile p-5 shadow-[var(--shadow-card)] transition-shadow hover:shadow-lg">
               <div className="relative flex h-14 w-full items-center justify-center">
                 <Image src={s.src} alt={`${s.name} logo`} fill sizes="200px" className="object-contain" />
               </div>
-              <p className="eyebrow mt-auto pt-4 text-center text-neutral-700">{s.name}</p>
-              <p className="text-center text-[11px] text-neutral-500">{s.tagline}</p>
+              <p className="eyebrow mt-auto pt-4 text-center text-[#17221b]">{s.name}</p>
+              <p className="text-center text-[11px] text-[#5b6861]">{s.tagline}</p>
             </a>
           </li>
         ))}
@@ -39,16 +39,16 @@ export function Sponsors() {
   );
 }
 
-/** One-line version for every other page: colour logos on small white tiles. */
+/** One-line version for every other page: colour logos on small light tiles (four across on phones). */
 function SponsorStrip() {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="eyebrow">Proudly supported by</p>
-      <ul className="flex flex-wrap items-center gap-3">
+      <ul className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
         {SPONSORS.map((s) => (
           <li key={s.name}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer" title={`${s.name} · ${s.tagline}`} className="focus-ring flex h-10 items-center rounded-lg border border-ink/10 bg-white px-3 transition-shadow hover:shadow-md">
-              <Image src={s.src} alt={s.name} width={96} height={28} style={{ width: "auto", height: 22 }} className="max-w-[104px] object-contain" />
+            <a href={s.url} target="_blank" rel="noopener noreferrer" title={`${s.name} · ${s.tagline}`} className="focus-ring flex h-10 items-center justify-center rounded-lg border border-ink/10 bg-logo-tile px-2 transition-shadow hover:shadow-md sm:px-3">
+              <Image src={s.src} alt={s.name} width={96} height={28} style={{ width: "auto", height: 22 }} className="max-w-full object-contain sm:max-w-[104px]" />
             </a>
           </li>
         ))}

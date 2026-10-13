@@ -1,6 +1,19 @@
 "use client";
 import clsx from "clsx";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown, CircleAlert } from "lucide-react";
+
+/** A filter chip or toggle that shows whether it is selected, in the one site-wide scheme (accent tint when on, surface when off). */
+export const chipToggle = (active: boolean) => clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? "chip-on" : "chip-off");
+
+/** The one style for a form's status or validation line: accent with a tick when it went through, loss with an alert otherwise. */
+export function FormStatus({ tone, children, role = "status", className }: { tone: "ok" | "error"; children: React.ReactNode; role?: "status" | "alert"; className?: string }) {
+  return (
+    <p role={role} className={clsx("flex items-center gap-1.5 text-sm", tone === "ok" ? "text-accent" : "text-loss", className)}>
+      {tone === "ok" ? <Check size={14} className="shrink-0" aria-hidden /> : <CircleAlert size={14} className="shrink-0" aria-hidden />}
+      <span>{children}</span>
+    </p>
+  );
+}
 
 export const inputClass = "control focus-ring w-full rounded-lg border border-ink/15 bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted";
 

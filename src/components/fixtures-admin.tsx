@@ -2,7 +2,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { CalendarPlus, Save, Trash2 } from "lucide-react";
 import { deleteFixtureAction, saveFixtureAction, saveSeasonAction, type ActionState } from "@/app/actions/admin";
-import { inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 
 export type AdminSeason = { id: string; number: number; title: string; venue: string; venueUrl: string | null; period: string; pitchCost: number | null; paidBy: string | null; seasonCost: number; fixtures: number; isCurrent: boolean };
@@ -33,7 +33,7 @@ function FixtureRow({ f, seasonId, nextGw }: { f?: AdminFixture; seasonId: strin
           <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className={btn("secondary", "sm", "w-[2.5rem] px-0 text-muted hover:text-loss")}><Trash2 size={14} aria-hidden /></button>
         ) : <span className="w-[2.5rem]" aria-hidden />}
       </div>
-      {note && <p role="status" className={`col-span-full text-xs ${note.ok ? "text-accent" : "text-loss"}`}>{note.message}</p>}
+      {note && <FormStatus tone={note.ok ? "ok" : "error"} className="col-span-full">{note.message}</FormStatus>}
     </form>
   );
 }
@@ -52,7 +52,7 @@ function SeasonForm({ s, roster }: { s?: AdminSeason; roster: string[] }) {
       <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-ink tabular">{s ? `£${s.seasonCost.toFixed(2)}` : "–"} <span className="ml-2 text-xs text-muted">{s ? `${s.fixtures} game${s.fixtures === 1 ? "" : "s"} × pitch` : "price per game × games"}</span></p><span className="min-h-[1.25rem] text-[11px] text-muted" /></div>
       <div className="flex items-end gap-3 pb-[1.25rem] sm:col-span-2">
         <button type="submit" disabled={pending} className={btn("primary")}><Save size={16} aria-hidden />{pending ? "Saving…" : s ? "Save season" : "Create season"}</button>
-        {state && <span role="status" className={`text-xs ${state.ok ? "text-accent" : "text-loss"}`}>{state.message}</span>}
+        {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}
       </div>
     </form>
   );

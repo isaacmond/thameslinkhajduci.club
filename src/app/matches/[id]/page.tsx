@@ -18,6 +18,7 @@ import { sponsorFor } from "@/components/footer";
 import { ShareButton } from "@/components/share-button";
 import { MatchPreview } from "@/components/match-preview";
 import { PollButton } from "@/components/poll-button";
+import { btn } from "@/components/button";
 import { PageTransition } from "@/components/page-transition";
 
 export async function generateStaticParams() {
@@ -80,12 +81,12 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden />{season.venueUrl ? <a href={season.venueUrl} target="_blank" rel="noopener noreferrer" className="link">{season.venue}</a> : season.venue}</span>
             {m.type && <Tag>{m.type}</Tag>}
           </p>
-          <h1 className="mt-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 text-ink sm:gap-8">
+          <h1 className="mt-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 sm:items-center text-ink sm:gap-8">
             <span className="flex min-w-0 flex-col items-center gap-3 text-center sm:flex-row-reverse sm:justify-start sm:text-right">
               <Crest size={64} className="h-12 w-12 shrink-0 sm:h-16 sm:w-16" />
               <span className="display min-w-0 text-xl leading-tight [text-wrap:balance] sm:text-4xl">Thameslink Hajduci</span>
             </span>
-            <span className="flex flex-col items-center gap-2">
+            <span className="flex flex-col items-center gap-2 self-center">
               {m.played ? <span className="display whitespace-nowrap text-6xl leading-none sm:text-8xl">{m.ourGoals}<span className="mx-1.5 text-muted/60 sm:mx-3">–</span>{m.theirGoals}</span> : <span className="display text-4xl text-muted sm:text-6xl">v</span>}
               {m.played && m.result && <span className={clsx("eyebrow", resultText[m.result])}>{resultWord(m.result)}</span>}
             </span>
@@ -97,15 +98,19 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           {!m.played && kickoff && <p className="mt-8 text-center"><span className="eyebrow block">Kick-off in</span><Countdown target={kickoff} className="tabular mt-1 text-4xl font-semibold tracking-tight text-ink" /></p>}
           {(m.comment || verdict) && <p className="display mx-auto mt-8 max-w-2xl text-center text-xl italic leading-snug text-ink/85 sm:text-2xl">{m.comment ? <>“{m.comment}”</> : verdict}</p>}
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-2 border-t border-ink/10 bg-sunken/40 px-5 py-4">
+        <div className="space-y-3 border-t border-ink/10 bg-sunken/40 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {m.motm && <span className="chip border-gold/30 bg-gold/10 text-gold"><Star size={12} className="fill-current" aria-hidden />Man of the match <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></span>}
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
           {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
           <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip chip-tap text-muted hover:text-ink" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <ShareButton title={shareText} text={shareText} image={`/matches/${m.id}/opengraph-image`} filename={`hajduci-${m.id}.png`} />
-          <Link href={`/submit?match=${m.id}`} className="focus-ring chip chip-tap gap-1.5 text-ink transition-colors hover:border-ink/30">{isForfeit && m.played ? "Edit the forfeit" : m.played ? "Edit the result" : "Add the result"}</Link>
+          <Link href={`/submit?match=${m.id}`} className={btn("secondary", "xs")}>{isForfeit && m.played ? "Edit the forfeit" : m.played ? "Edit the result" : "Add the result"}</Link>
           {pollFor && <PollButton fixture={pollFor} label={pollFor.id === m.id ? "Ask who's playing" : `Ask who's playing ${gwLabel(pollFor)}`} />}
+        </div>
         </div>
       </section>
 

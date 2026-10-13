@@ -8,6 +8,7 @@ import { FormStrip, PageHeader, SectionTitle, Tag } from "@/components/ui";
 import { GoalsBySeason, WDLBySeason } from "@/components/charts";
 import { PointsRaceChart } from "@/components/charts-race";
 import { PageTransition } from "@/components/page-transition";
+import { btn } from "@/components/button";
 
 export const metadata: Metadata = { title: "Seasons", description: "Every Thameslink Hajduci season: results, venues and top scorers." };
 
@@ -36,7 +37,7 @@ export default async function SeasonsPage() {
               <article className="card group relative grid gap-5 p-6 transition-shadow hover:shadow-lg lg:grid-cols-[auto_1fr_auto_auto] lg:items-center">
                 <div className="flex items-center gap-4 lg:w-52">
                   <span className={clsx("display flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-4xl leading-none", s.isCurrent ? "bg-accent text-paper" : "bg-sunken text-ink")}>{s.number}</span>
-                  <div><h2 className="display text-2xl leading-none text-ink"><Link href={`/seasons/${s.id.toLowerCase()}`} className="focus-ring rounded after:absolute after:inset-0 after:content-['']">Season {s.number}</Link></h2><p className="nowrap text-xs text-muted">{s.period}</p>{s.isCurrent && <Tag tone="mint" className="mt-1">In progress</Tag>}</div>
+                  <div><h2 className="display text-2xl leading-none text-ink"><Link href={`/seasons/${s.id.toLowerCase()}`} className="focus-ring rounded after:absolute after:inset-0 after:content-['']">Season {s.number}</Link></h2><p className="nowrap text-xs text-muted">{s.period}</p>{s.isCurrent && <Tag tone="accent" className="mt-1">In progress</Tag>}</div>
                 </div>
                 <div>
                   <p className="text-sm text-ink">{s.venue}</p>
@@ -61,7 +62,7 @@ export default async function SeasonsPage() {
               <p className="mt-1 text-xs text-muted">{data.friendlies.matches.length} game{data.friendlies.matches.length === 1 ? "" : "s"} outside the league</p>
             </div>
           </div>
-          <div className="flex items-center gap-3"><FormStrip matches={[...data.friendlies.matches].filter((m) => m.played).slice(-8)} size="sm" /><Link href="/seasons/friendlies" className="focus-ring chip chip-tap text-muted hover:text-ink">View <ArrowRight size={14} aria-hidden /></Link></div>
+          <div className="flex items-center gap-3"><FormStrip matches={[...data.friendlies.matches].filter((m) => m.played).slice(-8)} size="sm" /><Link href="/seasons/friendlies" className={btn("secondary", "xs")}>View <ArrowRight size={14} aria-hidden /></Link></div>
         </article>
       )}
     </div>

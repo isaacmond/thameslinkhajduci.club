@@ -5,11 +5,11 @@ import { C } from "./charts";
 
 /**
  * Golden-boot race hues in fixed order, leader first. Adjacent pairs clear the CVD separation check against the dark surface
- * (validate_palette --mode dark); gold and sage sit outside the strict lightness/chroma band, so identity never rests on hue alone:
+ * (validate_palette --mode dark); violet and terracotta keep gold for honours, and sage sits outside the strict lightness/chroma band, so identity never rests on hue alone:
  * the leader (or everyone sharing the lead) gets the thick line, a single end label names the leader(s) with the top total, every line
  * gets an end dot with a surface ring, and the legend carries each player's final total so no total needs a hover; the tooltip names the rest.
  */
-const RACE_HUES = [C.green, C.blue, C.gold, C.amber, C.sage];
+const RACE_HUES = [C.green, C.blue, C.violet, C.terracotta, C.sage];
 
 type TipPayload = { name?: string | number; value?: unknown; color?: string; fill?: string; dataKey?: string | number; payload?: Record<string, unknown> };
 type TipProps = { active?: boolean; payload?: ReadonlyArray<TipPayload>; label?: unknown };
@@ -29,7 +29,7 @@ function TipBox({ title, rows }: { title: ReactNode; rows: { label: ReactNode; v
   );
 }
 const axis = { tick: { fill: C.ink, fontSize: 11 }, axisLine: false, tickLine: false } as const;
-const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 11, color: C.ink, letterSpacing: "0.08em", textTransform: "uppercase" as const } };
+const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 11, color: C.ink } };
 /** Legend with our own entries (Recharts 3 no longer takes a `payload` prop), so the race can list the leader first and the points chart can key just two things. */
 function Key({ items }: { items: { label: string; color: string }[] }) {
   return (

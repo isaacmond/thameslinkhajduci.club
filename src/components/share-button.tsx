@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Check, Share2 } from "lucide-react";
-import clsx from "clsx";
+import { btn, type ButtonSize, type ButtonVariant } from "./button";
 
 /** Fetch a PNG and wrap it as a File for the share sheet. Null on any failure so the caller falls back to a plain share. */
 async function fetchImageFile(src: string, filename: string): Promise<File | null> {
@@ -18,7 +18,7 @@ async function fetchImageFile(src: string, filename: string): Promise<File | nul
  * Pass `image` (URL of a PNG, e.g. the page's OG image) and the sheet gets the picture too, where the browser supports sharing files;
  * the link rides along in the text because some platforms drop `url` when files are attached.
  */
-export function ShareButton({ title, text, image, filename = "thameslink-hajduci.png", className }: { title: string; text: string; image?: string; filename?: string; className?: string }) {
+export function ShareButton({ title, text, image, filename = "thameslink-hajduci.png", variant = "secondary", size = "xs", className }: { title: string; text: string; image?: string; filename?: string; variant?: ButtonVariant; size?: ButtonSize; className?: string }) {
   const [done, setDone] = useState(false);
   const share = async () => {
     const url = window.location.href;
@@ -36,7 +36,7 @@ export function ShareButton({ title, text, image, filename = "thameslink-hajduci
     } catch { /* user dismissed the sheet */ }
   };
   return (
-    <button type="button" onClick={share} className={clsx("focus-ring chip chip-tap gap-1.5 text-ink transition-colors hover:border-ink/30", className)}>
+    <button type="button" onClick={share} className={btn(variant, size, className)}>
       {done ? <Check size={14} className="text-accent" aria-hidden /> : <Share2 size={14} aria-hidden />}
       <span role="status" aria-live="polite">{done ? "Link copied" : "Share"}</span>
     </button>

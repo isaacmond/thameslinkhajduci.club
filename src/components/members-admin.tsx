@@ -2,7 +2,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { addMemberAction, removeMemberAction, setAdminAction, type ActionState } from "@/app/actions/admin";
-import { inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 
 export type MemberRow = { email: string; player: string; admin: boolean };
@@ -22,7 +22,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
       <ul className="divide-y divide-ink/10 text-sm">
         {[...byPlayer.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([p, rows]) => (
           <li key={p} className="flex flex-col gap-1 py-2 sm:flex-row sm:items-baseline sm:gap-4">
-            <span className="inline-flex w-40 shrink-0 items-center font-medium text-ink">{p}{rows.some((r) => r.admin) && <ShieldCheck size={14} className="ml-1 inline align-text-bottom text-gold" aria-label="admin" />}</span>
+            <span className="inline-flex w-40 shrink-0 items-center font-medium text-ink">{p}{rows.some((r) => r.admin) && <ShieldCheck size={14} className="ml-1 inline align-text-bottom text-accent" aria-label="admin" />}</span>
             <ul className="flex min-w-0 flex-1 flex-wrap gap-2">
               {rows.map((r) => (
                 <li key={r.email} className="chip gap-2">
@@ -35,7 +35,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
           </li>
         ))}
       </ul>
-      {removed && <p role="status" className={`text-sm ${removed.ok ? "text-accent" : "text-loss"}`}>{removed.message}</p>}
+      {removed && <FormStatus tone={removed.ok ? "ok" : "error"}>{removed.message}</FormStatus>}
       <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
         <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Email</span><input name="email" type="email" required placeholder="name@example.com" className={inputClass} /></label>
         <Select label="Signs in as" value={player} onChange={setPlayer} options={roster.map((r) => ({ value: r, label: r }))} />
@@ -43,7 +43,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
         <label className="flex h-[2.375rem] items-center gap-2 text-xs text-muted"><input type="checkbox" name="admin" className="accent-accent" />Admin</label>
         <button type="submit" disabled={pending} className={btn("primary")}><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
       </form>
-      {state && <p role="status" className={`text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.message}</p>}
+      {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}
     </div>
   );
 }

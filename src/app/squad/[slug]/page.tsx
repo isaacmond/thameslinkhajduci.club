@@ -68,9 +68,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
           {p.extra.nickname && <p className="display mt-2 text-2xl italic text-muted">“{p.extra.nickname}”</p>}
           {p.extra.bio && <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink/85">{p.extra.bio}</p>}
           <p className="mt-4 text-sm text-muted">Debut {fmtDate(p.debut, { day: "numeric", month: "long", year: "numeric" })} · last played {fmtDate(p.lastPlayed, { day: "numeric", month: "long", year: "numeric" })} · {seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}{thisSeason?.apps && current ? ` · in the Season ${current.number} squad` : ""}</p>
-          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+          {(p.ringer || ranks.length > 0) && <div className="mt-4 flex flex-wrap items-center gap-1.5">
             {p.ringer && <Tag>Ringer · never on the team sheet</Tag>}
             {ranks.map((r) => <Tag key={r.label} tone="gold">{ordinal(r.rank!)} all time {r.label}</Tag>)}
+          </div>}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} appearances, ${p.goals} goals and ${p.assists} assists for Thameslink Hajduci.`} />
             <EditProfileLink player={p.name} />
           </div>

@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Switch } from "./controls";
+import { chipToggle, Switch } from "./controls";
 
 export type PlayerRow = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; wins: number; draws: number; losses: number; goalsPerGame: number; assistsPerGame: number; gpgGames: number; apgGames: number; winRate: number; ppg: number };
 type Key = keyof Omit<PlayerRow, "slug">;
@@ -29,8 +29,8 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Scope">
-          <button type="button" onClick={() => setScope("all")} aria-pressed={scope === "all"} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", scope === "all" ? "border-accent/50 bg-accent/15 text-accent" : "text-muted hover:text-ink")}>All-time</button>
-          {seasons.map((s) => <button key={s} type="button" onClick={() => setScope(s)} aria-pressed={scope === s} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", scope === s ? "border-accent/50 bg-accent/15 text-accent" : "text-muted hover:text-ink")}>{s}</button>)}
+          <button type="button" onClick={() => setScope("all")} aria-pressed={scope === "all"} className={chipToggle(scope === "all")}>All-time</button>
+          {seasons.map((s) => <button key={s} type="button" onClick={() => setScope(s)} aria-pressed={scope === s} className={chipToggle(scope === s)}>{s}</button>)}
         </div>
         <Switch className="ml-auto" checked={minApps} onChange={setMinApps} label="Hide players with fewer than 5 appearances" />
       </div>

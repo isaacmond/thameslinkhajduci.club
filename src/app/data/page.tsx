@@ -12,9 +12,9 @@ import { PageTransition } from "@/components/page-transition";
 export const metadata: Metadata = { title: "Data", description: "Download Thameslink Hajduci stats as a spreadsheet." };
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
-const SEVERITY_UI: Record<Severity, { tone: "loss" | "gold" | "default"; icon: React.ReactNode; blurb: string }> = {
+const SEVERITY_UI: Record<Severity, { tone: "loss" | "default"; icon: React.ReactNode; blurb: string }> = {
   high: { tone: "loss", icon: <TriangleAlert size={16} className="text-loss" aria-hidden />, blurb: "A number on the site is wrong until these are fixed." },
-  medium: { tone: "gold", icon: <CircleAlert size={16} className="text-gold" aria-hidden />, blurb: "Missing or ignored: the site copes, but quietly." },
+  medium: { tone: "default", icon: <CircleAlert size={16} className="text-muted" aria-hidden />, blurb: "Missing or ignored: the site copes, but quietly." },
   low: { tone: "default", icon: <Info size={16} className="text-muted" aria-hidden />, blurb: "Tidy-ups. Nothing is counted wrongly." },
 };
 

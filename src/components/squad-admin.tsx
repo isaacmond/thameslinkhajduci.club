@@ -2,7 +2,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { ClipboardList, Eye, MailWarning, Send } from "lucide-react";
 import { previewReminderAction, saveSquadAction, sendRemindersAction, type ActionState } from "@/app/actions/admin";
-import { inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 
 export type SquadFixture = { id: string; label: string; date: string | null };
@@ -34,25 +34,25 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
         <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
           {roster.map((p) => (
             <li key={p.name}>
-              <label className={`focus-within:ring-2 focus-within:ring-accent/60 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${picked.has(p.name) ? "border-accent/60 bg-accent/15 text-accent" : "border-ink/10 bg-ink/5 text-ink hover:bg-ink/10"}`}>
+              <label className={`focus-within:ring-2 focus-within:ring-accent/60 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${picked.has(p.name) ? "chip-on" : "chip-off border-ink/10 hover:border-ink/25"}`}>
                 <input type="checkbox" name="players" value={p.name} checked={picked.has(p.name)} onChange={() => toggle(p.name)} className="sr-only" />
                 <span className="tabular w-6 shrink-0 text-xs text-muted">{p.shirt ?? ""}</span>
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                {!p.hasEmail && <MailWarning size={13} className="shrink-0 text-gold" aria-label="No email on the members list" />}
+                {!p.hasEmail && <MailWarning size={13} className="shrink-0 text-loss" aria-label="No email on the members list" />}
               </label>
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-[11px] text-muted"><MailWarning size={11} className="mr-1 inline align-text-bottom text-gold" aria-hidden />means no email address on the members list, so they will not get the reminder. Add them under Members.</p>
+        <p className="mt-2 text-[11px] text-muted"><MailWarning size={11} className="mr-1 inline align-text-bottom text-loss" aria-hidden />means no email address on the members list, so they will not get the reminder. Add them under Members.</p>
       </fieldset>
       <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Note for the squad (optional)</span><textarea name="note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={400} rows={2} placeholder="Anything beyond the usual: a different pitch, a later meet, who has the ball." className={`${inputClass} min-h-[3.5rem] resize-y`} /></label>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={btn("primary")}><ClipboardList size={16} aria-hidden />{pending ? "Saving…" : "Save team sheet"}</button>
         <button type="button" disabled={busy || !saved?.players.length} onClick={() => start(async () => setSent(await sendRemindersAction(matchId)))} title={saved?.players.length ? "Email everyone on the saved team sheet now" : "Save the team sheet first"} className={btn("secondary")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Send reminder now"}</button>
         <button type="button" disabled={busy} onClick={() => start(async () => setSent(await previewReminderAction(matchId)))} title="Email a copy to yourself only, nothing saved" className={btn("ghost", "sm", "font-medium")}><Eye size={16} aria-hidden />Email me a preview</button>
-        {missing.length > 0 && <span className="text-xs text-gold">{missing.length} picked without an email</span>}
+        {missing.length > 0 && <span className="inline-flex items-center gap-1.5 text-sm text-loss"><MailWarning size={14} aria-hidden />{missing.length} picked without an email</span>}
       </div>
-      {(sent ?? state) && <p role="status" className={`text-sm ${(sent ?? state)!.ok ? "text-accent" : "text-loss"}`}>{(sent ?? state)!.message}</p>}
+      {(sent ?? state) && <FormStatus tone={(sent ?? state)!.ok ? "ok" : "error"}>{(sent ?? state)!.message}</FormStatus>}
     </form>
   );
 }

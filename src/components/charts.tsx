@@ -1,9 +1,9 @@
 "use client";
-import type { ReactNode } from "react";
+import { useSyncExternalStore, type ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 /** Chart colours come from the theme tokens in globals.css, so every chart follows light and dark mode. Volume (apps) is drawn as an outlined bar; conceded is blue and dashed; W/D/L stacks keep the site-wide result colours with 2px gaps and a legend. */
-export const C = { green: "var(--color-accent)", blue: "var(--color-assist)", sage: "color-mix(in srgb, var(--color-muted) 75%, transparent)", gold: "var(--color-gold)", amber: "var(--color-draw)", win: "var(--color-win)", draw: "var(--color-draw)", loss: "var(--color-loss)", grid: "color-mix(in srgb, var(--color-ink) 9%, transparent)", ink: "var(--color-muted)", surface: "var(--color-surface)", cream: "var(--color-ink)" };
+export const C = { green: "var(--color-accent)", blue: "var(--color-assist)", sage: "color-mix(in srgb, var(--color-muted) 75%, transparent)", gold: "var(--color-gold)", amber: "var(--color-draw)", violet: "light-dark(#6b5b95, #b6a6e0)", terracotta: "light-dark(#a0522d, #e3a07a)", win: "var(--color-win)", draw: "var(--color-draw)", loss: "var(--color-loss)", grid: "color-mix(in srgb, var(--color-ink) 9%, transparent)", ink: "var(--color-muted)", surface: "var(--color-surface)", cream: "var(--color-ink)" };
 /** Seasons are ordinal, so they take a one-hue ramp of the crest green, oldest strongest, fading towards the newest. */
 export const SEASON_RAMP = [100, 88, 76, 66, 57, 49, 42, 36, 31, 27].map((pct) => `color-mix(in srgb, var(--color-accent) ${pct}%, var(--color-surface))`);
 export const seasonColor = (i: number) => SEASON_RAMP[Math.min(i, SEASON_RAMP.length - 1)];
@@ -31,7 +31,17 @@ function DefaultTip({ active, payload, label }: TipProps) {
   return <TipBox title={String(label ?? "")} rows={rows.length ? rows : [{ label: "–", value: "0" }]} />;
 }
 const axis = { tick: { fill: C.ink, fontSize: 11 }, axisLine: false, tickLine: false } as const;
-const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 11, color: C.ink, letterSpacing: "0.08em", textTransform: "uppercase" as const } };
+/** Legend words stay in the muted text colour whatever the series fill, so a pale bar or a late season never fades its label. */
+const legend = { iconType: "circle" as const, iconSize: 8, wrapperStyle: { fontSize: 11, color: C.ink }, formatter: (v: string) => <span style={{ color: C.ink }}>{v}</span> };
+/** True on phone widths, so label columns can give the bars more room. */
+const NARROW = "(max-width: 639px)";
+function useNarrow() {
+  return useSyncExternalStore(
+    (cb) => { const m = window.matchMedia(NARROW); m.addEventListener("change", cb); return () => m.removeEventListener("change", cb); },
+    () => window.matchMedia(NARROW).matches,
+    () => false,
+  );
+}
 const cursor = { fill: "color-mix(in srgb, var(--color-ink) 5%, transparent)" };
 const shortSeason = (v: string) => String(v).replace("Season ", "S");
 
@@ -77,7 +87,7 @@ export function PlayerSeasonBars({ data, height = 220 }: { data: { name: string;
         <YAxis {...axis} allowDecimals={false} />
         <Tooltip content={<DefaultTip />} cursor={cursor} />
         <Legend {...legend} />
-        <Bar dataKey="apps" name="Appearances" fill="color-mix(in srgb, var(--color-ink) 5%, transparent)" stroke={C.sage} strokeWidth={1.5} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="apps" name="Appearances" fill={C.sage} fillOpacity={0.12} stroke={C.sage} strokeWidth={1.5} radius={[4, 4, 0, 0]} />
         <Bar dataKey="goals" name="Goals" fill={C.green} radius={[4, 4, 0, 0]} />
         <Bar dataKey="assists" name="Assists" fill={C.blue} radius={[4, 4, 0, 0]} />
       </BarChart>
@@ -126,13 +136,15 @@ export function GoalDiffTimeline({ data }: { data: { label: string; gd: number; 
 
 /** Horizontal stacked bars: one row per player, one segment per season. Rows carry `name` (with total baked in) plus a numeric field per season id. */
 export function StackedBySeason({ data, seasons }: { data: Record<string, number | string>[]; seasons: string[] }) {
+  const narrow = useNarrow();
+  const labelWidth = narrow ? 112 : 150;
   const h = Math.max(160, data.length * 28 + 48);
   return (
     <ResponsiveContainer width="100%" height={h}>
       <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }} barCategoryGap="25%">
         <CartesianGrid horizontal={false} stroke={C.grid} />
         <XAxis type="number" {...axis} allowDecimals={false} />
-        <YAxis type="category" dataKey="name" width={150} {...axis} tick={{ fill: C.ink, fontSize: 10, width: 150 }} interval={0} />
+        <YAxis type="category" dataKey="name" width={labelWidth} {...axis} tick={{ fill: C.ink, fontSize: 10, width: labelWidth }} interval={0} />
         <Tooltip content={<DefaultTip />} cursor={cursor} />
         <Legend {...legend} />
         {seasons.map((s, i) => <Bar key={s} dataKey={s} name={s} stackId="a" fill={seasonColor(i)} stroke={C.surface} strokeWidth={2} />)}

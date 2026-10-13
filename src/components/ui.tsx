@@ -121,7 +121,7 @@ export function Avatar({ name, photo, size = 40, shirt, priority = false }: { na
       ) : (
         <span className="flex h-full w-full items-center justify-center rounded-full bg-sunken font-semibold text-muted ring-1 ring-ink/10" style={{ fontSize: size * 0.36 }} aria-hidden>{initials(name)}</span>
       )}
-      {shirt !== undefined && shirt !== null && <span className="absolute -bottom-1 -right-1 rounded-full bg-accent px-1 text-[10px] font-bold text-paper ring-2 ring-surface">{shirt}</span>}
+      {shirt !== undefined && shirt !== null && <span className={clsx("absolute rounded-full bg-accent px-1 text-[10px] font-bold text-paper ring-2 ring-surface", size >= 64 ? "bottom-[6%] right-[6%]" : "-bottom-1 -right-1")}>{shirt}</span>}
     </span>
   );
 }
@@ -193,8 +193,8 @@ export function LeaderList({ items, color = "bg-accent", format = (v: number) =>
   );
 }
 
-export function Tag({ children, tone = "default", className }: { children: React.ReactNode; tone?: "default" | "gold" | "mint" | "loss"; className?: string }) {
-  return <span className={clsx("chip", tone === "gold" && "border-gold/30 bg-gold/10 text-gold", tone === "mint" && "border-accent/25 bg-accent/10 text-accent", tone === "loss" && "border-loss/30 bg-loss/10 text-loss", tone === "default" && "text-muted", className)}>{children}</span>;
+export function Tag({ children, tone = "default", className }: { children: React.ReactNode; tone?: "default" | "gold" | "accent" | "win" | "loss"; className?: string }) {
+  return <span className={clsx("chip", tone === "gold" && "border-gold/30 bg-gold/10 text-gold", tone === "accent" && "border-accent/25 bg-accent/10 text-accent", tone === "win" && "border-win/30 bg-win/10 text-win", tone === "loss" && "border-loss/30 bg-loss/10 text-loss", tone === "default" && "text-muted", className)}>{children}</span>;
 }
 
 export function Callout({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {

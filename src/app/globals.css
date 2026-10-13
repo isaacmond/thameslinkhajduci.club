@@ -8,6 +8,7 @@
  *   accent  crest green: links, primary actions, positive figures
  *   gold    man of the match and other honours
  *   win / draw / loss  result colours, kept to pills and figures
+ *   logo-tile  the light tile behind sponsor logos, a touch dimmer in the dark theme
  */
 @theme {
   --color-paper: #f5f1e8;
@@ -21,6 +22,7 @@
   --color-draw: #7a5700;
   --color-loss: #ad3530;
   --color-assist: #2f62a3;
+  --color-logo-tile: #fffcf6;
   --font-display: var(--font-serif), "Instrument Serif", Georgia, "Times New Roman", serif;
   --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
   --radius-xl: 0.875rem;
@@ -45,6 +47,7 @@
       --color-draw: #e2c268;
       --color-loss: #ef8f88;
       --color-assist: #8db8ef;
+      --color-logo-tile: #e9e4d8;
       --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
     }
   }
@@ -71,10 +74,11 @@ body {
 
 /* surfaces */
 .card { background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-ink) 9%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); }
-.card-solid { background: var(--color-accent); color: var(--color-paper); border-radius: var(--radius-xl); }
-.card-fame { border-top: 2px solid var(--color-win); }
-.card-shame { border-top: 2px solid var(--color-loss); }
 .chip { display: inline-flex; align-items: center; gap: 0.35rem; border-radius: 999px; padding: 0.2rem 0.6rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; border: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent); background: color-mix(in srgb, var(--color-ink) 4%, transparent); }
+/* selected and unselected filter chips and toggle tiles, one scheme site-wide (labels around a checkbox use .chip-check) */
+.chip-on, .chip-check:has(:checked) { border-color: color-mix(in srgb, var(--color-accent) 50%, transparent); background: color-mix(in srgb, var(--color-accent) 15%, transparent); color: var(--color-ink); }
+.chip-off { background: var(--color-surface); color: var(--color-muted); }
+.chip-off:hover { color: var(--color-ink); }
 .rule { border-color: color-mix(in srgb, var(--color-ink) 10%, transparent); }
 
 /* results: tinted, never loud */

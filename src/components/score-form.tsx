@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import clsx from "clsx";
 import { Check, ClipboardList, Minus, Plus, Send, UserPlus, X } from "lucide-react";
 import { pickRegulars } from "@/lib/ringers";
-import { inputClass, Select, Switch } from "./controls";
+import { FormStatus, inputClass, Select, Switch } from "./controls";
 import { btn } from "./button";
 import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
@@ -117,7 +117,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
     // The game is in; the next job is finding out who is free for the one after it.
     const nextUp = fx ? fixtures.filter((f) => !f.played && !isForfeit(f) && f.id !== fx.id && (f.date ?? "9999") >= (fx.date ?? "")).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"))[0] : undefined;
     return (
-      <SubmissionResult result={result} onEdit={() => setResult(null)} extra={nextUp && <PollButton fixture={nextUp} label={`Ask who's playing ${nextUp.seasonId === "FR" ? "the friendly" : `GW${nextUp.gw}`} v ${nextUp.opponent}`} className="h-[2.375rem] px-4 text-sm" />}>
+      <SubmissionResult result={result} onEdit={() => setResult(null)} extra={nextUp && <PollButton fixture={nextUp} label={`Ask who's playing ${nextUp.seasonId === "FR" ? "the friendly" : `GW${nextUp.gw}`} v ${nextUp.opponent}`} size="sm" />}>
         {fx && <SummaryCard className="mt-4" label={`${fx.seasonId === "FR" ? "Friendly" : `${fx.seasonId} · GW${fx.gw}`} · ${shortDate(fx.date)}`} title={forfeit ? `Forfeit v ${fx.opponent}` : `Hajduci ${ours}–${theirs} ${fx.opponent}`} detail={result.applied ? "Recorded" : "Waiting for the admin to approve"} />}
       </SubmissionResult>
     );
@@ -136,7 +136,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           <Switch checked={forfeit} onChange={toggleForfeit} label={<span className={clsx(forfeit && "text-ink")}>Forfeit, no match played</span>} />
           {forfeit && <p className="text-xs text-muted">Enter the score the league awarded, usually {AWARDED.theirs}–{AWARDED.ours}.</p>}
         </div>
-        {fx?.played && <p className="text-xs text-gold lg:col-span-2">This game already has {isForfeit(fx) ? "a forfeit" : "a score"} recorded{isForfeit(fx) ? "" : ` (${fx.ourGoals}–${fx.theirGoals})`}. This will replace it.</p>}
+        {fx?.played && <FormStatus tone="error" className="lg:col-span-2">This game already has {isForfeit(fx) ? "a forfeit" : "a score"} recorded{isForfeit(fx) ? "" : ` (${fx.ourGoals}–${fx.theirGoals})`}. This will replace it.</FormStatus>}
       </div>
 
       {forfeit ? (
@@ -148,8 +148,8 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           </p>
           <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
             {roster.map((n) => { const on = played.has(n); return (
-              <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
-                <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
+              <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "chip-on" : "chip-off border-ink/10")}>
+                <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
                 {on && pitch > 0 && <span className="tabular shrink-0 text-xs text-muted">{pounds(each)}</span>}
               </li>); })}
           </ul>
@@ -166,8 +166,8 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
         )}
         <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
           {roster.map((n) => { const on = played.has(n); return (
-            <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "border-accent/40 bg-accent/[0.06]" : "border-ink/10 bg-surface")}>
-              <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className={clsx("focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm", on ? "text-ink" : "text-muted hover:text-ink")}><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
+            <li key={n} className={clsx("flex items-center gap-2 rounded-xl border pr-3 transition-colors", on ? "chip-on" : "chip-off border-ink/10")}>
+              <button type="button" onClick={() => togglePlayed(n)} aria-pressed={on} className="focus-ring flex min-w-0 flex-1 items-center gap-2 self-stretch rounded-xl py-2.5 pl-3 text-left text-sm hover:text-ink"><span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", on ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{on && <Check size={12} />}</span><span className="truncate">{n}</span></button>
               {on && <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>}
             </li>); })}
         </ul>
@@ -176,7 +176,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
           {ringers.length > 0 && (
             <ul className="mb-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
               {ringers.map((n) => (
-                <li key={n} className="flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/[0.06] px-3 py-2">
+                <li key={n} className="chip-on flex items-center gap-2 rounded-xl border px-3 py-2">
                   <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink"><span className="chip shrink-0 text-[10px] text-muted">Ringer</span><span className="truncate">{n}</span></span>
                   <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
                   <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring shrink-0 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>
@@ -206,8 +206,8 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={!canSubmit} className={btn("primary", "md")}><Send size={16} aria-hidden />{busy ? (signedIn?.direct ? "Recording…" : "Preparing…") : forfeit ? `${verb} the forfeit` : signedIn?.direct ? "Record the result" : webhook ? "Submit for approval" : "Prepare the request"}</button>
-        {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
-        {result && !result.ok && <p className="text-xs text-loss" role="alert">{result.error}</p>}
+        {problems.length > 0 && <FormStatus tone="error">{problems[0]}</FormStatus>}
+        {result && !result.ok && <FormStatus tone="error" role="alert">{result.error}</FormStatus>}
         <p className="ml-auto text-xs text-muted">{signedIn?.direct ? "Recorded straight away." : "Sent to the admin for approval."}</p>
       </div>
     </form>

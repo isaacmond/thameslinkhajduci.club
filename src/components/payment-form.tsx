@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Send } from "lucide-react";
-import { inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
@@ -87,8 +87,8 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={!canSubmit} className={btn("primary", "md")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Log the payment"}</button>
-        {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
-        {result && !result.ok && <p className="text-xs text-loss" role="alert">{result.error}</p>}
+        {problems.length > 0 && <FormStatus tone="error">{problems[0]}</FormStatus>}
+        {result && !result.ok && <FormStatus tone="error" role="alert">{result.error}</FormStatus>}
         <p className="ml-auto text-xs text-muted">{signedIn?.direct ? "Recorded straight away." : "Sent to the admin for approval."} <Link href="/money" className="link">See the balances</Link></p>
       </div>
     </form>

@@ -1,8 +1,8 @@
 "use client";
 import { useActionState, useState } from "react";
-import { Camera, Check, Save } from "lucide-react";
+import { Camera, Save } from "lucide-react";
 import { savePlayerAction, type ActionState } from "@/app/actions/admin";
-import { inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
 import { Avatar } from "./ui";
 
@@ -60,7 +60,7 @@ function PlayerEditor({ player, takenShirts, onRenamed }: { player: AdminPlayer;
           <legend className="eyebrow mb-1">Positions</legend>
           <div className="flex flex-wrap gap-2">
             {POSITIONS.map(([code, name]) => (
-              <label key={code} className="chip cursor-pointer bg-surface hover:border-ink/25 has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-paper">
+              <label key={code} className="chip chip-off chip-check cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent/60 hover:border-ink/25">
                 <input type="checkbox" name="positions" value={code} defaultChecked={player.positions.includes(code)} className="sr-only" />{name}
               </label>
             ))}
@@ -69,7 +69,7 @@ function PlayerEditor({ player, takenShirts, onRenamed }: { player: AdminPlayer;
         <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio</span><textarea name="bio" defaultValue={player.bio} maxLength={280} rows={2} className={`${inputClass} min-h-[4rem] resize-y`} /></label>
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
           <button type="submit" disabled={pending || Boolean(clash)} className={btn("primary")}><Save size={16} aria-hidden />{pending ? "Saving…" : "Save player"}</button>
-          {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
+          {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}
         </div>
       </div>
     </form>

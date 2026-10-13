@@ -7,7 +7,6 @@ export function badgeHue(name: string): number {
   return h % 360;
 }
 /** The opponent's colour, tuned for the current theme. */
-export const badgeColor = (name: string) => { const h = badgeHue(name); return `light-dark(hsl(${h} 38% 38%), hsl(${h} 45% 70%))`; };
 /** Up to three initials: one per word ("Green of the South" → GOS), or the first three letters of a one-word name ("Spudos" → SPU). */
 export function badgeInitials(name: string): string {
   const words = opponentKey(name).split(" ").filter(Boolean);
@@ -16,10 +15,10 @@ export function badgeInitials(name: string): string {
 }
 
 /** A short description of the head-to-head, shared by the opponents index and each opponent page. */
-export function opponentVerdict(o: { played: number; won: number; lost: number }): { word: string; tone: "loss" | "mint" | "gold" } | null {
+export function opponentVerdict(o: { played: number; won: number; lost: number }): { word: string; tone: "loss" | "win" | "default" } | null {
   if (o.played >= 5 && o.won === 0) return { word: "Yet to beat", tone: "loss" };
-  if (o.played >= 3 && o.lost === 0) return { word: "Unbeaten against", tone: "mint" };
-  if (o.played >= 8) return { word: "Regular opponent", tone: "gold" };
+  if (o.played >= 3 && o.lost === 0) return { word: "Unbeaten against", tone: "win" };
+  if (o.played >= 8) return { word: "Regular opponent", tone: "default" };
   return null;
 }
 

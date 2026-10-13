@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { MatchLite, Result } from "@/lib/types";
 import { MatchRow } from "./ui";
-import { inputClass, Switch } from "./controls";
+import { chipToggle, inputClass, Switch } from "./controls";
 
 export function MatchesBrowser({ matches, seasons, initialSeason, today }: { matches: MatchLite[]; seasons: { id: string; number: number; title: string }[]; initialSeason?: string; today: string }) {
   const [season, setSeason] = useState<string>(initialSeason ?? "all");
@@ -68,6 +68,6 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
 
 function Chip({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone?: "all" | Result }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? (tone === "W" ? "result-W" : tone === "D" ? "result-D" : tone === "L" ? "result-L" : "border-ink bg-ink text-paper") : "bg-surface text-muted hover:text-ink")}>{children}</button>
+    <button type="button" onClick={onClick} aria-pressed={active} className={clsx(chipToggle(active), active && tone && tone !== "all" && `result-${tone}`)}>{children}</button>
   );
 }

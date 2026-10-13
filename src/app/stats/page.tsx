@@ -7,6 +7,7 @@ import { LeaderList, PageHeader, PlayerLink, SectionTitle } from "@/components/u
 import { PlayerTable, type PlayerRow } from "@/components/player-table";
 import { StackedBySeason } from "@/components/charts";
 import { PageTransition } from "@/components/page-transition";
+import { btn } from "@/components/button";
 
 export const metadata: Metadata = { title: "Stats", description: "Thameslink Hajduci statistics: leaderboards, the full player table, partnerships and head to head." };
 
@@ -31,7 +32,7 @@ export default async function StatsPage() {
     { title: "Appearances", items: leaderboard(data.players, "apps").slice(0, 5), color: "bg-ink" },
     { title: "Goals", items: leaderboard(data.players, "goals").slice(0, 5) },
     { title: "Assists", items: leaderboard(data.players, "assists").slice(0, 5), color: "bg-assist" },
-    { title: "Goals and assists", items: leaderboard(data.players, "ga").slice(0, 5), color: "bg-gold" },
+    { title: "Goals and assists", items: leaderboard(data.players, "ga").slice(0, 5), color: "bg-accent" },
     { title: "Man of the match", items: leaderboard(data.players, "motm").slice(0, 5), color: "bg-gold" },
     { title: "Goals a game", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "goalsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2) },
     { title: "Assists a game", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "assistsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2), color: "bg-assist" },
@@ -43,7 +44,7 @@ export default async function StatsPage() {
   return (
     <PageTransition>
     <div className="space-y-10">
-      <PageHeader eyebrow="In numbers" title="Statistics" sub="Leaderboards, the full player table, and who plays best together." right={<Link href="/data" className="focus-ring chip chip-tap text-muted hover:text-ink">Download the data</Link>} />
+      <PageHeader eyebrow="In numbers" title="Statistics" sub="Leaderboards, the full player table, and who plays best together." right={<Link href="/data" className={btn("secondary", "xs")}>Download the data</Link>} />
 
       <section aria-labelledby="leaders">
         <SectionTitle id="leaders" sub="All time, top five">Leaderboards</SectionTitle>
