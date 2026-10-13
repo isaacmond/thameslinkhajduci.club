@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import clsx from "clsx";
+import { Star } from "lucide-react";
 import type { Match, MatchLite, Player, Result, SeasonSummary } from "@/lib/types";
 import { fmtDate, gwLabel, initials, ppg, scoreline, signed } from "@/lib/stats";
 import { slugify } from "@/lib/slug";
@@ -156,7 +157,7 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match | MatchLit
         <div className="truncate text-xs text-muted">
           {showSeason && <span className="font-medium text-ink/70">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`} · </span>}{gwLabel(m)} · {fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}
           {scorers.length > 0 && <span className="hidden sm:inline"> · {scorers.map((s) => `${s.player.split(" ")[0]}${s.goals > 1 ? ` ×${s.goals}` : ""}`).join(", ")}</span>}
-          {m.motm && <span className="hidden text-gold sm:inline"> · ★ {m.motm}</span>}
+          {m.motm && <span className="hidden text-gold sm:inline"> · <MotmStar className="-mt-0.5 mr-0.5 align-middle" /> {m.motm}</span>}
         </div>
       </div>
       <span className="tabular text-right text-2xl font-semibold leading-none tracking-tight text-ink">{m.played ? `${m.ourGoals}–${m.theirGoals}` : <span className="font-sans text-sm text-muted">{rel ?? m.kickOff ?? "TBC"}{rel && m.kickOff && <span className="block text-[11px] text-muted">{m.kickOff}</span>}</span>}</span>
@@ -195,6 +196,11 @@ export function LeaderList({ items, color = "bg-accent", format = (v: number) =>
 
 export function Tag({ children, tone = "default", className }: { children: React.ReactNode; tone?: "default" | "gold" | "accent" | "win" | "loss"; className?: string }) {
   return <span className={clsx("chip", tone === "gold" && "border-gold/30 bg-gold/10 text-gold", tone === "accent" && "border-accent/25 bg-accent/10 text-accent", tone === "win" && "border-win/30 bg-win/10 text-win", tone === "loss" && "border-loss/30 bg-loss/10 text-loss", tone === "default" && "text-muted", className)}>{children}</span>;
+}
+
+/** The one man-of-the-match mark: a small filled gold star. */
+export function MotmStar({ className, label }: { className?: string; label?: string }) {
+  return <Star size={12} className={clsx("inline-block shrink-0 fill-current text-gold", className)} aria-hidden={label ? undefined : true} aria-label={label} role={label ? "img" : undefined} />;
 }
 
 export function Callout({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {

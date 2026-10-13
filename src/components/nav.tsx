@@ -65,7 +65,7 @@ export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
     <>
       {open && <button type="button" aria-label="Close menu" onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden" />}
       {open && (
-        <div role="dialog" aria-label="More pages" className="fixed inset-x-3 bottom-[calc(3.5rem+0.75rem+env(safe-area-inset-bottom))] z-50 rounded-2xl border border-ink/10 bg-surface p-2 shadow-card animate-rise lg:hidden">
+        <div role="dialog" aria-label="More pages" className="fixed inset-x-3 bottom-[calc(3.5rem+0.75rem+env(safe-area-inset-bottom))] z-50 rounded-[var(--radius-xl)] border border-ink/10 bg-surface p-2 shadow-card animate-rise lg:hidden">
           <ul className="grid grid-cols-2 gap-1">
             {more.map((m) => (
               <li key={m.href}><Link href={m.href} onClick={() => setOpen(false)} aria-current={isActive(path, m.href) ? "page" : undefined} className={clsx("focus-ring flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium", isActive(path, m.href) ? "bg-accent/10 text-accent" : "text-ink hover:bg-ink/5")}><m.Icon size={18} aria-hidden />{m.label}</Link></li>
@@ -74,7 +74,7 @@ export function MobileTabs({ authEnabled = false }: { authEnabled?: boolean }) {
         </div>
       )}
       <nav aria-label="Primary (mobile)" className="vt-tabs fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-ink/10 bg-paper/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
-        {TABS.map((t) => { const active = isActive(path, t.href); return <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined} className={clsx(tab, active ? "text-accent" : "text-muted")}><t.Icon size={20} strokeWidth={1.75} aria-hidden />{t.label}</Link>; })}
+        {TABS.map((t) => { const active = isActive(path, t.href); return <Link key={t.href} href={t.href} aria-current={active ? "page" : undefined} className={clsx(tab, active ? "text-accent" : "text-muted")}><t.Icon size={20} aria-hidden />{t.label}</Link>; })}
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className={clsx(tab, open || moreActive ? "text-accent" : "text-muted")}>{open ? <X size={20} aria-hidden /> : <Menu size={20} aria-hidden />}More</button>
       </nav>
     </>

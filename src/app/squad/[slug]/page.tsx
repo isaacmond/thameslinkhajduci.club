@@ -3,12 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import clsx from "clsx";
-import { Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref } from "@/lib/stats";
 import { playerInsights } from "@/lib/insights";
-import { Avatar, Breadcrumb, FormStrip, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Avatar, Breadcrumb, FormStrip, MotmStar, PlayerLink, ResultPill, SectionTitle, Stat, Tag } from "@/components/ui";
 import { PlayerSeasonBars } from "@/components/charts";
 import { ShareButton } from "@/components/share-button";
 import { PageTransition } from "@/components/page-transition";
@@ -160,14 +159,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             <tbody>
               {log.map((m) => { const l = mine(m)!; return (
                 <tr key={m.id}>
-                  <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-ink sm:inline">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <span className="ml-1 text-gold">★</span>}</span>{m.type && <span className="chip ml-2 hidden !py-0 leading-5 text-muted sm:inline-flex">{m.type}</span>}</td>
+                  <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-ink sm:inline">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <MotmStar className="-mt-0.5 ml-1 align-middle" label="Man of the match" />}</span>{m.type && <span className="chip ml-2 hidden !py-0 leading-5 text-muted sm:inline-flex">{m.type}</span>}</td>
                   <td><ResultPill result={m.result} size="sm" /></td>
                   <td className="num font-medium">{scoreline(m)}</td>
                   <td className={clsx("num", l.goals > 0 && "font-semibold")}>{l.goals || ""}</td>
                   <td className="num">{l.assists || ""}</td>
                   <td className="hidden text-muted sm:table-cell">{fmtDate(m.date)}</td>
                   <td className="hidden text-muted sm:table-cell"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`}</Link></td>
-                  <td className="hidden text-xs text-muted sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}{!l.played && "Scored without an appearance recorded"}</td>
+                  <td className="hidden text-xs text-muted sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><MotmStar />Man of the match</span>}{!l.played && "Scored without an appearance recorded"}</td>
                 </tr>); })}
             </tbody>
           </table>

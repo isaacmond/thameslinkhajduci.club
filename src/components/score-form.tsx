@@ -9,7 +9,7 @@ import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { PollButton } from "./poll-button";
-import { SectionTitle } from "./ui";
+import { SectionTitle, Tag } from "./ui";
 
 /**
  * `lineup` is who the records say played (roster players only); `ringers` the outsiders recorded alongside them; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
@@ -177,7 +177,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
             <ul className="mb-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-3">
               {ringers.map((n) => (
                 <li key={n} className="chip-on flex items-center gap-2 rounded-xl border px-3 py-2">
-                  <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink"><span className="chip shrink-0 text-[10px] text-muted">Ringer</span><span className="truncate">{n}</span></span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2 text-sm text-ink"><Tag className="shrink-0 !py-0 leading-5 text-[10px]">Ringer</Tag><span className="truncate">{n}</span></span>
                   <span className="eyebrow eyebrow-sm flex shrink-0 items-center gap-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
                   <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring shrink-0 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>
                 </li>
@@ -198,7 +198,7 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
       )}
 
       <div className="card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 sm:p-6">
-        {forfeit ? <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Why</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="Optional" className={inputClass} /></label> : <Select label={fx?.seasonId === "FR" || fx?.type ? "Man of the match (optional)" : "Man of the match (optional, the players vote)"} value={motm} onChange={setMotm} options={[{ value: "", label: "Not chosen" }, ...(playedList.length ? playedList : roster).map((n) => ({ value: n, label: n }))]} />}
+        {forfeit ? <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Why (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} className={inputClass} /></label> : <Select label={fx?.seasonId === "FR" || fx?.type ? "Man of the match (optional)" : "Man of the match (optional, the players vote)"} value={motm} onChange={setMotm} options={[{ value: "", label: "Not chosen" }, ...(playedList.length ? playedList : roster).map((n) => ({ value: n, label: n }))]} />}
         {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Your name" className={inputClass} /></label>}
         {!forfeit && <label className="flex flex-col gap-1 text-xs text-muted sm:col-span-2"><span className="eyebrow">Comment (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder="A line about the match" className={inputClass} /></label>}
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />

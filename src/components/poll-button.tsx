@@ -25,7 +25,7 @@ export function PollButton({ fixture, label = "Poll the group chat", variant = "
       </button>
       {open && (
         <div role="dialog" aria-label="WhatsApp poll" className="basis-full">
-          <div className="mx-auto mt-3 max-w-md rounded-2xl border border-ink/10 bg-surface p-4 text-left shadow-card">
+          <div className="mx-auto mt-3 max-w-md rounded-[var(--radius-xl)] border border-ink/10 bg-surface p-4 text-left shadow-card">
             <div className="flex items-start justify-between gap-3">
               <p className="eyebrow">Paste this poll</p>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="focus-ring -mr-1 -mt-1 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>

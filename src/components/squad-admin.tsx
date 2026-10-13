@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState, useTransition } from "react";
-import { ClipboardList, Eye, MailWarning, Send } from "lucide-react";
+import clsx from "clsx";
+import { Check, ClipboardList, Eye, MailWarning, Send } from "lucide-react";
 import { previewReminderAction, saveSquadAction, sendRemindersAction, type ActionState } from "@/app/actions/admin";
 import { FormStatus, inputClass, Select } from "./controls";
 import { btn } from "./button";
@@ -34,8 +35,9 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
         <ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
           {roster.map((p) => (
             <li key={p.name}>
-              <label className={`focus-within:ring-2 focus-within:ring-accent/60 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${picked.has(p.name) ? "chip-on" : "chip-off border-ink/10 hover:border-ink/25"}`}>
+              <label className={clsx("flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 text-sm transition-colors focus-within:ring-2 focus-within:ring-accent/60 hover:text-ink", picked.has(p.name) ? "chip-on" : "chip-off border-ink/10")}>
                 <input type="checkbox" name="players" value={p.name} checked={picked.has(p.name)} onChange={() => toggle(p.name)} className="sr-only" />
+                <span className={clsx("flex h-5 w-5 shrink-0 items-center justify-center rounded-full border", picked.has(p.name) ? "border-accent bg-accent text-paper" : "border-ink/20")} aria-hidden>{picked.has(p.name) && <Check size={12} />}</span>
                 <span className="tabular w-6 shrink-0 text-xs text-muted">{p.shirt ?? ""}</span>
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {!p.hasEmail && <MailWarning size={13} className="shrink-0 text-loss" aria-label="No email on the members list" />}
@@ -49,7 +51,7 @@ export function SquadAdmin({ fixtures, roster, squads }: { fixtures: SquadFixtur
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending} className={btn("primary")}><ClipboardList size={16} aria-hidden />{pending ? "Saving…" : "Save team sheet"}</button>
         <button type="button" disabled={busy || !saved?.players.length} onClick={() => start(async () => setSent(await sendRemindersAction(matchId)))} title={saved?.players.length ? "Email everyone on the saved team sheet now" : "Save the team sheet first"} className={btn("secondary")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Send reminder now"}</button>
-        <button type="button" disabled={busy} onClick={() => start(async () => setSent(await previewReminderAction(matchId)))} title="Email a copy to yourself only, nothing saved" className={btn("ghost", "sm", "font-medium")}><Eye size={16} aria-hidden />Email me a preview</button>
+        <button type="button" disabled={busy} onClick={() => start(async () => setSent(await previewReminderAction(matchId)))} title="Email a copy to yourself only, nothing saved" className={btn("ghost")}><Eye size={16} aria-hidden />Email me a preview</button>
         {missing.length > 0 && <span className="inline-flex items-center gap-1.5 text-sm text-loss"><MailWarning size={14} aria-hidden />{missing.length} picked without an email</span>}
       </div>
       {(sent ?? state) && <FormStatus tone={(sent ?? state)!.ok ? "ok" : "error"}>{(sent ?? state)!.message}</FormStatus>}

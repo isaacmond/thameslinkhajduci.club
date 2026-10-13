@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Check, Copy, Star } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { btn } from "./button";
+import { MotmStar } from "./ui";
 
 export type SubmitResult = { ok: boolean; error?: string; sent?: boolean; emailed?: boolean; applied?: boolean; appliedBy?: string | null; queued?: boolean; applyError?: string | null; summary?: string; text?: string; /** what happened to the man-of-the-match vote, for a recorded league result */ motm?: string | null };
 
@@ -15,7 +16,7 @@ export function SubmissionResult({ result, onEdit, children, extra }: { result: 
       <p className="eyebrow">{result.applied ? "Recorded" : result.queued ? "Sent for approval" : result.sent ? "Sent for approval" : "Ready to send"}</p>
       <h2 className="display mt-1 text-3xl leading-none text-ink">{result.summary}</h2>
       <p className="mt-2 text-sm text-muted">{result.applied ? `Recorded${result.appliedBy ? ` by ${result.appliedBy}` : ""}. The site updates within a minute.` : result.queued ? "The admin has been emailed and will approve it shortly." : result.applyError ? `${result.applyError} It has gone to the admin, who will add it by hand.` : result.sent ? "The admin has been emailed and will add it once it's checked." : "Send this on to the admin, who will add it."}</p>
-      {result.motm && <p className="mt-3 flex items-start gap-2 rounded-lg bg-sunken/60 px-3 py-2 text-sm text-ink/90"><Star size={14} className="mt-0.5 shrink-0 text-gold" aria-hidden /><span>{result.motm}</span></p>}
+      {result.motm && <p className="mt-3 flex items-start gap-2 rounded-lg bg-sunken/60 px-3 py-2 text-sm text-ink/90"><MotmStar className="mt-1" /><span>{result.motm}</span></p>}
       {children}
       <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-sunken p-4 font-mono text-xs text-ink/90">{result.text}</pre>
       <div className="mt-4 flex flex-wrap gap-2">

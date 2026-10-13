@@ -25,13 +25,13 @@ function FixtureRow({ f, seasonId, nextGw }: { f?: AdminFixture; seasonId: strin
       <label className={field}><span className="eyebrow">Date</span><input name="date" type="date" defaultValue={f?.date ?? ""} className={`${inputClass} tabular`} /></label>
       <label className={field}><span className="eyebrow">Kick-off</span><input name="kickOff" defaultValue={f?.kickOff ?? ""} placeholder="20:15" className={`${inputClass} tabular`} /></label>
       <label className={field}><span className="eyebrow">Opponent</span><input name="opponent" defaultValue={f?.opponent ?? ""} placeholder="Who we are playing" className={inputClass} /></label>
-      <label className={field}><span className="eyebrow">Type</span><select name="type" defaultValue={f?.type ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-ink/10 bg-ink/5 px-3 text-sm text-ink">{TYPES.map((t) => <option key={t.value} value={t.value} className="bg-sunken">{t.label}</option>)}</select></label>
+      <Select label="Type" name="type" defaultValue={f?.type ?? ""} options={TYPES} />
       <label className={field}><span className="eyebrow">Pitch £</span><input name="matchCost" defaultValue={f ? f.matchCost.toFixed(2) : ""} inputMode="decimal" placeholder="default" className={`${inputClass} tabular`} /></label>
       <div className="col-span-2 flex h-[2.375rem] items-center gap-2 sm:col-span-1">
-        <button type="submit" disabled={pending} className={btn("primary", "sm", "w-[5.25rem] gap-1.5 px-0")}>{f ? <Save size={14} aria-hidden /> : <CalendarPlus size={14} aria-hidden />}{pending ? "…" : f ? "Save" : "Add"}</button>
+        <button type="submit" disabled={pending} className={btn("primary", "sm", "min-w-[5.25rem]")}>{f ? <Save size={14} aria-hidden /> : <CalendarPlus size={14} aria-hidden />}{pending ? "…" : f ? "Save" : "Add"}</button>
         {f && !f.played ? (
-          <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className={btn("secondary", "sm", "w-[2.5rem] px-0 text-muted hover:text-loss")}><Trash2 size={14} aria-hidden /></button>
-        ) : <span className="w-[2.5rem]" aria-hidden />}
+          <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className={btn("secondary", "icon", "text-muted hover:text-loss")}><Trash2 size={14} aria-hidden /></button>
+        ) : <span className="w-[2.375rem]" aria-hidden />}
       </div>
       {note && <FormStatus tone={note.ok ? "ok" : "error"} className="col-span-full">{note.message}</FormStatus>}
     </form>
@@ -48,7 +48,7 @@ function SeasonForm({ s, roster }: { s?: AdminSeason; roster: string[] }) {
       <label className={`${field} sm:col-span-2`}><span className="eyebrow">Venue link</span><input name="venueUrl" type="url" defaultValue={s?.venueUrl ?? ""} placeholder="https://www.playfootball.net/venues/whitechapel" className={inputClass} /><span className="text-[11px] text-muted">Linked from the fixture page and the reminder email.</span></label>
       <label className={field}><span className="eyebrow">Period</span><input name="period" defaultValue={s?.period ?? ""} placeholder="Jan–Apr 2027" className={inputClass} /><span className="min-h-[1.25rem] text-[11px] text-muted" /></label>
       <label className={field}><span className="eyebrow">Pitch £ per game</span><input name="pitchCost" defaultValue={s?.pitchCost?.toFixed(2) ?? ""} inputMode="decimal" placeholder="79.95" className={`${inputClass} tabular`} /><span className="min-h-[1.25rem] text-[11px] text-muted">Used for new fixtures; each fixture can still be changed.</span></label>
-      <label className={field}><span className="eyebrow">Pitch paid by</span><select name="paidBy" defaultValue={s?.paidBy ?? ""} className="control focus-ring h-[2.375rem] w-full rounded-lg border border-ink/10 bg-ink/5 px-3 text-sm text-ink"><option value="" className="bg-sunken">Nobody yet</option>{roster.map((r) => <option key={r} value={r} className="bg-sunken">{r}</option>)}</select><span className="min-h-[1.25rem] text-[11px] text-muted" /></label>
+      <div className={field}><Select label="Pitch paid by" name="paidBy" defaultValue={s?.paidBy ?? ""} options={[{ value: "", label: "Nobody yet" }, ...roster.map((r) => ({ value: r, label: r }))]} /><span className="min-h-[1.25rem] text-[11px] text-muted" /></div>
       <div className={field}><span className="eyebrow">Season cost</span><p className="flex h-[2.375rem] items-center text-sm text-ink tabular">{s ? `£${s.seasonCost.toFixed(2)}` : "–"} <span className="ml-2 text-xs text-muted">{s ? `${s.fixtures} game${s.fixtures === 1 ? "" : "s"} × pitch` : "price per game × games"}</span></p><span className="min-h-[1.25rem] text-[11px] text-muted" /></div>
       <div className="flex items-end gap-3 pb-[1.25rem] sm:col-span-2">
         <button type="submit" disabled={pending} className={btn("primary")}><Save size={16} aria-hidden />{pending ? "Saving…" : s ? "Save season" : "Create season"}</button>
@@ -71,10 +71,10 @@ export function FixturesAdmin({ seasons, fixtures, roster }: { seasons: AdminSea
         <Select label="Season" value={seasonId} onChange={setSeasonId} options={seasons.map((s) => ({ value: s.id, label: `${s.id}${s.isCurrent ? " · current" : ""}` }))} className="w-48" />
         <button type="button" onClick={() => setCreating((c) => !c)} className={btn("secondary")}>{creating ? "Cancel new season" : "New season"}</button>
       </div>
-      {creating && <div className="card p-4"><p className="eyebrow mb-3">New season</p><SeasonForm roster={roster} /></div>}
-      {season && <div className="card p-4"><p className="eyebrow mb-3">{season.id} details</p><SeasonForm s={season} roster={roster} /></div>}
+      {creating && <div className="rounded-xl bg-sunken/60 p-4"><p className="eyebrow mb-3">New season</p><SeasonForm roster={roster} /></div>}
+      {season && <div className="rounded-xl bg-sunken/60 p-4"><p className="eyebrow mb-3">{season.id} details</p><SeasonForm s={season} roster={roster} /></div>}
       {season && (
-        <div className="card overflow-x-auto p-4">
+        <div className="overflow-x-auto rounded-xl bg-sunken/60 p-4">
           <p className="eyebrow mb-1">{season.id} fixtures</p>
           <p className="mb-2 text-xs text-muted">Played games keep their result whatever you change here; the bin only shows for fixtures without a score.</p>
           <div className="min-w-[40rem]">

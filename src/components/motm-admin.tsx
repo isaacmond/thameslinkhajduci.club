@@ -1,10 +1,11 @@
 "use client";
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Send, Star, StopCircle, Vote } from "lucide-react";
+import { Send, StopCircle, Vote } from "lucide-react";
 import { closeMotmPollAction, openMotmPollAction, type ActionState } from "@/app/actions/admin";
 import { Select } from "./controls";
 import { btn } from "./button";
+import { MotmStar } from "./ui";
 
 export type PollItem = { matchId: string; status: string; label: string; score: string; ballots: number; voted: number; closesAt: string; closedAt: string | null; closedBy: string | null; winner: string | null; noVote: number };
 export type PollableFixture = { id: string; label: string };
@@ -48,7 +49,7 @@ export function MotmAdmin({ polls, pollable }: { polls: PollItem[]; pollable: Po
           <ul className="space-y-1.5 text-sm">
             {done.map((p) => (
               <li key={p.matchId} className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="inline-flex items-center gap-1 text-gold"><Star size={12} aria-hidden />{p.winner ?? (p.status === "cancelled" ? "Cancelled" : "No votes")}</span>
+                <span className="inline-flex items-center gap-1 text-gold"><MotmStar />{p.winner ?? (p.status === "cancelled" ? "Cancelled" : "No votes")}</span>
                 <Link href={`/matches/${p.matchId}`} className="link">{p.score}</Link>
                 <span className="text-xs text-muted">{p.label} · {p.voted}/{p.ballots} voted{p.closedBy ? ` · ${p.closedBy}` : ""}{p.closedAt ? ` · ${when(p.closedAt)}` : ""}</span>
               </li>

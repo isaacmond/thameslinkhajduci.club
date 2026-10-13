@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight, MapPin, Star, Vote } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Vote } from "lucide-react";
 import { getData } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
 import { getSquad } from "@/lib/writes";
@@ -11,7 +11,7 @@ import { fmtCloses } from "@/lib/motm";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, leaderboard, opponentKey, playedMatches, scorersFor, scoreline, seasonHref, seasonPlayers } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, resultWord } from "@/lib/captions";
-import { Breadcrumb, Crest, LeaderList, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { Breadcrumb, Crest, LeaderList, MotmStar, PlayerLink, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { Countdown } from "@/components/countdown";
 import { TeamBadge } from "@/components/team-badge";
 import { sponsorFor } from "@/components/footer";
@@ -100,7 +100,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="space-y-3 border-t border-ink/10 bg-sunken/40 px-5 py-4">
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {m.motm && <span className="chip border-gold/30 bg-gold/10 text-gold"><Star size={12} className="fill-current" aria-hidden />Man of the match <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></span>}
+          {m.motm && <Tag tone="gold"><MotmStar />Man of the match <PlayerLink name={m.motm} player={byName.get(m.motm)} className="!text-gold" /></Tag>}
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
           {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
@@ -142,10 +142,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                   <tbody>
                     {lineup.map((l) => (
                       <tr key={l.player}>
-                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{l.ringer && <Tag className="!py-0 text-[10px] leading-5">Ringer</Tag>}</span></td>
+                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{l.ringer && <Tag className="!py-0 leading-5 text-[10px]">Ringer</Tag>}</span></td>
                         <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/70")}>{l.goals || "·"}</td>
                         <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/70")}>{l.assists || "·"}</td>
-                        <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}</td>
+                        <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><MotmStar />Man of the match</span>}</td>
                       </tr>
                     ))}
                     {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num font-semibold">{l.goals || "·"}</td><td className="num font-semibold">{l.assists || "·"}</td><td></td></tr>)}
@@ -227,8 +227,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       })()}
 
       <nav className="grid grid-cols-2 gap-3" aria-label="Adjacent matches">
-        {prev ? <Link href={`/matches/${prev.id}`} className="focus-ring card flex min-w-0 items-center gap-2 p-3 transition-shadow hover:shadow-lg sm:gap-3 sm:p-4"><ChevronLeft className="shrink-0 text-muted" strokeWidth={1.5} aria-hidden /><span className="min-w-0"><span className="eyebrow block">Previous</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{scoreline(prev)} v </span>{prev.opponent}</span><span className="block text-xs text-muted">{fmtDate(prev.date)}</span></span></Link> : <span />}
-        {next ? <Link href={`/matches/${next.id}`} className="focus-ring card flex min-w-0 items-center justify-end gap-2 p-3 text-right transition-shadow hover:shadow-lg sm:gap-3 sm:p-4"><span className="min-w-0"><span className="eyebrow block">Next</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{next.played ? `${scoreline(next)} v ` : ""}</span>{next.opponent}</span><span className="block text-xs text-muted">{fmtDate(next.date)}</span></span><ChevronRight className="shrink-0 text-muted" strokeWidth={1.5} aria-hidden /></Link> : <span />}
+        {prev ? <Link href={`/matches/${prev.id}`} className="focus-ring card flex min-w-0 items-center gap-2 p-3 transition-shadow hover:shadow-lg sm:gap-3 sm:p-4"><ChevronLeft className="shrink-0 text-muted" aria-hidden /><span className="min-w-0"><span className="eyebrow block">Previous</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{scoreline(prev)} v </span>{prev.opponent}</span><span className="block text-xs text-muted">{fmtDate(prev.date)}</span></span></Link> : <span />}
+        {next ? <Link href={`/matches/${next.id}`} className="focus-ring card flex min-w-0 items-center justify-end gap-2 p-3 text-right transition-shadow hover:shadow-lg sm:gap-3 sm:p-4"><span className="min-w-0"><span className="eyebrow block">Next</span><span className="block truncate text-sm text-ink"><span className="hidden sm:inline">{next.played ? `${scoreline(next)} v ` : ""}</span>{next.opponent}</span><span className="block text-xs text-muted">{fmtDate(next.date)}</span></span><ChevronRight className="shrink-0 text-muted" aria-hidden /></Link> : <span />}
       </nav>
     </div>
     </PageTransition>

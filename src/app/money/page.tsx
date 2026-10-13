@@ -87,7 +87,7 @@ export default async function MoneyPage() {
           {future.length > 1 && (
             <details className="border-t border-ink/10">
               <summary className="focus-ring cursor-pointer px-6 py-3 text-sm text-muted hover:text-ink">{future.length - 1} more fixture{future.length - 1 === 1 ? "" : "s"} booked · {fmtMoney(future.slice(1).reduce((s, m) => s + m.matchCost, 0))}</summary>
-              <ul className="grid grid-cols-1 gap-x-6 gap-y-1 px-4 pb-4 text-sm text-muted sm:grid-cols-2 lg:grid-cols-3">{future.slice(1).map((m) => <li key={m.id} className="flex justify-between gap-3"><Link href={`/matches/${m.id}`} className="truncate hover:text-ink">{m.opponent}</Link><span className="shrink-0">{fmtDate(m.date, { day: "numeric", month: "short" })} · {fmtMoney(m.matchCost)}</span></li>)}</ul>
+              <ul className="grid grid-cols-1 gap-x-6 gap-y-1 px-4 pb-4 text-sm text-muted sm:grid-cols-2 lg:grid-cols-3">{future.slice(1).map((m) => <li key={m.id} className="flex justify-between gap-3"><Link href={`/matches/${m.id}`} className="focus-ring truncate rounded hover:text-ink">{m.opponent}</Link><span className="shrink-0">{fmtDate(m.date, { day: "numeric", month: "short" })} · {fmtMoney(m.matchCost)}</span></li>)}</ul>
             </details>
           )}
         </section>

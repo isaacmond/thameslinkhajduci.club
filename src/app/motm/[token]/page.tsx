@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
-import { Star } from "lucide-react";
 import { dbConfigured } from "@/lib/db";
 import { ballotView } from "@/lib/motm-polls";
 import { fmtCloses, scoreTitle, shuffled } from "@/lib/motm";
@@ -10,6 +9,7 @@ import { fmtDate, gwLabel } from "@/lib/stats";
 import { MotmVote } from "@/components/motm-vote";
 import { PageTransition } from "@/components/page-transition";
 import { btn } from "@/components/button";
+import { MotmStar } from "@/components/ui";
 
 /**
  * The ballot page from the email. The token in the URL is the ballot; nobody signs in. Open: pick a name. Closed: the result.
@@ -45,7 +45,7 @@ export default async function BallotPage({ params, searchParams }: { params: Pro
           </>
         ) : poll.status === "closed" && poll.winner ? (
           <>
-            <p className="mt-8 flex items-center gap-2 text-sm text-gold"><Star size={16} className="fill-current" aria-hidden />Man of the match</p>
+            <p className="mt-8 flex items-center gap-2 text-sm text-gold"><MotmStar />Man of the match</p>
             <p className="display mt-1 text-5xl leading-none text-ink sm:text-6xl">{poll.winner}</p>
             <p className="mt-3 text-sm text-muted">{top} of {voted} vote{voted === 1 ? "" : "s"} · {voted} of {ballots.length} ballots returned.{ballot.vote ? ` You voted for ${ballot.vote}.` : ""}</p>
             {counts && counts.some((c) => c.votes > 0) && (

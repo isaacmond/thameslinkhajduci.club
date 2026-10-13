@@ -2,7 +2,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { addMemberAction, removeMemberAction, setAdminAction, type ActionState } from "@/app/actions/admin";
-import { FormStatus, inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select, Switch } from "./controls";
 import { btn } from "./button";
 
 export type MemberRow = { email: string; player: string; admin: boolean };
@@ -11,6 +11,7 @@ export type MemberRow = { email: string; player: string; admin: boolean };
 export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; roster: string[]; me: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(addMemberAction, null);
   const [player, setPlayer] = useState(roster[0] ?? "");
+  const [admin, setAdmin] = useState(false);
   const [removed, setRemoved] = useState<ActionState>(null);
   const [busy, start] = useTransition();
   const remove = (email: string) => start(async () => setRemoved(await removeMemberAction(email)));
@@ -31,7 +32,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
                 </li>
               ))}
             </ul>
-            <button type="button" disabled={busy} onClick={() => toggleAdmin(p, !rows.some((r) => r.admin))} className={btn("ghost", "xs", "text-xs font-medium")}>{rows.some((r) => r.admin) ? "Remove admin" : "Make admin"}</button>
+            <button type="button" disabled={busy} onClick={() => toggleAdmin(p, !rows.some((r) => r.admin))} className={btn("ghost", "xs")}>{rows.some((r) => r.admin) ? "Remove admin" : "Make admin"}</button>
           </li>
         ))}
       </ul>
@@ -40,7 +41,7 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
         <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Email</span><input name="email" type="email" required placeholder="name@example.com" className={inputClass} /></label>
         <Select label="Signs in as" value={player} onChange={setPlayer} options={roster.map((r) => ({ value: r, label: r }))} />
         <input type="hidden" name="player" value={player} />
-        <label className="flex h-[2.375rem] items-center gap-2 text-xs text-muted"><input type="checkbox" name="admin" className="accent-accent" />Admin</label>
+        <Switch name="admin" checked={admin} onChange={setAdmin} label="Admin" className="h-[2.375rem]" />
         <button type="submit" disabled={pending} className={btn("primary")}><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
       </form>
       {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}

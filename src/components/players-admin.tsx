@@ -2,12 +2,12 @@
 import { useActionState, useState } from "react";
 import { Camera, Save } from "lucide-react";
 import { savePlayerAction, type ActionState } from "@/app/actions/admin";
-import { FormStatus, inputClass, Select } from "./controls";
+import { FormStatus, inputClass, Select, Switch } from "./controls";
+import { PositionPicker } from "./position-picker";
 import { btn } from "./button";
 import { Avatar } from "./ui";
 
 export type AdminPlayer = { name: string; nickname: string; positions: string[]; shirt: number | null; bio: string; photo: string | null };
-const POSITIONS = [["GK", "Goalkeeper"], ["DEF", "Defender"], ["MID", "Midfielder"], ["FWD", "Forward"]] as const;
 
 /** Pick any player and edit their details. A new name is carried through every match, payment and vote. */
 export function PlayersAdmin({ players }: { players: AdminPlayer[] }) {
@@ -38,11 +38,11 @@ function PlayerEditor({ player, takenShirts, onRenamed }: { player: AdminPlayer;
       <input type="hidden" name="original" value={player.name} />
       <div className="flex flex-col items-center gap-3 sm:w-36">
         <Avatar name={player.name} photo={removePhoto ? undefined : preview ?? undefined} size={112} shirt={shirt ? Number(shirt) : null} />
-        <label className={btn("secondary", "xs", "cursor-pointer")}>
-          <Camera size={14} aria-hidden />{preview ? "Change photo" : "Add a photo"}
+        <label className={btn("secondary", "sm", "cursor-pointer")}>
+          <Camera size={16} aria-hidden />{preview ? "Change photo" : "Add a photo"}
           <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setPreview(URL.createObjectURL(f)); setRemovePhoto(false); } }} />
         </label>
-        {preview && <label className="flex items-center gap-2 text-xs text-muted"><input type="checkbox" name="removePhoto" checked={removePhoto} onChange={(e) => setRemovePhoto(e.target.checked)} className="accent-accent" />Remove photo</label>}
+        {preview && <Switch name="removePhoto" checked={removePhoto} onChange={setRemovePhoto} label="Remove photo" />}
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className={label}>
@@ -50,23 +50,14 @@ function PlayerEditor({ player, takenShirts, onRenamed }: { player: AdminPlayer;
           <input name="name" defaultValue={player.name} required minLength={2} maxLength={60} className={inputClass} />
           <span className="text-[11px] text-muted">Changing it updates every match, payment and vote.</span>
         </label>
-        <label className={label}><span className="eyebrow">Nickname</span><input name="nickname" defaultValue={player.nickname} maxLength={40} className={inputClass} /></label>
+        <label className={label}><span className="eyebrow">Nickname (optional)</span><input name="nickname" defaultValue={player.nickname} maxLength={40} className={inputClass} /></label>
         <label className={label}>
-          <span className="eyebrow">Shirt number</span>
-          <input name="shirt" value={shirt} onChange={(e) => setShirt(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1 to 99" className={`${inputClass} tabular`} />
-          <span className="min-h-[1.25rem] text-[11px]">{clash ? <span className="text-loss">{clash} already wears {shirt}.</span> : <span className="text-muted">Optional</span>}</span>
+          <span className="eyebrow">Shirt number (optional)</span>
+          <input name="shirt" value={shirt} onChange={(e) => setShirt(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1–99" className={`${inputClass} tabular`} />
+          <span className="min-h-[1.25rem] text-[11px]">{clash ? <span className="text-loss">{clash} already wears {shirt}.</span> : null}</span>
         </label>
-        <fieldset>
-          <legend className="eyebrow mb-1">Positions</legend>
-          <div className="flex flex-wrap gap-2">
-            {POSITIONS.map(([code, name]) => (
-              <label key={code} className="chip chip-off chip-check cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent/60 hover:border-ink/25">
-                <input type="checkbox" name="positions" value={code} defaultChecked={player.positions.includes(code)} className="sr-only" />{name}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio</span><textarea name="bio" defaultValue={player.bio} maxLength={280} rows={2} className={`${inputClass} min-h-[4rem] resize-y`} /></label>
+        <PositionPicker defaultValue={player.positions} />
+        <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio (optional)</span><textarea name="bio" defaultValue={player.bio} maxLength={280} rows={2} className={`${inputClass} min-h-[4rem] resize-y`} /></label>
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
           <button type="submit" disabled={pending || Boolean(clash)} className={btn("primary")}><Save size={16} aria-hidden />{pending ? "Saving…" : "Save player"}</button>
           {state && <FormStatus tone={state.ok ? "ok" : "error"}>{state.message}</FormStatus>}

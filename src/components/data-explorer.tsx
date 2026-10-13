@@ -38,7 +38,7 @@ export function DataExplorer({ tables, seasons, initialPreview }: { tables: { na
       </div>
       <div className="flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] p-3 text-sm">
         <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />Download this table</a>
-        <a href="/api/export?format=xlsx" className={btn("secondary", "xs", "font-medium")}><Download size={15} aria-hidden />Every table as a spreadsheet</a>
+        <a href="/api/export?format=xlsx" className={btn("secondary", "xs")}><Download size={15} aria-hidden />Every table as a spreadsheet</a>
       </div>
       <div className="scroll-x max-h-[520px] overflow-auto">
         {loading && !preview && <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>}

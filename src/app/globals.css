@@ -140,7 +140,7 @@ table.stats th:last-child, table.stats td:last-child { padding-right: 1.5rem; }
 /* forms */
 select.control { appearance: none; -webkit-appearance: none; background-image: none; padding-right: 2rem; }
 /* filter chips (marked .chip-tap) grow to a thumb-sized target on touch screens */
-@media (pointer: coarse) { button.chip-tap, a.chip-tap { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.5rem; } }
+@media (pointer: coarse) { button.chip-tap, a.chip-tap, label.chip-tap { padding: 0.45rem 0.8rem; font-size: 0.78rem; min-height: 2.5rem; } }
 
 /* motion */
 .stagger > * { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }

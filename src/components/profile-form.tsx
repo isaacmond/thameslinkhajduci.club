@@ -2,12 +2,12 @@
 import { useActionState, useState } from "react";
 import { Camera, Save } from "lucide-react";
 import { saveProfile, type ProfileState } from "@/app/actions/profile";
-import { FormStatus, inputClass } from "./controls";
+import { FormStatus, inputClass, Switch } from "./controls";
+import { PositionPicker } from "./position-picker";
 import { btn } from "./button";
 import { Avatar } from "./ui";
 
 export type ProfileInitial = { player: string; email: string; firstName: string; lastName: string; nickname: string; positions: string[]; shirt: number | null; bio: string; photo: string | null; takenShirts: Record<string, string> };
-const POSITIONS = [["GK", "Goalkeeper"], ["DEF", "Defender"], ["MID", "Midfielder"], ["FWD", "Forward"]] as const;
 
 /** The member's own details. Everything here lands on their players row in the records; first and last name go to WorkOS. */
 export function ProfileForm({ initial }: { initial: ProfileInitial }) {
@@ -28,30 +28,21 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
             <Camera size={16} aria-hidden />{shown ? "Change photo" : "Add a photo"}
             <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setPreview(URL.createObjectURL(f)); setRemovePhoto(false); } }} />
           </label>
-          {shown && <label className="flex items-center gap-2 text-xs text-muted"><input type="checkbox" name="removePhoto" checked={removePhoto} onChange={(e) => setRemovePhoto(e.target.checked)} className="accent-accent" />Remove photo</label>}
+          {shown && <Switch name="removePhoto" checked={removePhoto} onChange={setRemovePhoto} label="Remove photo" />}
           <p className="text-center text-[11px] text-muted">JPEG, PNG or WebP, up to 5 MB. Square crops look best.</p>
         </div>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <p className="sm:col-span-2 text-sm text-muted">Playing as <span className="text-ink">{initial.player}</span> · signed in as <span className="text-ink">{initial.email}</span>. Your name in the records is set by the admin; ask them if it needs changing.</p>
           <label className={label}><span className="eyebrow">First name</span><input name="firstName" defaultValue={initial.firstName} maxLength={40} autoComplete="given-name" className={inputClass} /></label>
           <label className={label}><span className="eyebrow">Last name</span><input name="lastName" defaultValue={initial.lastName} maxLength={40} autoComplete="family-name" className={inputClass} /></label>
-          <label className={label}><span className="eyebrow">Nickname</span><input name="nickname" defaultValue={initial.nickname} maxLength={40} placeholder="What the group chat calls you" className={inputClass} /></label>
+          <label className={label}><span className="eyebrow">Nickname (optional)</span><input name="nickname" defaultValue={initial.nickname} maxLength={40} placeholder="What the group chat calls you" className={inputClass} /></label>
           <label className={label}>
-            <span className="eyebrow">Shirt number</span>
-            <input name="shirt" value={shirt} onChange={(e) => setShirt(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1 to 99" className={`${inputClass} tabular`} />
-            <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? <span className="text-loss">{clash} already wears {shirt}.</span> : "Optional. Shows on your card and page."}</span>
+            <span className="eyebrow">Shirt number (optional)</span>
+            <input name="shirt" value={shirt} onChange={(e) => setShirt(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1–99" className={`${inputClass} tabular`} />
+            <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? <span className="text-loss">{clash} already wears {shirt}.</span> : "Shows on your card and page."}</span>
           </label>
-          <fieldset className="sm:col-span-2">
-            <legend className="eyebrow mb-1">Positions</legend>
-            <div className="flex flex-wrap gap-2">
-              {POSITIONS.map(([code, name]) => (
-                <label key={code} className="chip chip-off chip-check cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-accent/60 hover:border-ink/25">
-                  <input type="checkbox" name="positions" value={code} defaultChecked={initial.positions.includes(code)} className="sr-only" />{code} <span className="font-normal text-muted">{name}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio</span><textarea name="bio" defaultValue={initial.bio} maxLength={280} rows={3} placeholder="One or two lines for your player page. Keep it printable." className={`${inputClass} min-h-[5rem] resize-y`} /></label>
+          <PositionPicker defaultValue={initial.positions} className="sm:col-span-2" />
+          <label className={`${label} sm:col-span-2`}><span className="eyebrow">Bio (optional)</span><textarea name="bio" defaultValue={initial.bio} maxLength={280} rows={3} placeholder="One or two lines for your player page. Keep it printable." className={`${inputClass} min-h-[5rem] resize-y`} /></label>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">

@@ -56,7 +56,7 @@ export default async function AccountPage() {
       <ProfileForm initial={initial} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {([["Submit a score", "/submit", "Recorded as soon as you send it."], ["Log a payment", `/submit?type=payment&player=${encodeURIComponent(member.player)}`, "Straight onto the money page."], ["Add a player", "/submit?type=player", "New signings join the roster instantly."]] as const).map(([t, href, sub]) => (
-          <Link key={href} href={href} className="card focus-ring block p-4 transition-colors hover:bg-ink/[0.06]"><p className="display text-2xl leading-none text-ink">{t}</p><p className="mt-1 text-xs text-muted">{sub}</p></Link>
+          <Link key={href} href={href} className="card focus-ring block p-4 transition-shadow hover:shadow-lg"><p className="display text-2xl leading-none text-ink">{t}</p><p className="mt-1 text-xs text-muted">{sub}</p></Link>
         ))}
       </div>
     </div>

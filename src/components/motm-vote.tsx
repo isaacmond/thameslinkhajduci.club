@@ -2,8 +2,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { Check, Star } from "lucide-react";
+import { Check } from "lucide-react";
 import { voteMotmAction, type VoteState } from "@/app/actions/motm";
+import { MotmStar } from "./ui";
 
 export type VoteCandidate = { player: string; goals: number; assists: number };
 
@@ -50,7 +51,7 @@ export function MotmVote({ token, voter, candidates, current, pick }: { token: s
           );
         })}
       </ul>
-      {state && <p role="status" className={clsx("flex items-center gap-2 text-sm", state.ok ? "text-accent" : "text-loss")}>{state.ok && <Star size={14} aria-hidden />}{state.message}</p>}
+      {state && <p role="status" className={clsx("flex items-center gap-2 text-sm", state.ok ? "text-accent" : "text-loss")}>{state.ok && <MotmStar />}{state.message}</p>}
     </div>
   );
 }

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, form, gwLabel, lastResult, leaderboard, type MilestoneKind, nextFixture, recentPlayers, records, scoreline, seasonHref, seasonPlayers, upcomingMilestones } from "@/lib/stats";
 import { insights, pickInsights } from "@/lib/insights";
 import { londonEpoch, londonToday } from "@/lib/time";
-import { Avatar, Crest, FormStrip, LeaderList, MatchRow, PlayerLink, RecordCard, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
+import { Avatar, Crest, FormStrip, LeaderList, MatchRow, MotmStar, PlayerLink, RecordCard, RecordStrip, ResultPill, SectionTitle, Tag } from "@/components/ui";
 import { TeamBadge } from "@/components/team-badge";
 import { Countdown } from "@/components/countdown";
 import { PageTransition } from "@/components/page-transition";
@@ -90,7 +90,7 @@ export default async function Home() {
               <span className="min-h-6 flex-1" aria-hidden />
               <div className="space-y-1 border-t border-ink/10 pt-5 text-sm">
                 {lastScorers.length > 0 && <p className="text-muted"><span className="text-ink">Goals</span> · {lastScorers.map((s) => `${s.player}${s.goals > 1 ? ` ${s.goals}` : ""}`).join(", ")}</p>}
-                {last.motm && <p className="flex items-center gap-1.5 text-muted"><Star size={13} className="fill-gold text-gold" aria-hidden /><span className="text-ink">Man of the match</span> · {last.motm}</p>}
+                {last.motm && <p className="flex items-center gap-1.5 text-muted"><MotmStar /><span className="text-ink">Man of the match</span> · {last.motm}</p>}
                 {!lastScorers.length && !last.motm && <p className="text-muted">Match report and line-up</p>}
               </div>
             </Link>
@@ -130,7 +130,7 @@ export default async function Home() {
           <SectionTitle sub="The last eight league matches">Form</SectionTitle>
           <FormStrip matches={[...recent].reverse()} />
           <ul className="mt-5 divide-y divide-ink/8 text-sm">
-            {[...recent].reverse().slice(0, 4).map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="group flex items-center gap-3 py-2.5"><ResultPill result={m.result} size="sm" /><span className="min-w-0 truncate text-ink group-hover:text-accent"><span className="tabular font-medium">{scoreline(m)}</span> v {m.opponent}</span><span className="ml-auto shrink-0 text-xs text-muted">{fmtDate(m.date, { day: "numeric", month: "short" })}</span></Link></li>)}
+            {[...recent].reverse().slice(0, 4).map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="focus-ring group flex items-center gap-3 rounded py-2.5"><ResultPill result={m.result} size="sm" /><span className="min-w-0 truncate text-ink group-hover:text-accent"><span className="tabular font-medium">{scoreline(m)}</span> v {m.opponent}</span><span className="ml-auto shrink-0 text-xs text-muted">{fmtDate(m.date, { day: "numeric", month: "short" })}</span></Link></li>)}
           </ul>
         </div>
         <div className="card p-6">
