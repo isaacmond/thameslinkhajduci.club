@@ -19,14 +19,14 @@ export const dynamic = "force-dynamic";
 
 type Params = Promise<{ match?: string; type?: string; player?: string }>;
 const COPY: Record<SubmitKind, { eyebrow: string; title: string; sub: string; description: string }> = {
-  score: { eyebrow: "Match report", title: "Submit a score", sub: "Just played? Put the result, scorers and line-up in here. It goes to the admin for approval and shows up on the site once it's checked, so nobody can slip a 14–0 past us. Didn't play at all? Flip it to a forfeit and say who's paying for the pitch.", description: "Report a result, scorers and line-up (or a forfeit and who pays) for approval by the club admin." },
-  payment: { eyebrow: "Settle up", title: "Log a payment", sub: "Paid your share of the pitch? Say who, how much and when. The admin checks it against the bank and ticks it off; the Money page updates once it's done.", description: "Tell the admin you have paid your share of pitch hire." },
-  player: { eyebrow: "New signing", title: "Add a player", sub: "Someone new pulled on the shirt? Put their details in and the admin adds them to the roster, so they can be picked in match reports and start racking up numbers.", description: "Propose a new player for the Thameslink Hajduci roster." },
+  score: { eyebrow: "Match report", title: "Add a result", sub: "Enter the score, the line-up, and who scored and assisted. The admin approves it before it appears on the site.", description: "Report a result, scorers and line-up for approval by the club admin." },
+  payment: { eyebrow: "Pitch fees", title: "Record a payment", sub: "Say who paid, how much and when. The admin confirms it and the Money page updates.", description: "Record a payment towards pitch fees." },
+  player: { eyebrow: "New player", title: "Add a player", sub: "Add a new player to the squad so they can be picked in match reports.", description: "Add a new player to the Thameslink Hajduci squad." },
 };
 const SIGNED_IN_COPY: Record<SubmitKind, { direct: string; queued: string }> = {
-  score: { direct: "Just played? Put the result, scorers and line-up in here. You are signed in, so it goes straight into the records and the site follows within a minute.", queued: "Just played? Put the result, scorers and line-up in here. You are signed in, so no need to say who you are; the admin still applies it for now." },
-  payment: { direct: "Paid your share of the pitch? Say who, how much and when. You are signed in, so it lands on the Payments tab immediately.", queued: "Paid your share of the pitch? Say who, how much and when. You are signed in, so no need to say who you are; the admin still ticks it off for now." },
-  player: { direct: "Someone new pulled on the shirt? Put their details in and they join the roster straight away.", queued: "Someone new pulled on the shirt? Put their details in. You are signed in, so no need to say who you are; the admin still adds them for now." },
+  score: { direct: "Enter the score, the line-up, and who scored and assisted. You're signed in, so it's recorded straight away.", queued: "Enter the score, the line-up, and who scored and assisted. The admin will approve it." },
+  payment: { direct: "Say who paid, how much and when. You're signed in, so it's recorded straight away.", queued: "Say who paid, how much and when. The admin will confirm it." },
+  player: { direct: "Add a new player to the squad. You're signed in, so they're added straight away.", queued: "Add a new player to the squad. The admin will confirm it." },
 };
 const kindOf = (t?: string): SubmitKind => (t === "payment" || t === "player" ? t : "score");
 
@@ -68,7 +68,7 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
     const priorApps = (m: (typeof pool)[number]) => appearanceCounts(levyWindow({ ...m, played: false }, counted).slice(m.countsForRecords ? -9 : -10));
     const toFixture = (m: (typeof pool)[number]): SubmitFixture => ({
       id: m.id, seasonId: m.seasonId, gw: m.gw, opponent: m.opponent, date: m.date, played: m.played, ourGoals: m.ourGoals, theirGoals: m.theirGoals,
-      label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} vs ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
+      label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} v ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
       lineup: m.lineup.filter((l) => l.played && !l.ringer).map((l) => l.player),
       ringers: m.lineup.filter((l) => l.played && l.ringer).map((l) => l.player),
       expected: expected.get(m.id) ?? [],

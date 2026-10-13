@@ -41,7 +41,7 @@ export default async function AdminPage() {
     return (
       <PageTransition><div className="space-y-6">
         <PageHeader eyebrow="Admin" title="Admins only" sub="This page is for the club admin. Your own profile and submissions are on your account page." />
-        <div className="card flex flex-wrap items-center gap-4 p-5"><ShieldOff size={20} className="text-ash" aria-hidden /><Link href="/account" className="link">Back to your account →</Link></div>
+        <div className="card flex flex-wrap items-center gap-4 p-5"><ShieldOff size={20} className="text-muted" aria-hidden /><Link href="/account" className="link">Back to your account</Link></div>
       </div></PageTransition>
     );
   }
@@ -65,9 +65,9 @@ export default async function AdminPage() {
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="Admin" title="The desk" sub="Approvals, who can sign in, and the fixture list. Everything here writes straight to the records; the site follows within a minute." right={<Link href="/account" className={btn("secondary")}>Your account →</Link>} />
+      <PageHeader eyebrow="Club admin" title="Admin" sub="Approvals, the team sheet, the man of the match vote, members and fixtures. Changes appear on the site within a minute." right={<Link href="/account" className={btn("secondary")}>Your account</Link>} />
       <nav aria-label="Admin sections" className="flex flex-wrap gap-2 text-sm">
-        {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip focus-ring hover:bg-white/10">{label}</a>)}
+        {[["#pending", `Approvals${pending.length ? ` (${pending.length})` : ""}`], ["#squad", "Team sheet"], ["#motm", `Man of the match${pollItems.filter((p) => p.status === "open").length ? ` (${pollItems.filter((p) => p.status === "open").length} open)` : ""}`], ["#members", "Members"], ["#fixtures", "Seasons & fixtures"]].map(([href, label]) => <a key={href} href={href} className="chip focus-ring hover:border-ink/30">{label}</a>)}
       </nav>
       <section id="pending" className="card scroll-mt-24 p-5 sm:p-6">
         <SectionTitle sub="Results, payments and new players sent in by people who were not signed in. Recording one writes it into the records.">Waiting for approval{pending.length ? ` · ${pending.length}` : ""}</SectionTitle>
@@ -78,7 +78,7 @@ export default async function AdminPage() {
         <SquadAdmin fixtures={upcoming} roster={squadRoster} squads={squads} />
       </section>
       <section id="motm" className="card scroll-mt-24 p-5 sm:p-6">
-        <SectionTitle sub="Every league result opens a vote by itself: everyone who played gets a ballot by email, the poll closes after 48 hours or when the last ballot is in, and the winner goes into the records. Friendlies and forfeits are left out. Here you can call one early, chase missing ballots, or open one on an older result.">Man of the match</SectionTitle>
+        <SectionTitle sub="Every league result opens a vote by itself: everyone who played gets a ballot by email, the poll closes after 48 hours or when the last ballot is in, and the winner goes into the records. Here you can call one early, chase missing ballots, or open one on an older result.">Man of the match</SectionTitle>
         <MotmAdmin polls={pollItems} pollable={pollable} />
       </section>
       <section id="members" className="card scroll-mt-24 p-5 sm:p-6">

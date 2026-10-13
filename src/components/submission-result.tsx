@@ -13,14 +13,14 @@ export function SubmissionResult({ result, onEdit, children, extra }: { result: 
   return (
     <div className="card p-5 sm:p-6">
       <p className="eyebrow">{result.applied ? "Recorded" : result.queued ? "Sent for approval" : result.sent ? "Sent for approval" : "Ready to send"}</p>
-      <h2 className="display mt-1 text-3xl leading-none text-cream">{result.summary}</h2>
-      <p className="mt-2 text-sm text-ash">{result.applied ? `Written straight into the records${result.appliedBy ? ` as ${result.appliedBy}` : ""}. The site updates within a minute. Post it to the group chat so everyone knows.` : result.queued ? "It is in the admin's approval queue and they have been emailed. Nothing changes on the site until they approve it, which takes them one tap. You can still post it to the group chat so everyone knows." : result.applyError ? `${result.applyError} It has gone to the admin instead, who will apply it by hand.` : result.sent ? "The admin has been emailed and will update the records once it's checked. Nothing changes on the site until then. You can still post it to the group chat so everyone knows." : "Nothing changes on the site until the admin approves it. Send the request on, or copy it, and they'll apply it in seconds."}</p>
-      {result.motm && <p className="mt-3 flex items-start gap-2 rounded-lg border border-gold/30 bg-gold/[0.06] px-3 py-2 text-sm text-cream/90"><Star size={14} className="mt-0.5 shrink-0 text-gold" aria-hidden /><span>{result.motm}</span></p>}
+      <h2 className="display mt-1 text-3xl leading-none text-ink">{result.summary}</h2>
+      <p className="mt-2 text-sm text-muted">{result.applied ? `Recorded${result.appliedBy ? ` by ${result.appliedBy}` : ""}. The site updates within a minute.` : result.queued ? "The admin has been emailed and will approve it shortly." : result.applyError ? `${result.applyError} It has gone to the admin, who will add it by hand.` : result.sent ? "The admin has been emailed and will add it once it's checked." : "Send this on to the admin, who will add it."}</p>
+      {result.motm && <p className="mt-3 flex items-start gap-2 rounded-lg bg-sunken/60 px-3 py-2 text-sm text-ink/90"><Star size={14} className="mt-0.5 shrink-0 text-gold" aria-hidden /><span>{result.motm}</span></p>}
       {children}
-      <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-night/70 p-4 font-mono text-xs text-cream/90">{result.text}</pre>
+      <pre className="mt-4 whitespace-pre-wrap break-words rounded-lg bg-sunken p-4 font-mono text-xs text-ink/90">{result.text}</pre>
       <div className="mt-4 flex flex-wrap gap-2">
-        <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className={btn("primary")}>Send to the group chat</a>
-        <button type="button" onClick={copy} className={btn("secondary")}>{copied ? <Check size={16} className="text-mint" aria-hidden /> : <Copy size={16} aria-hidden />}{copied ? "Copied" : "Copy"}</button>
+        <a href={`https://wa.me/?text=${encodeURIComponent(result.text ?? "")}`} target="_blank" rel="noopener noreferrer" className={btn("primary")}>Share on WhatsApp</a>
+        <button type="button" onClick={copy} className={btn("secondary")}>{copied ? <Check size={16} className="text-accent" aria-hidden /> : <Copy size={16} aria-hidden />}{copied ? "Copied" : "Copy"}</button>
         <button type="button" onClick={onEdit} className={btn("ghost")}>Edit</button>
         {extra}
       </div>

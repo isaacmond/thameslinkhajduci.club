@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import clsx from "clsx";
 import { getData } from "@/lib/data";
 import type { Player } from "@/lib/types";
 import { attendance, chemistry, goalContext, headToHead, leaderboard, seasonPlayers, signed } from "@/lib/stats";
@@ -9,7 +8,7 @@ import { PlayerTable, type PlayerRow } from "@/components/player-table";
 import { StackedBySeason } from "@/components/charts";
 import { PageTransition } from "@/components/page-transition";
 
-export const metadata: Metadata = { title: "Stats", description: "Leaderboards, sortable player tables, partnerships and head-to-head records for Thameslink Hajduci." };
+export const metadata: Metadata = { title: "Stats", description: "Thameslink Hajduci statistics: leaderboards, the full player table, partnerships and head to head." };
 
 const toRow = (p: Player): PlayerRow => { const d = p.wins + p.draws + p.losses; return { name: p.name, slug: p.slug, apps: p.apps, goals: p.goals, assists: p.assists, motm: p.motm, wins: p.wins, draws: p.draws, losses: p.losses, goalsPerGame: p.goalsPerGame, assistsPerGame: p.assistsPerGame, gpgGames: p.gpgGames, apgGames: p.apgGames, winRate: p.winRate, ppg: d ? +((p.wins * 3 + p.draws) / d).toFixed(2) : 0 }; };
 
@@ -27,67 +26,58 @@ export default async function StatsPage() {
   const MIN_POSSIBLE = 15, MIN_GOALS = 5;
   const punctuality = data.players.map((p) => ({ player: p, a: attendance(data, p.name) })).filter((x) => x.a.possible >= MIN_POSSIBLE && x.a.apps > 0).map((x) => ({ player: x.player, value: x.a.pct })).sort((a, b) => b.value - a.value || b.player.apps - a.player.apps || a.player.name.localeCompare(b.player.name));
   const goalsInWins = data.players.filter((p) => p.goals >= MIN_GOALS).map((p) => ({ player: p, value: goalContext(data, p.name).inWins })).filter((x) => x.value > 0).sort((a, b) => b.value - a.value || b.player.goals - a.player.goals || a.player.name.localeCompare(b.player.name));
-  const bogey = opponents.filter((o) => o.played >= 5 && o.won === 0);
-  const boards: { title: string; sub?: string; items: { player: Player; value: number }[]; color?: string; fmt?: (v: number) => string }[] = [
-    { title: "Season ticket holders", sub: "Appearances", items: leaderboard(data.players, "apps").slice(0, 5), color: "bg-cream" },
-    { title: "Golden boot", sub: "Goals", items: leaderboard(data.players, "goals").slice(0, 5) },
-    { title: "Assists", sub: "Self-reported", items: leaderboard(data.players, "assists").slice(0, 5), color: "bg-assist" },
-    { title: "Goal involvements", sub: "Goals + assists", items: leaderboard(data.players, "ga").slice(0, 5), color: "bg-gold" },
+    const boards: { title: string; sub?: string; items: { player: Player; value: number }[]; color?: string; fmt?: (v: number) => string }[] = [
+    { title: "Appearances", items: leaderboard(data.players, "apps").slice(0, 5), color: "bg-ink" },
+    { title: "Goals", items: leaderboard(data.players, "goals").slice(0, 5) },
+    { title: "Assists", items: leaderboard(data.players, "assists").slice(0, 5), color: "bg-assist" },
+    { title: "Goals and assists", items: leaderboard(data.players, "ga").slice(0, 5), color: "bg-gold" },
     { title: "Man of the match", items: leaderboard(data.players, "motm").slice(0, 5), color: "bg-gold" },
-    { title: "Goals per game", sub: `Min ${MIN} games with scorers logged`, items: leaderboard(data.players, "goalsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2) },
-    { title: "Assists per game", sub: `Min ${MIN} games with assists logged`, items: leaderboard(data.players, "assistsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2), color: "bg-assist" },
-    { title: "Win rate", sub: `Min ${MIN} apps`, items: leaderboard(data.players, "winRate", MIN).slice(0, 5), fmt: (v) => `${v}%`, color: "bg-mint" },
-    { title: "Punctuality", sub: `Share of possible games turned up to · min ${MIN_POSSIBLE} possible`, items: punctuality.slice(0, 5), fmt: (v) => `${v}%`, color: "bg-cream" },
-    { title: "Goals in wins", sub: `Goals scored in games we actually won · min ${MIN_GOALS} goals`, items: goalsInWins.slice(0, 5), color: "bg-mint" },
+    { title: "Goals a game", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "goalsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2) },
+    { title: "Assists a game", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "assistsPerGame", MIN).slice(0, 5), fmt: (v) => v.toFixed(2), color: "bg-assist" },
+    { title: "Win rate", sub: `At least ${MIN} matches`, items: leaderboard(data.players, "winRate", MIN).slice(0, 5), fmt: (v) => `${v}%`, color: "bg-accent" },
+    { title: "Attendance", sub: `Share of possible matches played, at least ${MIN_POSSIBLE}`, items: punctuality.slice(0, 5), fmt: (v) => `${v}%`, color: "bg-ink" },
+    { title: "Goals in wins", sub: `At least ${MIN_GOALS} goals`, items: goalsInWins.slice(0, 5), color: "bg-accent" },
   ];
 
   return (
     <PageTransition>
     <div className="space-y-10">
-      <PageHeader eyebrow="Numbers" title="Stats" sub="Every number we could compute, and several we probably shouldn't have. Friendlies and forfeits excluded throughout." right={<Link href="/data" className="focus-ring chip text-ash hover:text-cream">Export any of this →</Link>} />
+      <PageHeader eyebrow="In numbers" title="Statistics" sub="Leaderboards, the full player table, and who plays best together." right={<Link href="/data" className="focus-ring chip text-muted hover:text-ink">Download the data</Link>} />
 
       <section aria-labelledby="leaders">
-        <SectionTitle id="leaders" sub="Top five in each category, all-time">Leaderboards</SectionTitle>
+        <SectionTitle id="leaders" sub="All time, top five">Leaderboards</SectionTitle>
         <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {boards.map((b) => <div key={b.title} className="card p-4"><h3 className="display text-xl leading-none text-cream">{b.title}</h3>{b.sub && <p className="text-xs text-ash">{b.sub}</p>}<div className="mt-2"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
+          {boards.map((b) => <div key={b.title} className="card p-5"><h3 className="display text-2xl leading-none text-ink">{b.title}</h3><p className="mt-1 min-h-4 text-xs text-muted">{b.sub}</p><div className="mt-3"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
         </div>
       </section>
 
       <section aria-labelledby="table">
-        <SectionTitle id="table" sub="Click a column to sort. Switch scope to see a single season.">The big table</SectionTitle>
+        <SectionTitle id="table" sub="Sort by any column, or pick a season">Every player</SectionTitle>
         <PlayerTable datasets={datasets} seasons={[...seasonIds].reverse()} />
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="card p-5"><SectionTitle sub="Top 15 scorers, split by season (oldest season darkest)">Goals by season</SectionTitle><StackedBySeason data={stack("goals")} seasons={seasonIds} /></div>
-        <div className="card p-5"><SectionTitle sub="Top 15 by appearances, split by season">Appearances by season</SectionTitle><StackedBySeason data={stack("apps")} seasons={seasonIds} /></div>
+        <div className="card p-6"><SectionTitle sub="The top fifteen, by season">Goals by season</SectionTitle><StackedBySeason data={stack("goals")} seasons={seasonIds} /></div>
+        <div className="card p-6"><SectionTitle sub="The top fifteen, by season">Appearances by season</SectionTitle><StackedBySeason data={stack("apps")} seasons={seasonIds} /></div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
         <div className="card overflow-hidden">
-          <div className="p-5 pb-2"><SectionTitle sub="Pairs with the most games together (min 5) and how the team did">Partnerships</SectionTitle></div>
+          <div className="p-6 pb-2"><SectionTitle sub="Pairs with the most matches together">Partnerships</SectionTitle></div>
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full">
-              <thead><tr><th>Pair</th><th className="num">Games</th><th className="num">Win %</th><th className="num">GF/g</th></tr></thead>
-              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal min-w-[10rem]"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-ash sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className={clsx("num font-semibold", x.winRate >= 30 ? "text-mint-soft" : "text-cream")}>{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
+              <thead><tr><th>Pair</th><th className="num">Matches</th><th className="num">Won</th><th className="num">Goals a game</th></tr></thead>
+              <tbody>{pairs.map((x) => <tr key={`${x.a}|${x.b}`}><td className="!whitespace-normal min-w-[10rem]"><span className="flex flex-col leading-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1"><PlayerLink name={x.a} player={byName.get(x.a)} className="whitespace-nowrap" /><span className="hidden text-muted sm:inline">&amp;</span><PlayerLink name={x.b} player={byName.get(x.b)} className="whitespace-nowrap" /></span></td><td className="num">{x.shared}</td><td className="num font-semibold">{x.winRate}%</td><td className="num">{x.gpg}</td></tr>)}</tbody>
             </table>
           </div>
         </div>
         <div className="space-y-6">
-        <div className="card card-shame p-5">
-          <SectionTitle right={<Link href="/opponents" className="link py-1 text-xs">All opponents</Link>} sub="Played at least five times. Beaten never.">Bogey teams</SectionTitle>
-          {bogey.length ? (
-            <ul className="space-y-2 text-sm">
-              {bogey.map((o) => <li key={o.key} className="flex items-baseline gap-3"><Link href={`/opponents/${o.slug}`} className="link min-w-0 truncate font-medium text-cream" title={o.opponent}>{o.opponent}</Link><span className="ml-auto shrink-0 text-xs text-ash">{o.played} played</span><span className="tabular shrink-0 text-xs"><span className="text-draw-soft">{o.drawn}D</span> <span className="text-loss-soft">{o.lost}L</span></span><span className={clsx("tabular w-10 shrink-0 text-right text-xs font-semibold", o.gf - o.ga < 0 ? "text-loss-soft" : "text-cream")}>{signed(o.gf - o.ga)}</span></li>)}
-            </ul>
-          ) : <p className="text-sm text-ash">No bogey teams. Every side we&apos;ve met five times, we&apos;ve beaten at least once. Frankly astonishing.</p>}
-        </div>
         <div className="card overflow-hidden">
-          <div className="p-5 pb-2"><SectionTitle sub="Every opponent we've met, most-played first">Head to head</SectionTitle></div>
+          <div className="p-6 pb-2"><SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Most played first">Head to head</SectionTitle></div>
           <div className="scroll-x overflow-x-auto sm:max-h-[560px] sm:overflow-auto">
             <table className="stats w-full">
-              <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th><th className="hidden md:table-cell">Seasons</th></tr></thead>
-              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-cream"><Link href={`/matches/${o.matches[o.matches.length - 1].id}`} className="link block max-w-[9rem] truncate lg:max-w-[12rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num text-mint-soft">{o.won}</td><td className="num text-draw-soft">{o.drawn}</td><td className="num text-loss-soft">{o.lost}</td><td className={clsx("num", gd > 0 ? "text-mint-soft" : gd < 0 ? "text-loss-soft" : "")}>{signed(gd)}</td><td className="hidden !whitespace-normal max-w-[7rem] text-xs leading-relaxed text-ash md:table-cell">{o.seasons.join(" ")}</td></tr>; })}</tbody>
+              <thead><tr><th>Opponent</th><th className="num">P</th><th className="num">W</th><th className="num">D</th><th className="num">L</th><th className="num">GD</th></tr></thead>
+              <tbody>{opponents.map((o) => { const gd = o.gf - o.ga; return <tr key={o.key}><td className="font-medium text-ink"><Link href={`/opponents/${o.slug}`} className="link block max-w-[9rem] truncate lg:max-w-[14rem]" title={o.opponent}>{o.opponent}</Link></td><td className="num">{o.played}</td><td className="num">{o.won}</td><td className="num">{o.drawn}</td><td className="num">{o.lost}</td><td className="num">{signed(gd)}</td></tr>; })}</tbody>
             </table>
           </div>
         </div>

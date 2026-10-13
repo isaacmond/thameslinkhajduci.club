@@ -16,7 +16,7 @@ type TipProps = { active?: boolean; payload?: ReadonlyArray<TipPayload>; label?:
 
 function TipBox({ title, rows }: { title: ReactNode; rows: { label: ReactNode; value: ReactNode; color?: string; strong?: boolean }[] }) {
   return (
-    <div style={{ background: C.surface, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "8px 10px", fontSize: 12, color: C.cream, boxShadow: "0 10px 30px -12px rgba(0,0,0,.6)", minWidth: 150 }}>
+    <div style={{ background: C.surface, border: "1px solid color-mix(in srgb, var(--color-ink) 12%, transparent)", borderRadius: 10, padding: "8px 10px", fontSize: 12, color: C.cream, boxShadow: "0 10px 30px -12px rgba(0,0,0,.25)", minWidth: 150 }}>
       <div style={{ color: C.ink, fontWeight: 600, marginBottom: 4 }}>{title}</div>
       {rows.map((r, i) => (
         <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -42,7 +42,7 @@ function Key({ items }: { items: { label: string; color: string }[] }) {
     </ul>
   );
 }
-const crosshair = { stroke: "rgba(255,255,255,0.2)" };
+const crosshair = { stroke: "color-mix(in srgb, var(--color-ink) 22%, transparent)" };
 /** End-of-line label in text ink with a surface halo, so it stays legible where it crosses gridlines, other series or the axis. */
 const endLabel = (value: string, position: "right" | "top" = "right") => ({ value, position, fill: C.cream, fontSize: 11, fontWeight: 600, stroke: C.surface, strokeWidth: 3, paintOrder: "stroke" as const, strokeLinejoin: "round" as const });
 const numeric = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);

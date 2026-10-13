@@ -8,21 +8,20 @@ import { MatchRow, PageHeader, SectionTitle } from "@/components/ui";
 import { MatchesBrowser } from "@/components/matches-browser";
 import { PageTransition } from "@/components/page-transition";
 
-export const metadata: Metadata = { title: "Matches", description: "Every Thameslink Hajduci result and fixture, filterable by season and outcome." };
+export const metadata: Metadata = { title: "Matches", description: "Every Thameslink Hajduci result and fixture." };
 
 export default async function MatchesPage() {
   const data = await getData();
   const today = londonToday();
   const upcoming = chronological(data.matches).filter((m) => !m.played && m.date && m.date >= today).slice(0, 5);
-  const played = data.allTime.played;
   return (
     <PageTransition>
     <>
-      <PageHeader eyebrow="Results & fixtures" title="Matches" sub={`${played} games that count, ${data.allTime.won} of them won. Friendlies and forfeits are listed too, but they only count towards character.`} right={<Link href="/submit" className={btn("primary")}>Submit a score</Link>} />
+      <PageHeader eyebrow="Results and fixtures" title="Matches" sub="Every match the club has played, and the ones still to come." right={<Link href="/submit" className={btn("primary")}>Add a result</Link>} />
       {upcoming.length > 0 && (
-        <section className="mb-8">
-          <SectionTitle sub="Kick-off times in London time. Arrival times in Hajduci time.">Coming up</SectionTitle>
-          <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} showSeason today={today} />)}</div>
+        <section className="mb-12">
+          <SectionTitle>Coming up</SectionTitle>
+          <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} showSeason today={today} />)}</div>
         </section>
       )}
       <MatchesBrowser matches={data.matches.map(toLite)} seasons={[...(data.friendlies ? [data.friendlies] : []), ...data.seasons].map((s) => ({ id: s.id, number: s.number, title: s.title }))} today={today} />

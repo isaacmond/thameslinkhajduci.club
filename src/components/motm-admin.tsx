@@ -24,15 +24,15 @@ export function MotmAdmin({ polls, pollable }: { polls: PollItem[]; pollable: Po
   const open = polls.filter((p) => p.status === "open"), done = polls.filter((p) => p.status !== "open");
   return (
     <div className="space-y-5">
-      {state && <p role="status" className={`text-sm ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.message}</p>}
+      {state && <p role="status" className={`text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.message}</p>}
       {open.length > 0 ? (
-        <ul className="divide-y divide-white/10">
+        <ul className="divide-y divide-ink/10">
           {open.map((p) => (
             <li key={p.matchId} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="eyebrow">Open · closes {when(p.closesAt)}</p>
-                <p className="mt-0.5 font-medium text-cream"><Link href={`/matches/${p.matchId}`} className="link">{p.score}</Link> <span className="text-ash">· {p.label}</span></p>
-                <p className="mt-1 text-xs text-ash">{p.voted} of {p.ballots} ballot{p.ballots === 1 ? "" : "s"} in{p.noVote ? ` · ${p.noVote} played without an email, so no ballot` : ""}</p>
+                <p className="mt-0.5 font-medium text-ink"><Link href={`/matches/${p.matchId}`} className="link">{p.score}</Link> <span className="text-muted">· {p.label}</span></p>
+                <p className="mt-1 text-xs text-muted">{p.voted} of {p.ballots} ballot{p.ballots === 1 ? "" : "s"} in{p.noVote ? ` · ${p.noVote} played without an email, so no ballot` : ""}</p>
               </div>
               <div className="flex shrink-0 gap-2">
                 <button type="button" disabled={pending} onClick={() => run(p.matchId, openMotmPollAction)} title="Email ballots to anyone who played but has not had one (added to the members list since, say)" className={btn("secondary")}><Send size={16} aria-hidden />{busy === p.matchId && pending ? "Working…" : "Send missing ballots"}</button>
@@ -41,7 +41,7 @@ export function MotmAdmin({ polls, pollable }: { polls: PollItem[]; pollable: Po
             </li>
           ))}
         </ul>
-      ) : <p className="flex items-center gap-2 text-sm text-ash"><Vote size={16} aria-hidden />No vote open. The next league result opens one automatically.</p>}
+      ) : <p className="flex items-center gap-2 text-sm text-muted"><Vote size={16} aria-hidden />No vote open. The next league result opens one automatically.</p>}
       {done.length > 0 && (
         <div>
           <p className="eyebrow mb-2">Decided</p>
@@ -50,14 +50,14 @@ export function MotmAdmin({ polls, pollable }: { polls: PollItem[]; pollable: Po
               <li key={p.matchId} className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="inline-flex items-center gap-1 text-gold"><Star size={12} aria-hidden />{p.winner ?? (p.status === "cancelled" ? "Cancelled" : "No votes")}</span>
                 <Link href={`/matches/${p.matchId}`} className="link">{p.score}</Link>
-                <span className="text-xs text-ash">{p.label} · {p.voted}/{p.ballots} voted{p.closedBy ? ` · ${p.closedBy}` : ""}{p.closedAt ? ` · ${when(p.closedAt)}` : ""}</span>
+                <span className="text-xs text-muted">{p.label} · {p.voted}/{p.ballots} voted{p.closedBy ? ` · ${p.closedBy}` : ""}{p.closedAt ? ` · ${when(p.closedAt)}` : ""}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
       {pollable.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 border-t border-white/10 pt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="grid grid-cols-1 gap-3 border-t border-ink/10 pt-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <Select label="Open a vote on a result that has none" value={matchId} onChange={setMatchId} options={pollable.map((f) => ({ value: f.id, label: f.label }))} className="min-w-0" />
           <button type="button" disabled={pending || !matchId} onClick={() => run(matchId, openMotmPollAction)} className={btn("primary")}><Vote size={16} aria-hidden />{busy === matchId && pending ? "Opening…" : "Open the vote"}</button>
         </div>

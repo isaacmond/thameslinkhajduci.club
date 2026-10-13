@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTransition } from "react";
 import clsx from "clsx";
-import { Crown, Medal, Sparkles, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { getData } from "@/lib/data";
 import type { Match } from "@/lib/types";
 import { attendance, chemistry, chronological, fmtDate, fmtMoney, goalContext, impact, leaderboard, type LeaderKey, playedMatches, playerStreaks, scoreline, seasonHref } from "@/lib/stats";
@@ -23,8 +23,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const data = await getData();
   const p = data.players.find((x) => x.slug === slug);
   if (!p) notFound();
-  return { title: p.name, description: `${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.` };
+  return { title: p.name, description: `${p.name}: ${p.apps} appearances, ${p.goals} goals and ${p.assists} assists for Thameslink Hajduci.` };
 }
+
+const ordinal = (n: number) => { const s = ["th", "st", "nd", "rd"], v = n % 100; return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`; };
 
 export default async function PlayerPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -36,7 +38,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
   const imp = impact(data, p.name);
   const partners = chemistry(data.matches, 2).filter((x) => x.a === p.name || x.b === p.name).slice(0, 6).map((x) => ({ ...x, other: x.a === p.name ? x.b : x.a }));
   const rankOf = (key: LeaderKey, minApps = 0) => { const i = leaderboard(data.players, key, minApps).findIndex((x) => x.player.name === p.name); return i >= 0 ? i + 1 : null; };
-  const ranks = ([["goals", "scorer"], ["apps", "for appearances"], ["assists", "for assists"], ["motm", "for MOTM awards"]] as [LeaderKey, string][]).map(([k, label]) => ({ label, rank: rankOf(k) })).filter((r) => r.rank && r.rank <= 5);
+  const ranks = ([["goals", "for goals"], ["apps", "for appearances"], ["assists", "for assists"], ["motm", "for man of the match"]] as [LeaderKey, string][]).map(([k, label]) => ({ label, rank: rankOf(k) })).filter((r) => r.rank && r.rank <= 5);
   const hatTricks = log.filter((m) => m.countsForRecords && (mine(m)?.goals ?? 0) >= 3);
   const motms = log.filter((m) => m.countsForRecords && m.motm === p.name);
   const perSeason = data.seasons.map((s) => { const x = p.seasons.find((y) => y.seasonId === s.id); return { name: s.id, apps: x?.apps ?? 0, goals: x?.goals ?? 0, assists: x?.assists ?? 0 }; });
@@ -57,127 +59,113 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
   return (
     <PageTransition>
     <div className="space-y-8">
-      <nav className="text-xs text-ash" aria-label="Breadcrumb"><Link href="/squad" className="link">Squad</Link> / {p.name}</nav>
-      <header className="card-solid pitch relative overflow-hidden p-5 animate-rise sm:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-mint/15 blur-3xl" aria-hidden />
-        {p.extra.shirt !== null && p.extra.shirt !== undefined && <span className="display pointer-events-none absolute -bottom-10 right-4 select-none text-[14rem] leading-none text-cream/[0.06] sm:text-[18rem]" aria-hidden>{p.extra.shirt}</span>}
-        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
-          <ViewTransition name={`player-${p.slug}`} share="morph" default="none"><Avatar name={p.name} photo={p.extra.photo} size={140} shirt={p.extra.shirt} priority /></ViewTransition>
-          <div className="min-w-0 flex-1">
-            <p className="eyebrow">{p.extra.positions?.length ? p.extra.positions.join(" / ") : "Utility"}{thisSeason?.apps && current ? ` · Season ${current.number} squad` : ""}</p>
-            <h1 className="display text-5xl leading-none text-cream sm:text-7xl">{p.name}</h1>
-            {p.extra.nickname && <p className="mt-1 text-lg italic text-ash">“{p.extra.nickname}”</p>}
-            {p.extra.bio && <p className="mt-3 max-w-2xl text-base text-cream/90 sm:text-lg">{p.extra.bio}</p>}
-            <div className="mt-3 flex flex-wrap items-center gap-1.5">
-              <Tag>Debut {fmtDate(p.debut)}</Tag>
-              <Tag>Last seen {fmtDate(p.lastPlayed)}</Tag>
-              <Tag>{seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}</Tag>
-              {p.ringer && <Tag tone="gold">Ringer · borrowed, never on the team sheet</Tag>}
-              {ranks.map((r) => <Tag key={r.label} tone="gold"><Crown size={12} aria-hidden />#{r.rank} all-time {r.label}</Tag>)}
-              <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} apps, ${p.goals} goals, ${p.assists} assists for Thameslink Hajduci.`} />
-              <EditProfileLink player={p.name} />
-            </div>
-            {notes.length > 0 && (
-              <div className="mt-4 border-t border-white/10 pt-3">
-                <p className="eyebrow">Notes</p>
-                <ul className="mt-1.5 grid gap-x-6 gap-y-1 text-sm text-cream/85 sm:grid-cols-2" aria-label="Notes from the records">
-                  {notes.map((n) => <li key={n} className="flex gap-2"><span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-mint" aria-hidden />{n}</li>)}
-                </ul>
-              </div>
-            )}
+      <nav className="flex gap-2 text-xs text-muted" aria-label="Breadcrumb"><Link href="/squad" className="hover:text-ink">Squad</Link><span aria-hidden>/</span><span className="text-ink">{p.name}</span></nav>
+      <header className="grid gap-8 border-b border-ink/10 pb-10 animate-rise md:grid-cols-[auto_1fr] md:items-center md:gap-12">
+        <ViewTransition name={`player-${p.slug}`} share="morph" default="none"><Avatar name={p.name} photo={p.extra.photo} size={176} shirt={p.extra.shirt} priority /></ViewTransition>
+        <div className="min-w-0">
+          <p className="eyebrow">{p.extra.positions?.length ? p.extra.positions.join(" · ") : "Squad player"}{p.extra.shirt !== null && p.extra.shirt !== undefined ? ` · Number ${p.extra.shirt}` : ""}</p>
+          <h1 className="display mt-2 text-5xl leading-[0.95] text-ink sm:text-7xl">{p.name}</h1>
+          {p.extra.nickname && <p className="display mt-2 text-2xl italic text-muted">“{p.extra.nickname}”</p>}
+          {p.extra.bio && <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-ink/85">{p.extra.bio}</p>}
+          <p className="mt-4 text-sm text-muted">Debut {fmtDate(p.debut, { day: "numeric", month: "long", year: "numeric" })} · {seasonsPlayed} season{seasonsPlayed === 1 ? "" : "s"}{thisSeason?.apps && current ? ` · in the Season ${current.number} squad` : ""}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+            {p.ringer && <Tag>Ringer</Tag>}
+            {ranks.map((r) => <Tag key={r.label} tone="gold">{ordinal(r.rank!)} all time {r.label}</Tag>)}
+            <ShareButton title={`${p.name} · Thameslink Hajduci`} text={`${p.name}: ${p.apps} appearances, ${p.goals} goals and ${p.assists} assists for Thameslink Hajduci.`} />
+            <EditProfileLink player={p.name} />
           </div>
         </div>
       </header>
 
       <section aria-label="Career totals">
-        <dl className="card grid grid-cols-4 divide-x divide-white/10 text-center">
-          {([["Apps", p.apps, "text-cream"], ["Goals", p.goals, "text-mint-soft"], ["Assists", p.assists, "text-cream"], ["Win %", `${Math.round(p.winRate)}`, p.winRate >= 50 ? "text-mint-soft" : p.winRate >= 25 ? "text-draw-soft" : "text-loss-soft"]] as [string, number | string, string][]).map(([k, v, c]) => <div key={k} className="flex flex-col-reverse py-4"><dt className="eyebrow mt-1">{k}</dt><dd className={clsx("display tabular text-4xl leading-none sm:text-5xl", c)}>{v}</dd></div>)}
+        <dl className="card grid grid-cols-4 divide-x divide-ink/10 text-center">
+          {([["Appearances", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["Won", `${Math.round(p.winRate)}%`]] as [string, number | string][]).map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k}</dt><dd className="display tabular text-4xl leading-none text-ink sm:text-5xl">{v}</dd></div>)}
         </dl>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat size="sm" label="Goals per game" value={p.goalsPerGame.toFixed(2)} sub={`over ${p.gpgGames} game${p.gpgGames === 1 ? "" : "s"} with scorers logged`} />
-          <Stat size="sm" label="Assists per game" value={p.assistsPerGame.toFixed(2)} sub={`over ${p.apgGames} game${p.apgGames === 1 ? "" : "s"} with assists logged`} />
-          <Stat size="sm" label="Man of the match" value={p.motm} tone="gold" sub={bestSeason ? `Best season: ${bestSeason.goals} goals in ${bestSeason.seasonId}` : "Best season: pending"} />
-          <Stat size="sm" label="Record" value={`${p.wins}-${p.draws}-${p.losses}`} sub={`${(decided ? (p.wins * 3 + p.draws) / decided : 0).toFixed(2)} pts/game`} />
+          <Stat size="sm" label="Goals a game" value={p.goalsPerGame.toFixed(2)} />
+          <Stat size="sm" label="Assists a game" value={p.assistsPerGame.toFixed(2)} />
+          <Stat size="sm" label="Man of the match" value={p.motm} sub={bestSeason ? `Best season: ${bestSeason.goals} goals in Season ${bestSeason.seasonId.replace(/^S/, "")}` : undefined} />
+          <Stat size="sm" label="Won, drawn, lost" value={`${p.wins}–${p.draws}–${p.losses}`} sub={`${(decided ? (p.wins * 3 + p.draws) / decided : 0).toFixed(2)} points a game`} />
         </div>
       </section>
 
-      <section className="card p-5" aria-labelledby="form-streaks">
-        <SectionTitle id="form-streaks" sub={lastEight.length ? `The last ${lastEight.length === 1 ? "game" : `${lastEight.length} games`} that count with ${first} on the pitch, newest first` : "Games that count, newest first"}>Form &amp; streaks</SectionTitle>
+      <section className="card p-6" aria-labelledby="form-streaks">
+        <SectionTitle id="form-streaks" sub={lastEight.length ? `The last ${lastEight.length === 1 ? "match" : `${lastEight.length} matches`} ${first} played, most recent first` : undefined}>Form</SectionTitle>
         <FormStrip matches={lastEight} />
         <dl className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {p.goals === 0 ? (
-            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Goals</dt><dd className="display tabular text-4xl leading-none text-ash">0<span className="block font-sans text-xs text-ash">Still waiting for the first. Any day now.</span></dd></div>
+            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Goals</dt><dd className="display tabular text-4xl leading-none text-ink">0<span className="mt-1 block font-sans text-xs text-muted">No goals yet</span></dd></div>
           ) : st.scoringRun > 0 ? (
-            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Scoring run</dt><dd className="display tabular text-4xl leading-none text-mint-soft">{st.scoringRun}<span className="block font-sans text-xs text-ash">{st.scoringRun === 1 ? "game" : "straight games"} on the scoresheet · best run {st.longestScoringRun}</span></dd></div>
+            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Scoring run</dt><dd className="display tabular text-4xl leading-none text-ink">{st.scoringRun}<span className="mt-1 block font-sans text-xs text-muted">{st.scoringRun === 1 ? "match" : "matches in a row"} with a goal · best {st.longestScoringRun}</span></dd></div>
           ) : (
-            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Drought</dt><dd className={clsx("display tabular text-4xl", st.drought >= 5 ? "text-loss-soft" : "text-draw-soft")}>{st.drought}<span className="block font-sans text-xs text-ash">{st.drought === 1 ? "game" : "games"} without a goal · best run {st.longestScoringRun}</span></dd></div>
+            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Since last goal</dt><dd className="display tabular text-4xl leading-none text-ink">{st.drought}<span className="mt-1 block font-sans text-xs text-muted">{st.drought === 1 ? "match" : "matches"} · best scoring run {st.longestScoringRun}</span></dd></div>
           )}
           {showUnbeaten ? (
-            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Unbeaten run</dt><dd className="display tabular text-4xl leading-none text-mint-soft">{st.unbeatenRun}<span className="block font-sans text-xs text-ash">{st.unbeatenRun === 1 ? "game" : "games"} without a defeat{st.winlessRun > 0 && st.lastWin ? ` · last win ${scoreline(st.lastWin)} vs ${st.lastWin.opponent}` : ""}</span></dd></div>
+            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Unbeaten run</dt><dd className="display tabular text-4xl leading-none text-ink">{st.unbeatenRun}<span className="mt-1 block font-sans text-xs text-muted">{st.unbeatenRun === 1 ? "match" : "matches"} without defeat</span></dd></div>
           ) : (
-            <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Winless run</dt><dd className={clsx("display tabular text-4xl", st.winlessRun >= 8 ? "text-loss-soft" : st.winlessRun > 0 ? "text-draw-soft" : "text-ash")}>{st.winlessRun}<span className="block font-sans text-xs text-ash">{st.lastWin ? <>{st.winlessRun === 1 ? "game" : "games"} since the last win · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} vs {st.lastWin.opponent}</Link>, {fmtDate(st.lastWin.date, { month: "short", year: "numeric" })}</> : st.winlessRun > 0 ? "games and still waiting for a first win" : "no games on record yet"}</span></dd></div>
+            <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Since last win</dt><dd className="display tabular text-4xl leading-none text-ink">{st.winlessRun}<span className="mt-1 block font-sans text-xs text-muted">{st.lastWin ? <>{st.winlessRun === 1 ? "match" : "matches"} · <Link href={`/matches/${st.lastWin.id}`} className="link">{scoreline(st.lastWin)} v {st.lastWin.opponent}</Link></> : st.winlessRun > 0 ? "matches" : "No matches yet"}</span></dd></div>
           )}
-          <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Punctuality</dt><dd className={clsx("display tabular text-4xl", att.possible ? (att.pct >= 75 ? "text-mint-soft" : att.pct >= 40 ? "text-draw-soft" : "text-loss-soft") : "text-ash")}>{att.possible ? `${att.pct}%` : "–"}<span className="block font-sans text-xs text-ash">{att.possible ? `turned up to ${att.apps} of ${att.possible} possible games` : "not on a season roster yet"}</span></dd></div>
-          <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Goals in wins</dt><dd className={clsx("display tabular text-4xl", gc.inWins > 0 ? "text-mint-soft" : "text-ash")}>{gc.inWins}<span className="block font-sans text-xs text-ash">{p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats${gc.consolation ? ` (${gc.consolation} consolation)` : ""}` : "no goals to file yet"}</span></dd></div>
+          <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Attendance</dt><dd className="display tabular text-4xl leading-none text-ink">{att.possible ? `${att.pct}%` : "–"}<span className="mt-1 block font-sans text-xs text-muted">{att.possible ? `${att.apps} of ${att.possible} matches` : "Not yet on a season squad"}</span></dd></div>
+          <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Goals in wins</dt><dd className="display tabular text-4xl leading-none text-ink">{gc.inWins}<span className="mt-1 block font-sans text-xs text-muted">{p.goals > 0 ? `${gc.inDraws} in draws · ${gc.inLosses} in defeats` : "No goals yet"}</span></dd></div>
         </dl>
-        {p.goals > 0 && gc.share !== null && (
-          <p className="mt-3 text-sm text-ash">
-            {gc.share}% of every Hajduci goal scored with {first} on the pitch was {first}&apos;s{gc.tight > 0 ? <>, and <span className="text-cream">{gc.tight}</span> of {first}&apos;s came in one-goal games</> : ""}.{gc.consolation > 0 && gc.consolation >= gc.inWins ? " Mostly scoring while the bus was already being called." : gc.inWins > gc.inLosses ? " Scores when it matters, which is more than can be said for the trains." : ""}
-          </p>
+        {notes.length > 0 && (
+          <ul className="mt-5 space-y-1.5 border-t border-ink/8 pt-4 text-sm text-muted" aria-label="Notes">
+            {notes.map((n) => <li key={n}>{n}</li>)}
+          </ul>
         )}
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="space-y-6 lg:col-span-2">
-          <div className="card p-5">
-            <SectionTitle sub="Team win rate with and without them on the pitch">Impact</SectionTitle>
+          <div className="card p-6">
+            <SectionTitle sub="How often the team wins with and without them">With and without</SectionTitle>
             <dl className="grid grid-cols-2 gap-3 text-center">
-              <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">With {first}</dt><dd className="display tabular text-4xl leading-none text-mint-soft">{imp.winRateWith ?? "–"}%<span className="block text-xs font-sans text-ash">{imp.withGames} games<br /><span className="nowrap">GD {imp.gdWith ?? "–"}/game</span></span></dd></div>
-              <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3"><dt className="eyebrow mt-1">Without</dt><dd className="display tabular text-4xl leading-none text-ash">{imp.winRateWithout ?? "–"}%<span className="block text-xs font-sans text-ash">{imp.withoutGames} games<br /><span className="nowrap">GD {imp.gdWithout ?? "–"}/game</span></span></dd></div>
+              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">With {first}</dt><dd className="display tabular text-4xl leading-none text-ink">{imp.winRateWith ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withGames} matches</span></dd></div>
+              <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-4"><dt className="eyebrow mt-1">Without</dt><dd className="display tabular text-4xl leading-none text-muted">{imp.winRateWithout ?? "–"}%<span className="mt-1 block text-xs font-sans text-muted">won, from {imp.withoutGames} matches</span></dd></div>
             </dl>
             {delta !== null && imp.withGames >= 3 && imp.withoutGames >= 3 && (
-              <p className="mt-3 text-sm text-ash">{delta > 5 ? <>Hajduci win <span className="text-mint-soft">{delta} points</span> more often with {first} playing. Statistically significant? Absolutely not. Emotionally? Yes.</> : delta < -5 ? <>The team wins <span className="text-loss-soft">{Math.abs(delta)} points</span> more often without {first}. We&apos;re sure it&apos;s a coincidence.</> : <>No measurable difference either way. The very definition of a squad player.</>}</p>
+              <p className="mt-3 text-sm text-muted">{Math.abs(delta) > 5 ? <>The team&apos;s win rate is {Math.abs(delta)} points {delta > 0 ? "higher" : "lower"} with {first} playing.</> : <>About the same either way.</>}</p>
             )}
           </div>
-          <div className="card p-5">
-            <SectionTitle sub="Most shared appearances, and how it went">Partners in crime</SectionTitle>
+          <div className="card p-6">
+            <SectionTitle sub="Most matches together, and the win rate">Played most with</SectionTitle>
             {partners.length ? (
               <ul className="space-y-2 text-sm">
-                {partners.map((x) => <li key={x.other} className="flex items-center gap-2"><PlayerLink name={x.other} player={byName.get(x.other)} avatar className="min-w-0 truncate" /><span className="ml-auto shrink-0 text-xs text-ash">{x.shared} games</span><span className={clsx("tabular w-12 shrink-0 text-right font-semibold", x.winRate >= 40 ? "text-mint-soft" : "text-ash")}>{x.winRate}%</span></li>)}
+                {partners.map((x) => <li key={x.other} className="flex items-center gap-2"><PlayerLink name={x.other} player={byName.get(x.other)} avatar className="min-w-0 truncate" /><span className="ml-auto shrink-0 text-xs text-muted">{x.shared} games</span><span className="tabular w-12 shrink-0 text-right font-semibold text-ink">{x.winRate}%</span></li>)}
               </ul>
-            ) : <p className="text-sm text-ash">Hasn&apos;t shared a pitch with anyone twice. A lone wolf.</p>}
+            ) : <p className="text-sm text-muted">Not enough matches yet.</p>}
           </div>
         </div>
-        <div className="card flex flex-col p-5 lg:col-span-3">
-          <SectionTitle sub="Appearances (outline), goals and assists per season">Season by season</SectionTitle>
+        <div className="card flex flex-col p-6 lg:col-span-3">
+          <SectionTitle sub="Appearances, goals and assists">Season by season</SectionTitle>
           <div className="min-h-[240px] flex-1"><PlayerSeasonBars data={perSeason} height="100%" /></div>
         </div>
       </section>
 
       {(() => { const n = (hatTricks.length > 0 ? 1 : 0) + (motms.length > 0 ? 1 : 0) + (money && (money.totalCharged > 0 || money.paid > 0) ? 1 : 0); return n > 0 && (
         <section className={clsx("grid grid-cols-1 gap-6", n >= 2 && "md:grid-cols-2", n >= 3 && "lg:grid-cols-3")}>
-          {hatTricks.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Sparkles size={20} className="text-gold" aria-hidden />Hat-tricks</span></SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
-          {motms.length > 0 && <div className="card p-5"><SectionTitle><span className="inline-flex items-center gap-2"><Medal size={20} className="text-gold" aria-hidden />Man of the match</span></SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">vs {m.opponent}</Link><span className="text-ash"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
-          {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-5"><SectionTitle sub="Season 8 onwards">Tab</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Charged</dt><dd className="display text-2xl text-cream">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Paid</dt><dd className="display text-2xl text-mint-soft">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className={clsx("display text-2xl", money.balance > 0.01 ? "text-loss-soft" : "text-mint-soft")}>{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-ash">{money.balance > 0.01 ? <>The treasurer has been informed. <Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Paid? Log it →</Link></> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch hire. The others owe ${first}.` : "Fully paid up. A model citizen."} <Link href="/money" className="link">Money →</Link></p></div>}
+          {hatTricks.length > 0 && <div className="card p-6"><SectionTitle>Hat-tricks</SectionTitle><ul className="space-y-2 text-sm">{hatTricks.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">{mine(m)!.goals} v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
+          {motms.length > 0 && <div className="card p-6"><SectionTitle>Man of the match</SectionTitle><ul className="space-y-2 text-sm">{motms.map((m) => <li key={m.id}><Link href={`/matches/${m.id}`} className="link">v {m.opponent}</Link><span className="text-muted"> · {scoreline(m)} · <span className="nowrap">{fmtDate(m.date)}</span></span></li>)}</ul></div>}
+          {money && (money.totalCharged > 0 || money.paid > 0) && <div className="card p-6"><SectionTitle sub="From Season 8">Pitch fees</SectionTitle><dl className="grid grid-cols-3 gap-2 text-center"><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Charged</dt><dd className="display text-2xl text-ink">{fmtMoney(money.totalCharged)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">Paid</dt><dd className="display text-2xl text-ink">{fmtMoney(money.paid)}</dd></div><div className="flex flex-col-reverse"><dt className="eyebrow mt-1">{money.balance < -0.01 ? "Is owed" : "Owes"}</dt><dd className="display text-2xl text-ink">{fmtMoney(Math.abs(money.balance))}</dd></div></dl><p className="mt-2 text-xs text-muted">{money.balance > 0.01 ? <><Link href={`/submit?type=payment&player=${encodeURIComponent(p.name)}`} className="link">Record a payment</Link> · </> : money.balance < -0.01 ? `Paid ${fmtMoney(money.pitchCovered)} of pitch hire. ` : "All paid up. "}<Link href="/money" className="link">Money</Link></p></div>}
         </section>
       ); })()}
 
       <section className="card overflow-hidden">
-        <div className="p-5 pb-3"><SectionTitle sub={`${log.length} game${log.length === 1 ? "" : "s"} on record, newest first`}>Match log</SectionTitle></div>
+        <div className="p-6 pb-3"><SectionTitle sub={`${log.length} match${log.length === 1 ? "" : "es"}, most recent first`}>Every match</SectionTitle></div>
         <div className="scroll-x overflow-x-auto">
           <table className="stats w-full sm:min-w-[640px]">
-            <thead><tr><th>Opponent</th><th>Result</th><th className="num">Score</th><th className="num">G</th><th className="num">A</th><th className="hidden sm:table-cell">Date</th><th className="hidden sm:table-cell">Season</th><th className="hidden sm:table-cell">Notes</th></tr></thead>
+            <thead><tr><th>Opponent</th><th>Result</th><th className="num">Score</th><th className="num">Goals</th><th className="num">Assists</th><th className="hidden sm:table-cell">Date</th><th className="hidden sm:table-cell">Season</th><th className="hidden sm:table-cell"><span className="sr-only">Awards</span></th></tr></thead>
             <tbody>
               {log.map((m) => { const l = mine(m)!; return (
-                <tr key={m.id} className={clsx(!m.countsForRecords && "opacity-60")}>
-                  <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-cream sm:inline">{m.opponent}</Link><span className="block text-[10px] text-ash sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <span className="ml-1 text-gold">★ MOTM</span>}</span>{m.type && <span className="chip ml-2 hidden text-ash sm:inline-flex">{m.type}</span>}</td>
+                <tr key={m.id}>
+                  <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-ink sm:inline">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <span className="ml-1 text-gold">★</span>}</span>{m.type && <span className="chip ml-2 hidden text-muted sm:inline-flex">{m.type}</span>}</td>
                   <td><ResultPill result={m.result} size="sm" /></td>
                   <td className="num display text-lg">{scoreline(m)}</td>
-                  <td className={clsx("num", l.goals > 0 && "font-semibold text-mint-soft")}>{l.goals || ""}</td>
+                  <td className={clsx("num", l.goals > 0 && "font-semibold")}>{l.goals || ""}</td>
                   <td className="num">{l.assists || ""}</td>
-                  <td className="hidden text-ash sm:table-cell">{fmtDate(m.date)}</td>
-                  <td className="hidden text-ash sm:table-cell"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : m.seasonId}</Link> {m.seasonId === "FR" ? `#${m.gw}` : `GW${m.gw}`}</td>
-                  <td className="hidden text-xs text-ash sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} aria-hidden />MOTM</span>}{!l.played && "Scored without an appearance mark"}</td>
+                  <td className="hidden text-muted sm:table-cell">{fmtDate(m.date)}</td>
+                  <td className="hidden text-muted sm:table-cell"><Link href={seasonHref(m.seasonId)} className="link">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`}</Link></td>
+                  <td className="hidden text-xs text-muted sm:table-cell">{m.motm === p.name && <span className="mr-2 inline-flex items-center gap-1 text-gold"><Star size={12} className="fill-current" aria-hidden />Man of the match</span>}</td>
                 </tr>); })}
             </tbody>
           </table>

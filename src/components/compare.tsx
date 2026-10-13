@@ -55,45 +55,31 @@ function tally(a: ComparePlayer, b: ComparePlayer): Tally {
   return t;
 }
 
-/** One line, computed from the numbers, safe for any pair: every branch guards its own denominators and there is always a fallback. */
+/** One plain sentence, computed from the numbers, safe for any pair: every branch guards its own denominators and there is always a fallback. */
 function verdict(a: ComparePlayer, b: ComparePlayer, t: Tally): string {
   const A = short(a, b), B = short(b, a);
   const decidedA = a.wins + a.draws + a.losses, decidedB = b.wins + b.draws + b.losses;
-  if (a.apps === 0 && b.apps === 0) return "Neither has played a counted game yet. Duel postponed, like most things on the Thameslink.";
-  if (a.apps === 0) return `${A} is yet to play a counted game. ${B} wins by turning up, which is most of the battle.`;
-  if (b.apps === 0) return `${B} is yet to play a counted game. ${A} wins by turning up, which is most of the battle.`;
+  if (a.apps === 0 && b.apps === 0) return "Neither has played a league match yet.";
+  if (a.apps === 0) return `${A} is yet to play a league match.`;
+  if (b.apps === 0) return `${B} is yet to play a league match.`;
   if (a.goals > b.apps && b.apps >= 5) return `${A} has more goals than ${B} has appearances.`;
   if (b.goals > a.apps && a.apps >= 5) return `${B} has more goals than ${A} has appearances.`;
-  if (a.assists >= 5 && b.apps >= 10 && a.assists > b.goals) return `${A} has set up more goals than ${B} has scored. Someone has to.`;
-  if (b.assists >= 5 && a.apps >= 10 && b.assists > a.goals) return `${B} has set up more goals than ${A} has scored. Someone has to.`;
-  if (a.goals === b.goals && a.apps === b.apps) return "Same goals, same appearances. Statistically the same man.";
-  if (a.goals === b.goals && a.goals > 0 && a.apps !== b.apps) { const slower = a.apps > b.apps ? A : B; return `Level on ${a.goals} goals. ${slower} needed ${Math.abs(a.apps - b.apps)} more game${Math.abs(a.apps - b.apps) === 1 ? "" : "s"} to get there.`; }
-  if (a.motm >= 3 && b.motm === 0 && b.apps >= 10) return `${A} has ${a.motm} man-of-the-match awards. ${B} has a participation certificate.`;
-  if (b.motm >= 3 && a.motm === 0 && a.apps >= 10) return `${B} has ${b.motm} man-of-the-match awards. ${A} has a participation certificate.`;
-  if (decidedA >= 10 && decidedB >= 10 && Math.abs(a.winRate - b.winRate) >= 15) { const w = a.winRate > b.winRate ? A : B; return `Hajduci win ${Math.round(Math.abs(a.winRate - b.winRate))} points more often with ${w} on the pitch. Correlation, causation, whatever.`; }
-  // Attendance must be strictly higher (level attendance falls through) and the scorer must actually score: 0 >= 0 * 2 would otherwise pass for two defenders.
-  if (a.gpgGames >= 10 && b.gpgGames >= 10 && a.goalsPerGame > 0 && a.goalsPerGame >= b.goalsPerGame * 2 && b.attendancePossible >= 10 && a.attendancePossible >= 10 && b.attendancePct > a.attendancePct) return `${A} scores twice as often; ${B} turns up more often. Different jobs.`;
-  if (a.gpgGames >= 10 && b.gpgGames >= 10 && b.goalsPerGame > 0 && b.goalsPerGame >= a.goalsPerGame * 2 && a.attendancePossible >= 10 && b.attendancePossible >= 10 && a.attendancePct > b.attendancePct) return `${B} scores twice as often; ${A} turns up more often. Different jobs.`;
-  if (t.total === 0) return "Not enough on record to separate them. Check back after a few Tuesdays.";
-  if (t.a >= 7) return `${A} takes ${t.a} of ${t.total} categories. Not a lot to argue about.`;
-  if (t.b >= 7) return `${B} takes ${t.b} of ${t.total} categories. Not a lot to argue about.`;
-  if (t.a === t.b) return `${t.a}–${t.b} on categories. Settle it in the group chat.`;
+  if (a.goals === b.goals && a.goals > 0 && a.apps !== b.apps) { const quicker = a.apps < b.apps ? A : B; return `Level on ${a.goals} goals, with ${quicker} getting there in ${Math.abs(a.apps - b.apps)} fewer match${Math.abs(a.apps - b.apps) === 1 ? "" : "es"}.`; }
+  if (decidedA >= 10 && decidedB >= 10 && Math.abs(a.winRate - b.winRate) >= 15) { const w = a.winRate > b.winRate ? A : B; return `The team's win rate is ${Math.round(Math.abs(a.winRate - b.winRate))} points higher with ${w} playing.`; }
+  if (t.total === 0) return "Not enough matches yet to compare them.";
+  if (t.a === t.b) return `Level at ${t.a} categories each.`;
   const [w, l, wn, ln] = t.a > t.b ? [A, B, t.a, t.b] : [B, A, t.b, t.a];
-  return `${w} edges ${l} ${wn}–${ln} on categories. Close enough to be annoying.`;
+  return `${w} leads ${l} in ${wn} categories to ${ln}.`;
 }
 
 function togetherLine(a: ComparePlayer, b: ComparePlayer, both: CompareMatch[], onlyA: CompareMatch[], onlyB: CompareMatch[]): string {
   const A = short(a, b), B = short(b, a);
-  if (!both.length) return "Never shared a pitch in a counted game. Ships in the night, or different WhatsApp groups.";
-  if (both.length < 3) return `Only ${both.length} game${both.length === 1 ? "" : "s"} together. Too few to draw conclusions, which has never stopped anyone.`;
+  if (!both.length) return "They haven't played a league match together.";
+  if (both.length < 3) return `${both.length} match${both.length === 1 ? "" : "es"} together so far.`;
   const t = winPct(both)!, sa = winPct(onlyA), sb = winPct(onlyB);
   const solos = [sa, sb].filter((x): x is number => x !== null);
-  if (!solos.length) return `${both.length} games together, none apart. Inseparable, or they share a car.`;
-  const best = Math.max(...solos), worst = Math.min(...solos);
-  const apart = `${sa === null ? "–" : `${sa}%`} for ${A} alone, ${sb === null ? "–" : `${sb}%`} for ${B} alone`;
-  if (t >= best + 10) return `Better together: ${t}% win rate with both on, against ${apart}.`;
-  if (t <= worst - 10) return `Better apart. ${t}% together against ${apart}. Nobody say anything.`;
-  return `${t}% together, ${apart}. Chemistry: neutral, like the pitch drainage.`;
+  if (!solos.length) return `${both.length} matches together, and none apart.`;
+  return `Won ${t}% together; ${sa === null ? "no matches" : `${sa}%`} with ${A} alone and ${sb === null ? "no matches" : `${sb}%`} with ${B} alone.`;
 }
 
 function Head({ p, other, align, tone }: { p: ComparePlayer; other: ComparePlayer; align: "left" | "right"; tone: "lead" | "trail" | "level" }) {
@@ -102,12 +88,12 @@ function Head({ p, other, align, tone }: { p: ComparePlayer; other: ComparePlaye
     <div className={clsx("flex min-w-0 flex-col gap-3", right ? "items-end text-right" : "items-start text-left")}>
       {p.photo ? <Avatar name={p.name} photo={p.photo} size={88} shirt={p.shirt} priority /> : <Shirt number={p.shirt} name={p.name} className="h-[88px] w-20" />}
       <div className="min-w-0">
-        <p className="eyebrow truncate">{p.positions.length ? p.positions.join(" / ") : "Utility"}{p.shirt !== null ? ` · #${p.shirt}` : ""}</p>
-        <h2 className={clsx("display break-words text-3xl leading-none sm:text-5xl", tone === "lead" ? "text-mint-soft" : "text-cream")}>{p.name}</h2>
-        {p.nickname && <p className="mt-0.5 truncate text-sm italic text-ash">“{p.nickname}”</p>}
+        <p className="eyebrow truncate">{p.positions.length ? p.positions.join(" · ") : "Squad player"}{p.shirt !== null ? ` · ${p.shirt}` : ""}</p>
+        <h2 className="display break-words text-3xl leading-none text-ink sm:text-5xl">{p.name}</h2>
+        {p.nickname && <p className="mt-0.5 truncate text-sm italic text-muted">“{p.nickname}”</p>}
         <div className={clsx("mt-2 flex flex-wrap gap-1.5", right && "justify-end")}>
           <Tag>Debut {fmtDate(p.debut, { month: "short", year: "numeric" })}</Tag>
-          <Link href={`/squad/${p.slug}`} className="focus-ring chip text-ash hover:text-cream">Profile →</Link>
+          <Link href={`/squad/${p.slug}`} className="focus-ring chip text-muted hover:text-ink">Profile</Link>
         </div>
         <span className="sr-only">{tone === "lead" ? `Leads ${short(other, p)} on more categories` : tone === "trail" ? `Trails ${short(other, p)} on more categories` : "Level on categories"}</span>
       </div>
@@ -123,21 +109,21 @@ function Bars({ a, b, m }: { a: ComparePlayer; b: ComparePlayer; m: Metric }) {
   const level = va !== null && vb !== null && va === vb;
   const nA = short(a, b), nB = short(b, a);
   // Mint is colour-only, so each number is prefixed with whose it is and the better one says so, for screen readers.
-  const val = (v: number | null, better: boolean, name: string) => <span className={clsx("display tabular text-2xl leading-none sm:text-3xl", better ? "text-mint-soft" : v === null ? "text-ash" : "text-cream")}><span className="sr-only">{name}: </span>{v === null ? "–" : m.fmt(v)}{better && <span className="sr-only"> (leads)</span>}</span>;
-  const bar = (better: boolean) => clsx("h-full rounded-full transition-[width] duration-500", better ? "bg-mint" : level ? "bg-cream/40" : "bg-white/25");
+  const val = (v: number | null, better: boolean, name: string) => <span className={clsx("display tabular text-2xl leading-none sm:text-3xl", better ? "text-accent" : v === null ? "text-muted" : "text-ink/70")}><span className="sr-only">{name}: </span>{v === null ? "–" : m.fmt(v)}{better && <span className="sr-only"> (leads)</span>}</span>;
+  const bar = (better: boolean) => clsx("h-full rounded-full transition-[width] duration-500", better ? "bg-accent" : level ? "bg-ink/40" : "bg-ink/25");
   const subA = m.sub?.(a), subB = m.sub?.(b);
   return (
     <li className="py-3">
       <div className="flex items-baseline justify-between gap-2">
         {val(va, aBetter, nA)}
-        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-ash/90">(level)</span>}</span>
+        <span className="eyebrow shrink-0 text-center">{m.label}{level && <span className="ml-1 normal-case tracking-normal text-muted/90">(level)</span>}</span>
         {val(vb, bBetter, nB)}
       </div>
       <div className="mt-1.5 grid grid-cols-2 gap-1" aria-hidden>
-        <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-white/[0.06]"><span className={bar(aBetter)} style={{ width: `${w(va)}%` }} /></div>
-        <div className="flex h-2 overflow-hidden rounded-r-full bg-white/[0.06]"><span className={bar(bBetter)} style={{ width: `${w(vb)}%` }} /></div>
+        <div className="flex h-2 justify-end overflow-hidden rounded-l-full bg-ink/[0.06]"><span className={bar(aBetter)} style={{ width: `${w(va)}%` }} /></div>
+        <div className="flex h-2 overflow-hidden rounded-r-full bg-ink/[0.06]"><span className={bar(bBetter)} style={{ width: `${w(vb)}%` }} /></div>
       </div>
-      {(subA || subB) && <div className="mt-1 flex justify-between gap-3 text-[11px] text-ash"><span className="min-w-0 truncate">{subA && <><span className="sr-only">{nA}: </span>{subA}</>}</span><span className="min-w-0 truncate text-right">{subB && <><span className="sr-only">{nB}: </span>{subB}</>}</span></div>}
+      {(subA || subB) && <div className="mt-1 flex justify-between gap-3 text-[11px] text-muted"><span className="min-w-0 truncate">{subA && <><span className="sr-only">{nA}: </span>{subA}</>}</span><span className="min-w-0 truncate text-right">{subB && <><span className="sr-only">{nB}: </span>{subB}</>}</span></div>}
     </li>
   );
 }
@@ -183,86 +169,83 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
   const cell = (label: string, xs: CompareMatch[], highlight = false) => {
     const pct = winPct(xs);
     return (
-      <div className="flex flex-col-reverse rounded-xl bg-white/[0.04] p-3 text-center">
+      <div className="flex flex-col-reverse rounded-xl bg-sunken/60 p-3 text-center">
         <dt className="eyebrow mt-1 !text-[10px] !tracking-[0.14em]">{label}</dt>
-        <dd className={clsx("display tabular text-3xl leading-none sm:text-4xl", pct === null ? "text-ash" : highlight ? "text-mint-soft" : "text-cream")}>{pct === null ? "–" : `${pct}%`}<span className="mt-1 block font-sans text-[11px] leading-tight text-ash">{xs.length} game{xs.length === 1 ? "" : "s"}{xs.length > 0 && <span className="block tabular">{wdl(xs)}</span>}</span></dd>
+        <dd className={clsx("display tabular text-3xl leading-none sm:text-4xl", pct === null ? "text-muted" : highlight ? "text-ink" : "text-ink")}>{pct === null ? "–" : `${pct}%`}<span className="mt-1 block font-sans text-[11px] leading-tight text-muted">{xs.length} match{xs.length === 1 ? "" : "es"}{xs.length > 0 && <span className="block tabular">{wdl(xs)}</span>}</span></dd>
       </div>
     );
   };
   const togetherPct = winPct(both), soloBest = Math.max(winPct(onlyA) ?? -1, winPct(onlyB) ?? -1);
 
-  if (players.length < 2) return <div className="card px-4 py-8 text-center text-sm text-ash">Need two players on the records to run a duel. Recruitment is ongoing.</div>;
+  if (players.length < 2) return <div className="card px-4 py-8 text-center text-sm text-muted">At least two players are needed to compare.</div>;
 
   return (
     <div className="space-y-6">
-      <div className="card p-4 sm:p-5">
+      <div className="card p-5 sm:p-6">
         <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-          <Select label="In the left corner" value={A.slug} onChange={pickA} options={options} />
-          <button type="button" onClick={swap} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 text-xs font-semibold text-cream transition-colors hover:bg-white/10 sm:w-auto" aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
-          <Select label="In the right corner" value={B.slug} onChange={pickB} options={options} />
+          <Select label="Player" value={A.slug} onChange={pickA} options={options} />
+          <button type="button" onClick={swap} className="focus-ring inline-flex h-[2.375rem] items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-surface px-3 text-xs font-semibold text-ink transition-colors hover:border-ink/30 sm:w-auto" aria-label="Swap sides"><ArrowLeftRight size={14} aria-hidden /><span className="sm:hidden">Swap sides</span></button>
+          <Select label="Compared with" value={B.slug} onChange={pickB} options={options} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button type="button" onClick={shuffle} className="focus-ring inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-cream transition-colors hover:bg-white/10"><Shuffle size={14} aria-hidden />Random duel</button>
+          <button type="button" onClick={shuffle} className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-surface px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-ink/30"><Shuffle size={14} aria-hidden />Random pair</button>
           <ShareButton title={`${A.name} v ${B.name} · Thameslink Hajduci`} text={shareText} />
-          <span className="ml-auto text-[11px] text-ash">Friendlies and forfeits excluded. Assists as declared.</span>
         </div>
       </div>
 
-      <section className="card-solid pitch relative overflow-hidden p-4 sm:p-8" aria-label={`${A.name} versus ${B.name}`}>
-        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-mint/15 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gold/10 blur-3xl" aria-hidden />
+      <section className="card relative overflow-hidden p-5 sm:p-8" aria-label={`${A.name} and ${B.name}`}>
         <div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 sm:gap-6">
           <Head p={A} other={B} align="left" tone={toneA} />
           <div className="flex flex-col items-center self-center">
-            <span className="display text-3xl leading-none text-gold sm:text-6xl" aria-hidden>VS</span>
-            <span className="display tabular mt-2 text-lg leading-none text-ash sm:text-2xl" title="Categories won">{t.a}–{t.b}</span>
-            <span className="eyebrow !text-[9px]"><span className="sm:hidden">cats</span><span className="hidden sm:inline">categories</span></span>
+            <span className="display text-3xl italic leading-none text-muted sm:text-5xl" aria-hidden>v</span>
+            <span className="display tabular mt-3 text-2xl leading-none text-ink sm:text-3xl" title="Categories led">{t.a}–{t.b}</span>
+            <span className="eyebrow mt-1 !text-[9px]">categories</span>
           </div>
           <Head p={B} other={A} align="right" tone={toneB} />
         </div>
-        <p className="relative mt-5 border-t border-white/10 pt-4 text-center text-base text-cream/90 sm:text-lg">{line}</p>
+        <p className="display relative mt-6 border-t border-ink/10 pt-5 text-center text-xl italic text-ink/85 sm:text-2xl">{line}</p>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-        <div className="card p-4 sm:p-5 lg:col-span-3">
-          <SectionTitle sub="Bars are relative to the larger value. Mint marks the better number; ties are cream.">Tale of the tape</SectionTitle>
-          <div className="flex justify-between text-xs font-semibold text-cream"><span className="truncate">{sA}</span><span className="truncate text-right">{sB}</span></div>
-          <ol className="divide-y divide-white/[0.06]">{METRICS.map((m) => <Bars key={m.key} a={A} b={B} m={m} />)}</ol>
+        <div className="card p-5 sm:p-6 lg:col-span-3">
+          <SectionTitle sub="The stronger figure in each row is highlighted">Head to head</SectionTitle>
+          <div className="flex justify-between text-xs font-semibold text-ink"><span className="truncate">{sA}</span><span className="truncate text-right">{sB}</span></div>
+          <ol className="divide-y divide-ink/[0.06]">{METRICS.map((m) => <Bars key={m.key} a={A} b={B} m={m} />)}</ol>
         </div>
 
         <div className="space-y-6 lg:col-span-2">
-          <div className="card p-4 sm:p-5">
-            <SectionTitle sub="Team win rate with both on the pitch, and with just one of them">Together</SectionTitle>
+          <div className="card p-5 sm:p-6">
+            <SectionTitle sub="The team's win rate with both, and with each alone">Together</SectionTitle>
             <dl className="grid grid-cols-3 gap-2">
               {cell("Together", both, togetherPct !== null && togetherPct > soloBest)}
-              {cell(`${sA} solo`, onlyA, false)}
-              {cell(`${sB} solo`, onlyB, false)}
+              {cell(`${sA} only`, onlyA, false)}
+              {cell(`${sB} only`, onlyB, false)}
             </dl>
-            <p className="mt-3 text-sm text-ash">{togetherLine(A, B, both, onlyA, onlyB)}</p>
-            {both.length > 0 && <p className="mt-2 text-xs text-ash">Last shared pitch: <Link href={`/matches/${both[both.length - 1].id}`} className="link">{fmtDate(both[both.length - 1].date)}</Link> · {both.length} game{both.length === 1 ? "" : "s"} in {shared} shared season{shared === 1 ? "" : "s"}.</p>}
+            <p className="mt-3 text-sm text-muted">{togetherLine(A, B, both, onlyA, onlyB)}</p>
+            {both.length > 0 && <p className="mt-2 text-xs text-muted">Last together <Link href={`/matches/${both[both.length - 1].id}`} className="link">{fmtDate(both[both.length - 1].date)}</Link> · {shared} season{shared === 1 ? "" : "s"} together</p>}
           </div>
 
           <div className="card overflow-hidden">
-            <div className="p-4 pb-2 sm:p-5 sm:pb-2"><SectionTitle sub="Appearances and goals, season by season">Side by side</SectionTitle></div>
+            <div className="p-5 pb-2 sm:p-6 sm:pb-2"><SectionTitle sub="Appearances and goals">Season by season</SectionTitle></div>
             {seasonRows.length ? (
               <div className="scroll-x overflow-x-auto">
                 <table className="stats w-full">
                   <thead>
-                    <tr><th aria-hidden /><th colSpan={2} className="!text-center text-cream">{sA}</th><th colSpan={2} className="!text-center text-cream">{sB}</th></tr>
+                    <tr><th aria-hidden /><th colSpan={2} className="!text-center text-ink">{sA}</th><th colSpan={2} className="!text-center text-ink">{sB}</th></tr>
                     <tr><th>Season</th><th className="num" title="Appearances">P</th><th className="num" title="Goals">G</th><th className="num" title="Appearances">P</th><th className="num" title="Goals">G</th></tr>
                   </thead>
                   <tbody>
                     {seasonRows.map((r) => { const ga = r.a?.goals ?? 0, gb = r.b?.goals ?? 0; return (
                       <tr key={r.sid}>
-                        <td className="font-medium text-cream"><Link href={`/seasons/${r.sid.toLowerCase()}`} className="link">{r.sid}</Link></td>
-                        <td className={clsx("num", !r.a?.apps && "text-ash/50")}>{r.a?.apps ?? 0}</td><td className={clsx("num font-semibold", ga > gb ? "text-mint-soft" : ga ? "text-cream" : "text-ash/50")}>{ga}</td>
-                        <td className={clsx("num", !r.b?.apps && "text-ash/50")}>{r.b?.apps ?? 0}</td><td className={clsx("num font-semibold", gb > ga ? "text-mint-soft" : gb ? "text-cream" : "text-ash/50")}>{gb}</td>
+                        <td className="font-medium text-ink"><Link href={`/seasons/${r.sid.toLowerCase()}`} className="link">Season {r.sid.replace(/^S/, "")}</Link></td>
+                        <td className={clsx("num", !r.a?.apps && "text-muted/50")}>{r.a?.apps ?? 0}</td><td className={clsx("num font-semibold", ga > gb ? "text-ink" : ga ? "text-ink/70" : "text-muted/50")}>{ga}</td>
+                        <td className={clsx("num", !r.b?.apps && "text-muted/50")}>{r.b?.apps ?? 0}</td><td className={clsx("num font-semibold", gb > ga ? "text-ink" : gb ? "text-ink/70" : "text-muted/50")}>{gb}</td>
                       </tr>); })}
-                    <tr className="font-semibold"><td className="text-cream">Total</td><td className="num">{A.apps}</td><td className={clsx("num", A.goals > B.goals ? "text-mint-soft" : "text-cream")}>{A.goals}</td><td className="num">{B.apps}</td><td className={clsx("num", B.goals > A.goals ? "text-mint-soft" : "text-cream")}>{B.goals}</td></tr>
+                    <tr className="font-semibold"><td className="text-ink">Total</td><td className="num">{A.apps}</td><td className="num">{A.goals}</td><td className="num">{B.apps}</td><td className="num">{B.goals}</td></tr>
                   </tbody>
                 </table>
               </div>
-            ) : <p className="px-5 pb-5 text-sm text-ash">No seasons on record for either. A quiet rivalry.</p>}
+            ) : <p className="px-5 pb-5 text-sm text-muted">No seasons yet.</p>}
           </div>
         </div>
       </section>

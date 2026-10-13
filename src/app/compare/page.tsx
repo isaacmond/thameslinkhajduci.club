@@ -42,7 +42,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Search 
   const pair = pickPair(buildPlayers(data), sp);
   if (!pair) return { title: "Compare", description: "Put any two Thameslink Hajduci players side by side." };
   const [a, b] = pair;
-  return { title: `${a.name} v ${b.name}`, description: `${a.name} (${a.apps} apps, ${a.goals} goals) against ${b.name} (${b.apps} apps, ${b.goals} goals). The records decide.` };
+  return { title: `${a.name} v ${b.name}`, description: `${a.name} (${a.apps} appearances, ${a.goals} goals) and ${b.name} (${b.apps} appearances, ${b.goals} goals), side by side.` };
 }
 
 export default async function ComparePage({ searchParams }: { searchParams: Search }) {
@@ -54,11 +54,11 @@ export default async function ComparePage({ searchParams }: { searchParams: Sear
   return (
     <PageTransition>
     <div className="space-y-8">
-      <PageHeader eyebrow="Head to head" title="Compare" sub="Put any two players side by side. The records decide; the group chat appeals." right={<Link href="/stats" className="focus-ring chip text-ash hover:text-cream">All the stats →</Link>} />
+      <PageHeader eyebrow="Side by side" title="Compare players" sub="Choose any two players to compare their records." right={<Link href="/stats" className="focus-ring chip text-muted hover:text-ink">Statistics</Link>} />
       {pair ? (
         <Compare key={`${pair[0].slug}|${pair[1].slug}`} players={players} matches={buildMatches(data)} seasons={seasons} initialA={pair[0].slug} initialB={pair[1].slug} />
       ) : (
-        <div className="card px-4 py-8 text-center text-sm text-ash">Need two players on the records to run a duel. Recruitment is ongoing.</div>
+        <div className="card px-4 py-8 text-center text-sm text-muted">At least two players are needed to compare.</div>
       )}
     </div>
     </PageTransition>

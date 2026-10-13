@@ -29,20 +29,20 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
 
   return (
     <div>
-      <div className="card mb-6 flex flex-col gap-3 p-4">
+      <div className="mb-8 flex flex-col gap-3">
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Season">
           <Chip active={season === "all"} onClick={() => setSeason("all")}>All seasons</Chip>
-          {[...seasons].reverse().map((s) => <Chip key={s.id} active={season === s.id} onClick={() => setSeason(s.id)}>{s.id === "FR" ? "Friendlies" : s.id}</Chip>)}
+          {[...seasons].reverse().map((s) => <Chip key={s.id} active={season === s.id} onClick={() => setSeason(s.id)}>{s.id === "FR" ? "Friendlies" : `Season ${s.number}`}</Chip>)}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-1.5" role="group" aria-label="Result">
-            {(["all", "W", "D", "L"] as const).map((r) => <Chip key={r} active={result === r} onClick={() => setResult(r)} tone={r}>{r === "all" ? "Any result" : r === "W" ? "Wins" : r === "D" ? "Draws" : "Losses"}</Chip>)}
+            {(["all", "W", "D", "L"] as const).map((r) => <Chip key={r} active={result === r} onClick={() => setResult(r)} tone={r}>{r === "all" ? "All results" : r === "W" ? "Wins" : r === "D" ? "Draws" : "Defeats"}</Chip>)}
           </div>
-          <Switch checked={includeExcluded} onChange={setIncludeExcluded} label="Friendlies & forfeits" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search opponent, player, comment…" aria-label="Search matches" className={clsx(inputClass, "py-1.5 sm:ml-auto sm:w-64")} />
+          <Switch checked={includeExcluded} onChange={setIncludeExcluded} label="Include friendlies and forfeits" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search opponents and players" aria-label="Search matches" className={clsx(inputClass, "py-1.5 sm:ml-auto sm:w-64")} />
         </div>
-        <p className="text-xs text-ash">
-          <span className="text-cream">{list.length}</span> match{list.length === 1 ? "" : "es"}{counted.length !== list.length && <> ({list.length - counted.length} not counted)</>} · <span className="text-mint-soft">W{w}</span> <span className="text-draw-soft">D{d}</span> <span className="text-loss-soft">L{l}</span> · GF {gf} · GA {ga} · GD {gf - ga >= 0 ? "+" : ""}{gf - ga}
+        <p className="text-xs text-muted">
+          <span className="text-ink">{list.length}</span> match{list.length === 1 ? "" : "es"} · won {w}, drew {d}, lost {l} · scored {gf}, conceded {ga}
         </p>
       </div>
       {groups.map(([sid, ms], gi) => {
@@ -50,24 +50,24 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
         const cw = ms.filter((m) => m.countsForRecords && m.result === "W").length, cd = ms.filter((m) => m.countsForRecords && m.result === "D").length, cl = ms.filter((m) => m.countsForRecords && m.result === "L").length;
         const open = filtering || gi === 0;
         return (
-          <details key={sid} open={open} className="group/season mb-4 rounded-2xl border border-white/5 open:border-white/10">
-            <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 rounded-2xl px-3 py-3 hover:bg-white/[0.03]">
-              <h2 className="display text-2xl leading-none text-cream"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h2>
-              <span className="text-xs text-ash">{s?.title.split("·")[1]?.trim()}</span>
-              <span className="ml-auto text-xs text-ash">{ms.length} game{ms.length === 1 ? "" : "s"} · <span className="text-mint-soft">W{cw}</span> <span className="text-draw-soft">D{cd}</span> <span className="text-loss-soft">L{cl}</span></span>
-              <span className="text-ash transition-transform group-open/season:rotate-180" aria-hidden>▾</span>
+          <details key={sid} open={open} className="group/season card mb-4 overflow-hidden">
+            <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-4 hover:bg-ink/[0.02]">
+              <h2 className="display text-2xl leading-none text-ink"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h2>
+              <span className="text-xs text-muted">{s?.title.split("·")[1]?.trim()}</span>
+              <span className="ml-auto text-xs text-muted">{ms.length} match{ms.length === 1 ? "" : "es"} · {cw}–{cd}–{cl}</span>
+              <span className="text-muted transition-transform group-open/season:rotate-180" aria-hidden>▾</span>
             </summary>
-            <div className="grid gap-1.5 px-3 pb-3 lg:grid-cols-2">{ms.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
+            <div className="grid gap-0.5 border-t border-ink/8 p-2 lg:grid-cols-2">{ms.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
           </details>
         );
       })}
-      {!list.length && <p className="card px-4 py-8 text-center text-sm text-ash">No matches found. Which, given our record, is sometimes for the best.</p>}
+      {!list.length && <p className="card px-4 py-8 text-center text-sm text-muted">No matches found.</p>}
     </div>
   );
 }
 
 function Chip({ active, onClick, children, tone }: { active: boolean; onClick: () => void; children: React.ReactNode; tone?: "all" | Result }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? (tone === "W" ? "result-W" : tone === "D" ? "result-D" : tone === "L" ? "result-L" : "border-mint/50 bg-mint/15 text-mint-soft") : "text-ash hover:text-cream")}>{children}</button>
+    <button type="button" onClick={onClick} aria-pressed={active} className={clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? (tone === "W" ? "result-W" : tone === "D" ? "result-D" : tone === "L" ? "result-L" : "border-ink bg-ink text-paper") : "bg-surface text-muted hover:text-ink")}>{children}</button>
   );
 }

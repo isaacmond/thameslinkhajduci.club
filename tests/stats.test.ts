@@ -156,17 +156,16 @@ describe("recentPlayers", () => {
 describe("playerInsights", () => {
   const defeat = (i: number, name: string) => match({ date: `2026-04-${String(i).padStart(2, "0")}`, gw: i, ourGoals: 0, theirGoals: 3, lineup: [line(name)] });
 
-  it("does not claim a last win for someone who has never won", () => {
+  it("states facts without dwelling on a losing run", () => {
     const p = player({ name: "Sad Sack", apps: 9, losses: 9, debut: "2026-04-01", lastPlayed: "2026-04-09" });
     const out = playerInsights(club(Array.from({ length: 9 }, (_, i) => defeat(i + 1, p.name)), [p]), p);
-    expect(out.join(" ")).not.toContain("last won");
-    expect(out).toContain("9 appearances and still waiting for a first win.");
+    expect(out.join(" ")).not.toMatch(/last won|waiting|without a win/);
   });
 
-  it("names the last win when there was one", () => {
-    const p = player({ name: "Sad Sack", apps: 9, wins: 1, losses: 8, debut: "2026-04-01", lastPlayed: "2026-04-09" });
-    const win = match({ date: "2026-04-01", gw: 1, ourGoals: 2, theirGoals: 1, opponent: "Spudos", lineup: [line(p.name, 1)] });
-    const out = playerInsights(club([win, ...Array.from({ length: 8 }, (_, i) => defeat(i + 2, p.name))], [p]), p);
-    expect(out).toContain("8 appearances since Sad last won (2–1 vs Spudos, Apr 2026).");
+  it("notes an unbeaten run", () => {
+    const p = player({ name: "Glad Lad", apps: 4, wins: 4, debut: "2026-04-01", lastPlayed: "2026-04-04" });
+    const win = (i: number) => match({ date: `2026-04-0${i}`, gw: i, ourGoals: 2, theirGoals: 1, opponent: "Spudos", lineup: [line(p.name)] });
+    const out = playerInsights(club([1, 2, 3, 4].map(win), [p]), p);
+    expect(out).toContain("Unbeaten in the last 4 matches Glad has played.");
   });
 });

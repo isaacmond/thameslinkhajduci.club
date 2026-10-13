@@ -10,8 +10,7 @@ describe("ScoreForm and the team sheet", () => {
   it("ticks the expected squad when the fixture has no recorded line-up", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ expected: ["Ben Merrett", "Phil Knott"] })]} roster={roster} webhook={false} />);
     expect(pressed(html)).toEqual(["Ben Merrett", "Phil Knott"]);
-    expect(html).toContain("Ticked from the team sheet");
-    expect(html).toContain("2 expected");
+    expect(html).toContain("Ticked from the expected squad of 2");
   });
   it("prefers the recorded line-up over the team sheet for a played game", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ played: true, ourGoals: 2, theirGoals: 5, lineup: ["Finn Cawley"], expected: ["Ben Merrett", "Phil Knott"] })]} roster={roster} webhook={false} />);
@@ -26,9 +25,9 @@ describe("ScoreForm and the team sheet", () => {
   it("a fixture typed Forfeit opens on the bill: who pays, not who played, and the team sheet is not pre-ticked", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ type: "Forfeit", expected: ["Ben Merrett", "Phil Knott"] })]} roster={roster} webhook={false} />);
     expect(html).toContain('aria-checked="true"');
-    expect(html).toContain("paying for it");
+    expect(html).toContain("Pitch charges");
     expect(pressed(html)).toEqual([]);
-    expect(html).toContain("Nobody ticked");
+    expect(html).toContain("No one ticked");
     expect(html).toContain("Tick the whole team sheet");
     expect(html).not.toContain("Man of the match");
     expect(html).toContain("Prepare the forfeit");
@@ -38,8 +37,8 @@ describe("ScoreForm and the team sheet", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ played: true, ourGoals: 11, theirGoals: 5, lineup: ["Ben Merrett", "Phil Knott", "Isaac Mond"], ringers: ["Alex"], priorApps })]} roster={roster} webhook={false} />);
     expect(html).toContain("Ringer</span><span class=\"truncate\">Alex</span>");
     // 4 on the pitch at £19.99 a head; Ben, Phil and Isaac played so pay nothing extra; Finn (3) is the one absent regular and gets the whole £19.99
-    expect(html).toContain("4 on the pitch, £19.99 a head");
-    expect(html).toContain("split between the 1 regular who did not play");
+    expect(html).toContain("4 players, £19.99 each");
+    expect(html).toContain("split between 1 regular who wasn");
     expect(html).toContain("£19.99 each");
     expect(html).toContain(": Finn Cawley.");
     expect(html).toContain("Add ringer");
@@ -47,7 +46,7 @@ describe("ScoreForm and the team sheet", () => {
   it("a recorded forfeit keeps its payers and shows each one's share", () => {
     const html = renderToStaticMarkup(<ScoreForm fixtures={[fixture({ type: "Forfeit", played: true, ourGoals: 0, theirGoals: 8, lineup: ["Isaac Mond", "Phil Knott", "Finn Cawley"] })]} roster={roster} webhook={false} />);
     expect(pressed(html)).toEqual(["Finn Cawley", "Isaac Mond", "Phil Knott"]);
-    expect(html).toContain("3 on the hook");
+    expect(html).toContain("3 players");
     expect(html).toContain("£26.65 each");
     expect(html).toContain("a forfeit recorded");
   });

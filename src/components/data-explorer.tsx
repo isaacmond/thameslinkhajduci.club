@@ -36,38 +36,38 @@ export function DataExplorer({ tables, seasons, siteUrl, initialPreview }: { tab
 
   return (
     <div className="card min-w-0 overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="flex flex-col gap-3 border-b border-ink/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">
         <Select label="Table" value={table} onChange={(v) => pick(() => setTable(v))} options={tables.map((t) => ({ value: t.name, label: t.name }))} className="min-w-[10rem]" />
         <Select label="Season" value={season} onChange={(v) => pick(() => setSeason(v))} disabled={!seasonable} options={[{ value: "", label: "All-time" }, ...seasons.map((s) => ({ value: s, label: s }))]} className="min-w-[8rem]" />
-        <p className="flex-1 text-xs text-ash sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
+        <p className="flex-1 text-xs text-muted sm:flex sm:h-[2.375rem] sm:items-center">{info}</p>
       </div>
-      <div className="flex flex-wrap gap-2 border-b border-white/10 bg-white/[0.02] p-3 text-sm">
+      <div className="flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] p-3 text-sm">
         <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />CSV</a>
         <a href={url("json")} target="_blank" rel="noopener" className={btn("secondary", "xs", "font-medium")}><ExternalLink size={15} aria-hidden />JSON</a>
         <Btn onClick={() => copy("md", async () => (await fetch(url("md"))).text())} done={copied === "md"}>Copy Markdown</Btn>
         <Btn onClick={() => copy("sheets", `=IMPORTDATA("${absolute("csv")}")`)} done={copied === "sheets"}>Copy Google Sheets formula</Btn>
         <Btn onClick={() => copy("curl", `curl -s '${absolute("json")}' | jq .rows`)} done={copied === "curl"}>Copy curl</Btn>
         <Btn onClick={() => copy("url", absolute("csv"))} done={copied === "url"}>Copy URL</Btn>
-        {copied === "failed" && <span className="self-center text-xs text-loss-soft">Clipboard blocked</span>}
+        {copied === "failed" && <span className="self-center text-xs text-loss">Clipboard blocked</span>}
       </div>
       <div className="scroll-x max-h-[520px] overflow-auto">
-        {loading && !preview && <p className="px-4 py-8 text-center text-sm text-ash">Loading…</p>}
+        {loading && !preview && <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>}
         {preview && (
           <table className="stats text-sm">
             <thead><tr>{preview.columns.map((c) => <th key={c} className={clsx(typeof preview.rows[0]?.[c] === "number" && "num")}>{c}</th>)}</tr></thead>
             <tbody>
               {preview.rows.slice(0, 200).map((r, i) => (
-                <tr key={i}>{preview.columns.map((c) => <td key={c} className={clsx(typeof r[c] === "number" && "num", "max-w-[28ch] truncate")} title={String(r[c] ?? "")}>{r[c] === null || r[c] === undefined ? <span className="text-ash/50">–</span> : typeof r[c] === "boolean" ? (r[c] ? "yes" : "no") : String(r[c])}</td>)}</tr>
+                <tr key={i}>{preview.columns.map((c) => <td key={c} className={clsx(typeof r[c] === "number" && "num", "max-w-[28ch] truncate")} title={String(r[c] ?? "")}>{r[c] === null || r[c] === undefined ? <span className="text-muted/50">–</span> : typeof r[c] === "boolean" ? (r[c] ? "yes" : "no") : String(r[c])}</td>)}</tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-      {preview && <p className="border-t border-white/10 px-4 py-2 text-xs text-ash">{preview.rows.length} row{preview.rows.length === 1 ? "" : "s"}{preview.rows.length > 200 && " (showing first 200; the download has them all)"} · {preview.columns.length} columns</p>}
+      {preview && <p className="border-t border-ink/10 px-4 py-2 text-xs text-muted">{preview.rows.length} row{preview.rows.length === 1 ? "" : "s"}{preview.rows.length > 200 && " (showing first 200; the download has them all)"} · {preview.columns.length} columns</p>}
     </div>
   );
 }
 
 function Btn({ onClick, done, children }: { onClick: () => void; done: boolean; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className={btn("secondary", "xs", "font-medium")}>{done ? <Check size={15} className="text-mint-soft" aria-hidden /> : <Copy size={15} aria-hidden />}{done ? "Copied" : children}</button>;
+  return <button type="button" onClick={onClick} className={btn("secondary", "xs", "font-medium")}>{done ? <Check size={15} className="text-accent" aria-hidden /> : <Copy size={15} aria-hidden />}{done ? "Copied" : children}</button>;
 }

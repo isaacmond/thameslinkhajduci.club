@@ -9,8 +9,8 @@ import { Shirt } from "./ui";
 export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null; ringer: boolean };
 type SortKey = "apps" | "goals" | "assists" | "goalsPerGame" | "winRate" | "motm" | "debut" | "name";
 const SORTS: { key: SortKey; label: string }[] = [
-  { key: "apps", label: "Apps" }, { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" }, { key: "goalsPerGame", label: "Goals / game" },
-  { key: "winRate", label: "Win %" }, { key: "motm", label: "MOTM" }, { key: "debut", label: "Debut" }, { key: "name", label: "A–Z" },
+  { key: "apps", label: "Appearances" }, { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" }, { key: "goalsPerGame", label: "Goals a game" },
+  { key: "winRate", label: "Win rate" }, { key: "motm", label: "Man of the match" }, { key: "debut", label: "Debut" }, { key: "name", label: "Name" },
 ];
 const FILTERS = ["all", "active", "GK", "DEF", "MID", "FWD"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -26,8 +26,9 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
       return (b[sort] as number) - (a[sort] as number) || b.apps - a.apps || a.name.localeCompare(b.name);
     });
   }, [players, sort, filter]);
-  const filterLabel = (f: Filter) => f === "all" ? `All ${players.length}` : f === "active" ? `${currentSeason ?? "This season"} squad` : f;
-  const chip = (active: boolean) => clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? "border-mint/50 bg-mint/15 text-mint-soft" : "text-ash hover:text-cream");
+  const POS: Record<string, string> = { GK: "Goalkeepers", DEF: "Defenders", MID: "Midfielders", FWD: "Forwards" };
+  const filterLabel = (f: Filter) => f === "all" ? `Everyone (${players.length})` : f === "active" ? "This season" : POS[f];
+  const chip = (active: boolean) => clsx("focus-ring chip chip-tap cursor-pointer whitespace-nowrap transition-colors", active ? "border-ink bg-ink text-paper" : "bg-surface text-muted hover:text-ink");
 
   return (
     <div>
@@ -36,48 +37,46 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
           {FILTERS.filter((f) => f !== "active" || currentSeason).map((f) => <button key={f} type="button" onClick={() => setFilter(f)} aria-pressed={filter === f} className={chip(filter === f)}>{filterLabel(f)}</button>)}
         </div>
         <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Sort players">
-          <span className="eyebrow mr-1 shrink-0">Sort</span>
+          <span className="eyebrow mr-1 shrink-0">Sort by</span>
           {SORTS.map((s) => <button key={s.key} type="button" onClick={() => setSort(s.key)} aria-pressed={sort === s.key} className={chip(sort === s.key)}>{s.label}</button>)}
         </div>
       </div>
-      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
         {list.map((p, i) => (
           <li key={p.slug} className="animate-rise" style={{ animationDelay: `${Math.min(i, 12) * 40}ms` }}>
-            <Link href={`/squad/${p.slug}`} className="focus-ring card group block h-full overflow-hidden transition-transform hover:-translate-y-0.5">
+            <Link href={`/squad/${p.slug}`} className="focus-ring card group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
               <ViewTransition name={`player-${p.slug}`} share="morph" default="none">
-                <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-forest to-pine">
+                <div className="relative aspect-[4/5] overflow-hidden bg-sunken">
                   {p.photo ? (
                     <Image src={p.photo} alt="" fill sizes="(min-width: 1024px) 300px, (min-width: 640px) 33vw, 50vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" unoptimized={p.photo.startsWith("http")} priority={i < 4} />
                   ) : (
-                    <div className="pitch absolute inset-0 flex flex-col items-center justify-center">
-                      <Shirt number={p.shirt} name={p.name} className="h-[68%] w-auto -translate-y-3 drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] transition-transform duration-500 group-hover:scale-[1.04]" />
-                      <span className="chip absolute right-2 top-2 whitespace-nowrap border-gold/40 bg-night/80 text-[10px] text-gold backdrop-blur">Photo delayed</span>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Shirt number={p.shirt} name={p.name} className="h-[62%] w-auto transition-transform duration-500 group-hover:scale-[1.03]" />
                     </div>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-night/90 to-transparent" aria-hidden />
-                  {p.shirt !== null && p.photo && <span className="display absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-gold text-lg leading-none text-night shadow"><span className="translate-y-[0.05em]">{p.shirt}</span></span>}
-                  {p.activeThisSeason && <span className="chip absolute left-2 top-2 border-mint/50 bg-night/85 text-mint-soft shadow backdrop-blur">{currentSeason}</span>}
-                  {p.ringer && <span className={clsx("chip absolute left-2 border-gold/50 bg-night/85 text-gold shadow backdrop-blur", p.activeThisSeason ? "top-10" : "top-2")}>Ringer</span>}
-                  <div className="absolute inset-x-0 bottom-0 p-3">
-                    <h2 className="display text-2xl leading-none text-cream drop-shadow">{p.name}</h2>
-                    <p className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-ash">
-                      {p.nickname && <span className="italic">“{p.nickname}”</span>}
-                      {p.positions.map((pos) => <span key={pos} className="rounded bg-white/10 px-1.5 py-0.5 font-semibold tracking-wider text-cream/80">{pos}</span>)}
-                    </p>
-                  </div>
+                  {p.shirt !== null && p.photo && <span className="display absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-surface/90 text-xl leading-none text-ink shadow-sm backdrop-blur">{p.shirt}</span>}
+                  {p.ringer && <span className="chip absolute left-2.5 top-2.5 bg-surface/90 text-muted backdrop-blur">Ringer</span>}
                 </div>
               </ViewTransition>
-              <dl className="grid grid-cols-4 divide-x divide-white/10 text-center">
-                {[["Apps", p.apps], ["Goals", p.goals], ["Assists", p.assists], ["G/G", p.goalsPerGame.toFixed(2)]].map(([k, v]) => (
-                  <div key={k} className="px-1 py-2.5"><dt className="text-[10px] uppercase tracking-wider text-ash">{k}</dt><dd className="display tabular text-xl text-cream">{v}</dd></div>
+              <div className="px-4 pb-3 pt-3.5">
+                <h2 className="display truncate text-[1.6rem] leading-tight text-ink group-hover:text-accent">{p.name}</h2>
+                <p className="mt-0.5 flex min-h-[1.25rem] flex-wrap items-center gap-x-2 text-xs text-muted">
+                  {p.positions.length > 0 && <span className="font-medium tracking-wide">{p.positions.join(" · ")}</span>}
+                  {p.nickname && <span className="italic">“{p.nickname}”</span>}
+                  {p.activeThisSeason && <span className="inline-flex items-center gap-1 text-accent"><span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />{currentSeason ? `Season ${currentSeason.replace(/^S/, "")}` : "This season"}</span>}
+                </p>
+              </div>
+              <dl className="mt-auto grid grid-cols-3 border-t border-ink/8 text-center">
+                {[["Apps", p.apps], ["Goals", p.goals], ["Assists", p.assists]].map(([k, v]) => (
+                  <div key={k} className="flex flex-col-reverse px-1 py-2.5"><dt className="text-[10px] font-semibold uppercase tracking-wider text-muted">{k}</dt><dd className="display tabular text-2xl leading-tight text-ink">{v}</dd></div>
                 ))}
               </dl>
-              <p className="border-t border-white/10 px-3 py-2 text-[11px] text-ash">Debut {fmtDate(p.debut)} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"} · {p.winRate}% win rate</p>
+              <p className="hidden border-t border-ink/8 px-4 py-2 text-[11px] text-muted sm:block">Debut {fmtDate(p.debut, { month: "short", year: "numeric" })} · {p.seasonsPlayed} season{p.seasonsPlayed === 1 ? "" : "s"}</p>
             </Link>
           </li>
         ))}
       </ul>
-      {!list.length && <p className="card px-4 py-8 text-center text-sm text-ash">Nobody matches that filter. Much like our defence.</p>}
+      {!list.length && <p className="card px-4 py-8 text-center text-sm text-muted">No players match that filter.</p>}
     </div>
   );
 }

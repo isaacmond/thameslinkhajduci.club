@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { resolve, sep } from "node:path";
 import { getData } from "@/lib/data";
-import { bebasNeue, display, ogFonts } from "@/lib/og-font";
+import { display, OG, ogFonts, serifFont } from "@/lib/og-font";
 
 export const alt = "Player card";
 export const revalidate = 3600;
@@ -37,25 +37,25 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const p = data.players.find((x) => x.slug === slug);
   const photo = await localPhoto(p?.extra.photo);
   const crest = await readFile(resolve(PUBLIC_DIR, "crest.png")).then((b) => dataUrl("image/png", b)).catch(() => null);
-  const font = await bebasNeue();
-  const stats: [string, string][] = p ? [["Apps", String(p.apps)], ["Goals", String(p.goals)], ["Assists", String(p.assists)], ["Win %", String(Math.round(p.winRate))]] : [];
+  const font = await serifFont();
+  const stats: [string, string][] = p ? [["Appearances", String(p.apps)], ["Goals", String(p.goals)], ["Assists", String(p.assists)]] : [];
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", background: "linear-gradient(135deg, #0a1f13 0%, #06140c 100%)", color: "#f6f1e6", fontFamily: "sans-serif" }}>
-        <div style={{ display: "flex", width: 440, height: "100%", background: "#173d25", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-          {photo ? <img src={photo} alt="" width={440} height={630} style={{ objectFit: "cover", width: 440, height: 630 }} /> : <div style={{ display: "flex", fontSize: 300, color: "rgba(246,241,230,0.85)", fontFamily: display(font) }}>{p?.extra.shirt ?? "?"}</div>}
+      <div style={{ width: "100%", height: "100%", display: "flex", background: OG.paper, color: OG.ink, fontFamily: "sans-serif" }}>
+        <div style={{ display: "flex", width: 440, height: "100%", background: "#24573a", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          {photo ? <img src={photo} alt="" width={440} height={630} style={{ objectFit: "cover", width: 440, height: 630 }} /> : <div style={{ display: "flex", fontSize: 300, color: "#f5f1e8", fontFamily: display(font) }}>{p?.extra.shirt ?? "?"}</div>}
         </div>
         <div style={{ display: "flex", flexDirection: "column", flex: 1, padding: 56, justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 22, letterSpacing: 6, color: "#a7b8ab", textTransform: "uppercase" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 22, letterSpacing: 4, color: OG.muted, textTransform: "uppercase" }}>
             {crest && <img src={crest} alt="" width={56} height={56} />}
-            <div>{`Thameslink Hajduci · ${p?.extra.positions?.join(" / ") || "Squad"}`}</div>
+            <div>{`Thameslink Hajduci${p?.extra.positions?.length ? ` · ${p.extra.positions.join(" · ")}` : ""}`}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 112, lineHeight: 0.92, fontFamily: display(font) }}>{p?.name ?? "Player"}</div>
-            <div style={{ marginTop: 18, fontSize: 28, color: "#7fe0a3" }}>{p?.extra.bio ?? `Debut ${p?.debut ?? "TBC"}${p?.extra.shirt !== null && p?.extra.shirt !== undefined ? ` · No. ${p.extra.shirt}` : ""}`}</div>
+            <div style={{ fontSize: 110, lineHeight: 0.95, fontFamily: display(font) }}>{p?.name ?? "Player"}</div>
+            <div style={{ marginTop: 18, fontSize: 28, color: OG.accent }}>{p?.extra.bio ?? `Debut ${p?.debut ?? "TBC"}${p?.extra.shirt !== null && p?.extra.shirt !== undefined ? ` · Number ${p.extra.shirt}` : ""}`}</div>
           </div>
-          <div style={{ display: "flex", gap: 40 }}>
-            {stats.map(([k, v]) => <div key={k} style={{ display: "flex", flexDirection: "column" }}><div style={{ fontSize: 80, lineHeight: 1, fontFamily: display(font) }}>{v}</div><div style={{ fontSize: 18, letterSpacing: 4, color: "#a7b8ab", textTransform: "uppercase", marginTop: 6 }}>{k}</div></div>)}
+          <div style={{ display: "flex", gap: 48, borderTop: `1px solid ${OG.line}`, paddingTop: 28 }}>
+            {stats.map(([k, v]) => <div key={k} style={{ display: "flex", flexDirection: "column" }}><div style={{ fontSize: 80, lineHeight: 1, fontFamily: display(font) }}>{v}</div><div style={{ fontSize: 18, letterSpacing: 4, color: OG.muted, textTransform: "uppercase", marginTop: 6 }}>{k}</div></div>)}
           </div>
         </div>
       </div>

@@ -37,20 +37,20 @@ export function MotmVote({ token, voter, candidates, current, pick }: { token: s
           return (
             <li key={c.player}>
               <button type="button" onClick={() => choose(c.player)} disabled={me || pending} aria-pressed={picked} title={me ? "You cannot vote for yourself" : undefined}
-                className={clsx("focus-ring flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed", picked ? "border-gold/60 bg-gold/15 text-gold" : suggested ? "border-mint/60 bg-mint/10 text-cream hover:bg-mint/20" : me ? "border-white/5 bg-white/[0.02] text-ash/60" : "border-white/10 bg-white/5 text-cream hover:bg-white/10")}>
-                <span className={clsx("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2", picked ? "border-gold bg-gold text-night" : "border-white/25")} aria-hidden>{picked ? <Check size={14} /> : null}</span>
+                className={clsx("focus-ring flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed", picked ? "border-gold/60 bg-gold/15 text-gold" : suggested ? "border-accent/60 bg-accent/10 text-ink hover:bg-accent/20" : me ? "border-ink/5 bg-ink/[0.02] text-muted/60" : "border-ink/10 bg-ink/5 text-ink hover:bg-ink/10")}>
+                <span className={clsx("flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2", picked ? "border-gold bg-gold text-paper" : "border-ink/25")} aria-hidden>{picked ? <Check size={14} /> : null}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold">{c.player}{me && <span className="ml-2 text-xs font-normal text-ash">(you, sadly ineligible)</span>}</span>
-                  {did(c) && <span className="block text-xs text-ash">{did(c)}</span>}
+                  <span className="block truncate font-semibold">{c.player}{me && <span className="ml-2 text-xs font-normal text-muted">(you, sadly ineligible)</span>}</span>
+                  {did(c) && <span className="block text-xs text-muted">{did(c)}</span>}
                 </span>
-                {busy === c.player && <span className="text-xs text-ash">Saving…</span>}
-                {suggested && busy !== c.player && <span className="text-xs text-mint-soft">Tap to confirm</span>}
+                {busy === c.player && <span className="text-xs text-muted">Saving…</span>}
+                {suggested && busy !== c.player && <span className="text-xs text-accent">Tap to confirm</span>}
               </button>
             </li>
           );
         })}
       </ul>
-      {state && <p role="status" className={clsx("flex items-center gap-2 text-sm", state.ok ? "text-mint-soft" : "text-loss-soft")}>{state.ok && <Star size={14} aria-hidden />}{state.message}</p>}
+      {state && <p role="status" className={clsx("flex items-center gap-2 text-sm", state.ok ? "text-accent" : "text-loss")}>{state.ok && <Star size={14} aria-hidden />}{state.message}</p>}
     </div>
   );
 }

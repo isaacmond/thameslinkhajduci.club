@@ -25,11 +25,11 @@ export function PollButton({ fixture, label = "Poll the group chat", className }
         <Vote size={14} aria-hidden />{label}
       </button>
       {open && (
-        <div role="dialog" aria-label="Poll for the group chat" className="basis-full">
-          <div className="mx-auto mt-3 max-w-md rounded-2xl border border-white/10 bg-night/70 p-4 text-left shadow-card">
+        <div role="dialog" aria-label="WhatsApp poll" className="basis-full">
+          <div className="mx-auto mt-3 max-w-md rounded-2xl border border-ink/10 bg-surface p-4 text-left shadow-card">
             <div className="flex items-start justify-between gap-3">
               <p className="eyebrow">Paste this poll</p>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="focus-ring -mr-1 -mt-1 rounded-md p-1 text-ash hover:text-cream"><X size={14} aria-hidden /></button>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="focus-ring -mr-1 -mt-1 rounded-md p-1 text-muted hover:text-ink"><X size={14} aria-hidden /></button>
             </div>
             {/* The poll as the chat will show it, so what gets typed matches what everyone is used to. */}
             <div className="mt-2 rounded-xl bg-[#d9fdd3] p-3 text-[#111b21]">
@@ -37,10 +37,10 @@ export function PollButton({ fixture, label = "Poll the group chat", className }
               <p className="mt-1 flex items-center gap-1 text-xs text-[#111b21]/60"><Check size={12} className="rounded-full bg-[#111b21]/50 p-[1px] text-[#d9fdd3]" aria-hidden />Select one</p>
               <ul className="mt-2 space-y-2">{POLL_OPTIONS.map((o) => <li key={o} className="flex items-center gap-3 text-sm"><span className="h-5 w-5 shrink-0 rounded-full border-2 border-[#111b21]/40" aria-hidden />{o}</li>)}</ul>
             </div>
-            <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs text-ash">
-              <li>In the group chat tap <span className="text-cream">+</span> (or the paperclip), then <span className="text-cream">Poll</span>.</li>
-              <li>Paste the question. {copied === "question" ? <span className="text-mint-soft">It is on your clipboard.</span> : <button type="button" onClick={() => copy("question")} className="focus-ring link">Copy it again.</button>}</li>
-              <li>Options <span className="text-cream">In</span> and <span className="text-cream">Out</span>, leave &ldquo;allow multiple answers&rdquo; off, send.</li>
+            <ol className="mt-3 list-decimal space-y-1 pl-5 text-xs text-muted">
+              <li>In the group chat tap <span className="text-ink">+</span> (or the paperclip), then <span className="text-ink">Poll</span>.</li>
+              <li>Paste the question. {copied === "question" ? <span className="text-accent">It is on your clipboard.</span> : <button type="button" onClick={() => copy("question")} className="focus-ring link">Copy it again.</button>}</li>
+              <li>Options <span className="text-ink">In</span> and <span className="text-ink">Out</span>, leave &ldquo;allow multiple answers&rdquo; off, send.</li>
             </ol>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button type="button" onClick={() => copy("question")} className={btn("primary", "sm")}>{copied === "question" ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}{copied === "question" ? "Copied" : "Copy the question"}</button>

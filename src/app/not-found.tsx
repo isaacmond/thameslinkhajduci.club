@@ -4,12 +4,12 @@ import { btn } from "@/components/button";
 
 export default function NotFound() {
   return (
-    <div className="card-solid pitch mx-auto max-w-2xl px-6 py-14 text-center animate-rise">
-      <Crest size={96} className="mx-auto" />
-      <p className="eyebrow mt-6">404 · Service update</p>
-      <h1 className="display mt-2 text-5xl leading-none text-cream sm:text-6xl">This page has been cancelled</h1>
-      <p className="mx-auto mt-3 max-w-md text-ash">We apologise for the inconvenience this may cause to your journey. A replacement bus service is operating from the home page.</p>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
+    <div className="mx-auto max-w-xl py-16 text-center animate-rise">
+      <Crest size={88} className="mx-auto h-20 w-20" />
+      <p className="eyebrow mt-8">Page not found</p>
+      <h1 className="display mt-3 text-5xl leading-none text-ink sm:text-6xl">Nothing here</h1>
+      <p className="mx-auto mt-4 max-w-md text-muted">The page you were looking for doesn&apos;t exist, or has moved.</p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Link href="/" className={btn("primary")}>Home</Link>
         <Link href="/matches" className={btn("secondary")}>Matches</Link>
         <Link href="/squad" className={btn("secondary")}>Squad</Link>

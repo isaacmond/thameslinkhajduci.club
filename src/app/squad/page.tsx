@@ -20,7 +20,7 @@ export default async function SquadPage() {
   return (
     <PageTransition>
     <>
-      <PageHeader eyebrow="Темзлинк Хайдуки · the squad" title="Squad" sub={<>{cards.length} have pulled on the shirt.{current && active > 0 && <> {active} still do, so far this season.</>} Tap anyone for the full file. New signing? <Link href="/submit?type=player" className="link">Add a player →</Link></>} />
+      <PageHeader eyebrow="The players" title="Squad" sub={<>{cards.length} players have represented the club{current && active > 0 && <>, {active} of them this season</>}. <Link href="/submit?type=player" className="link">Add a new player</Link></>} />
       <SquadGrid players={cards} currentSeason={current?.id ?? null} />
     </>
     </PageTransition>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Send } from "lucide-react";
 import { inputClass, Select } from "./controls";
 import { btn } from "./button";
-import { BoardPreview } from "./board-preview";
+import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 
@@ -32,7 +32,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
   const problems: string[] = [];
   if (!player) problems.push("Pick a player.");
   if (!to) problems.push("Say who was paid.");
-  else if (to === player) problems.push("Paying yourself does not count.");
+  else if (to === player) problems.push("The payer and the recipient must be different people.");
   if (!amount.trim() || !Number.isFinite(amt) || amt < 0.01) problems.push("Enter the amount you paid.");
   else if (amt > 500) problems.push("That is more than anyone owes. Check the amount.");
   if (!date) problems.push("Pick the date you paid."); else if (date > today) problems.push("That date is in the future.");
@@ -53,7 +53,7 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
     const left = balance === null ? null : Math.round((balance - amt) * 100) / 100;
     return (
       <SubmissionResult result={result} onEdit={() => setResult(null)}>
-        <BoardPreview className="mt-4" time={shortDate(date)} label="Payment" destination={`${player} → ${to || payer || "the club"}`} status={left !== null && left <= 0.01 ? "Settled" : "Received"} shortStatus="Paid" tone="ok" caption={`${money(amt)}${left !== null && left > 0.01 ? ` · ${money(left)} still to pay` : ""} · ${result.applied ? "recorded" : "pending the admin's tick"}`} />
+        <SummaryCard className="mt-4" label={`Payment · ${shortDate(date)}`} title={`${money(amt)} from ${player} to ${to || payer || "the club"}`} detail={`${left !== null && left <= 0.01 ? "All settled" : left !== null ? `${money(left)} still to pay` : "Received"} · ${result.applied ? "recorded" : "waiting for the admin to approve"}`} />
       </SubmissionResult>
     );
   }
@@ -63,33 +63,33 @@ export function PaymentForm({ players, payer, initialPlayer, today, signedIn = n
       <div className="card grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6">
         <div className="flex min-w-0 flex-col gap-1">
           <Select label="Who paid" value={player} onChange={pick} options={players.map((p) => ({ value: p.name, label: optionLabel(p) }))} className="min-w-0" />
-          <span className="min-h-[1.25rem] text-[11px] text-ash">Whose share of the pitch this covers.</span>
+          <span className="min-h-[1.25rem] text-[11px] text-muted">Whose share of the pitch this covers.</span>
         </div>
         <div className="flex min-w-0 flex-col gap-1">
           <Select label="Paid to" value={to} onChange={(v) => { setTo(v); setResult(null); }} options={[...(to ? [] : [{ value: "", label: "Pick who received it" }]), ...players.map((p) => ({ value: p.name, label: p.name === payer ? `${p.name} · booked this season's pitch` : p.name }))]} className="min-w-0" />
-          <span className="min-h-[1.25rem] text-[11px] text-ash">{payer ? (to && to !== payer ? `${payer} booked the pitch this season; the admin will check who should be credited.` : `${payer} booked the pitch this season.`) : "Whoever booked the pitch."}</span>
+          <span className="min-h-[1.25rem] text-[11px] text-muted">{payer ? (to && to !== payer ? `${payer} booked the pitch this season; the admin will check who should be credited.` : `${payer} booked the pitch this season.`) : "Whoever booked the pitch."}</span>
         </div>
-        <label className="flex flex-col gap-1 text-xs text-ash">
+        <label className="flex flex-col gap-1 text-xs text-muted">
           <span className="eyebrow">Amount (£)</span>
-          <span className="relative"><span className="display pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-ash">£</span><input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.00" required className={`${inputClass} pl-7 tabular`} /></span>
-          <span className="min-h-[1.25rem] text-[11px] text-ash">
-            {balance !== null && balance > 0.01 ? <>On the records {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding on the records. Log it anyway if money moved."}
+          <span className="relative"><span className="display pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted">£</span><input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="0.00" required className={`${inputClass} pl-7 tabular`} /></span>
+          <span className="min-h-[1.25rem] text-[11px] text-muted">
+            {balance !== null && balance > 0.01 ? <>On the records {player} owes {money(balance)}. <button type="button" onClick={() => setAmount(balance.toFixed(2))} className="link focus-ring rounded">Settle up</button></> : balance !== null && balance < -0.01 ? `${player} is already ${money(-balance)} in credit. Log it anyway if money moved.` : "Nothing outstanding. You can still record a payment."}
           </span>
         </label>
-        <label className="flex flex-col gap-1 text-xs text-ash">
+        <label className="flex flex-col gap-1 text-xs text-muted">
           <span className="eyebrow">Date paid</span>
           <input type="date" value={date} max={today} onChange={(e) => setDate(e.target.value)} required className={`${inputClass} tabular`} />
-          <span className="min-h-[1.25rem] text-[11px] text-ash">When the money left your account.</span>
+          <span className="min-h-[1.25rem] text-[11px] text-muted">When the money left your account.</span>
         </label>
-        <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Reference (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={120} placeholder="Bank reference, or which games it covers" className={inputClass} /></label>
-        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Usually the same person" className={inputClass} /></label>}
+        <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Reference (optional)</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={120} placeholder="Bank reference, or which games it covers" className={inputClass} /></label>
+        {signedIn ? <SignedInNote signedIn={signedIn} /> : <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Your name</span><input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={40} placeholder="Usually the same person" className={inputClass} /></label>}
         <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" />
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={!canSubmit} className={btn("primary", "md")}><Send size={16} aria-hidden />{busy ? "Sending…" : "Log the payment"}</button>
         {problems.length > 0 && <p className="text-xs text-gold" role="status">{problems[0]}</p>}
-        {result && !result.ok && <p className="text-xs text-loss-soft" role="alert">{result.error}</p>}
-        <p className="ml-auto text-xs text-ash">{signedIn?.direct ? "Goes straight into the records." : "Nothing is saved by this page."} <Link href="/money" className="link">See the balances →</Link></p>
+        {result && !result.ok && <p className="text-xs text-loss" role="alert">{result.error}</p>}
+        <p className="ml-auto text-xs text-muted">{signedIn?.direct ? "Recorded straight away." : "Sent to the admin for approval."} <Link href="/money" className="link">See the balances</Link></p>
       </div>
     </form>
   );

@@ -17,7 +17,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
   const [shirt, setShirt] = useState(initial.shirt ? String(initial.shirt) : "");
   const clash = shirt && initial.takenShirts[shirt] && initial.takenShirts[shirt] !== initial.player ? initial.takenShirts[shirt] : null;
   const shown = state?.ok && state.photo !== undefined ? state.photo : preview;
-  const label = "flex flex-col gap-1 text-xs text-ash";
+  const label = "flex flex-col gap-1 text-xs text-muted";
 
   return (
     <form action={action} className="space-y-6">
@@ -28,25 +28,25 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
             <Camera size={16} aria-hidden />{shown ? "Change photo" : "Add a photo"}
             <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setPreview(URL.createObjectURL(f)); setRemovePhoto(false); } }} />
           </label>
-          {shown && <label className="flex items-center gap-2 text-xs text-ash"><input type="checkbox" name="removePhoto" checked={removePhoto} onChange={(e) => setRemovePhoto(e.target.checked)} className="accent-mint" />Remove photo</label>}
-          <p className="text-center text-[11px] text-ash">JPEG, PNG or WebP, up to 5 MB. Square crops look best.</p>
+          {shown && <label className="flex items-center gap-2 text-xs text-muted"><input type="checkbox" name="removePhoto" checked={removePhoto} onChange={(e) => setRemovePhoto(e.target.checked)} className="accent-accent" />Remove photo</label>}
+          <p className="text-center text-[11px] text-muted">JPEG, PNG or WebP, up to 5 MB. Square crops look best.</p>
         </div>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <p className="sm:col-span-2 text-sm text-ash">Playing as <span className="text-cream">{initial.player}</span> · signed in as <span className="text-cream">{initial.email}</span>. Your name in the records is set by the admin; ask them if it needs changing.</p>
+          <p className="sm:col-span-2 text-sm text-muted">Playing as <span className="text-ink">{initial.player}</span> · signed in as <span className="text-ink">{initial.email}</span>. Your name in the records is set by the admin; ask them if it needs changing.</p>
           <label className={label}><span className="eyebrow">First name</span><input name="firstName" defaultValue={initial.firstName} maxLength={40} autoComplete="given-name" className={inputClass} /></label>
           <label className={label}><span className="eyebrow">Last name</span><input name="lastName" defaultValue={initial.lastName} maxLength={40} autoComplete="family-name" className={inputClass} /></label>
           <label className={label}><span className="eyebrow">Nickname</span><input name="nickname" defaultValue={initial.nickname} maxLength={40} placeholder="What the group chat calls you" className={inputClass} /></label>
           <label className={label}>
             <span className="eyebrow">Shirt number</span>
             <input name="shirt" value={shirt} onChange={(e) => setShirt(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1 to 99" className={`${inputClass} tabular`} />
-            <span className="min-h-[1.25rem] text-[11px] text-ash">{clash ? <span className="text-gold">{clash} already wears {shirt}.</span> : "Optional. Shows on your card and page."}</span>
+            <span className="min-h-[1.25rem] text-[11px] text-muted">{clash ? <span className="text-gold">{clash} already wears {shirt}.</span> : "Optional. Shows on your card and page."}</span>
           </label>
           <fieldset className="sm:col-span-2">
             <legend className="eyebrow mb-1">Positions</legend>
             <div className="flex flex-wrap gap-2">
               {POSITIONS.map(([code, name]) => (
-                <label key={code} className="chip focus-within:ring-2 focus-within:ring-mint/60 cursor-pointer hover:border-white/25 has-[:checked]:border-mint/60 has-[:checked]:bg-mint/15 has-[:checked]:text-mint-soft">
-                  <input type="checkbox" name="positions" value={code} defaultChecked={initial.positions.includes(code)} className="sr-only" />{code} <span className="font-normal text-ash">{name}</span>
+                <label key={code} className="chip focus-within:ring-2 focus-within:ring-accent/60 cursor-pointer hover:border-ink/25 has-[:checked]:border-accent/60 has-[:checked]:bg-accent/15 has-[:checked]:text-accent">
+                  <input type="checkbox" name="positions" value={code} defaultChecked={initial.positions.includes(code)} className="sr-only" />{code} <span className="font-normal text-muted">{name}</span>
                 </label>
               ))}
             </div>
@@ -56,7 +56,7 @@ export function ProfileForm({ initial }: { initial: ProfileInitial }) {
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={pending || Boolean(clash)} className={btn("primary", "md")}><Save size={16} aria-hidden />{pending ? "Saving…" : "Save changes"}</button>
-        {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
+        {state && <p role="status" className={`inline-flex items-center gap-1.5 text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.ok && <Check size={16} aria-hidden />}{state.message}</p>}
       </div>
     </form>
   );

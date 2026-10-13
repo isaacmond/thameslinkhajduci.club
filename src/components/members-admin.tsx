@@ -19,15 +19,15 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
   for (const m of members) byPlayer.set(m.player, [...(byPlayer.get(m.player) ?? []), m]);
   return (
     <div className="space-y-5">
-      <ul className="divide-y divide-white/10 text-sm">
+      <ul className="divide-y divide-ink/10 text-sm">
         {[...byPlayer.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([p, rows]) => (
           <li key={p} className="flex flex-col gap-1 py-2 sm:flex-row sm:items-baseline sm:gap-4">
-            <span className="inline-flex w-40 shrink-0 items-center font-medium text-cream">{p}{rows.some((r) => r.admin) && <ShieldCheck size={14} className="ml-1 inline align-text-bottom text-gold" aria-label="admin" />}</span>
+            <span className="inline-flex w-40 shrink-0 items-center font-medium text-ink">{p}{rows.some((r) => r.admin) && <ShieldCheck size={14} className="ml-1 inline align-text-bottom text-gold" aria-label="admin" />}</span>
             <ul className="flex min-w-0 flex-1 flex-wrap gap-2">
               {rows.map((r) => (
                 <li key={r.email} className="chip gap-2">
-                  <span className="font-normal normal-case tracking-normal text-cream/90">{r.email}</span>
-                  {r.email.toLowerCase() === me.toLowerCase() ? <span className="text-ash" title="That is you">·</span> : <button type="button" onClick={() => remove(r.email)} disabled={busy} aria-label={`Remove ${r.email}`} className="focus-ring text-ash hover:text-loss-soft"><Trash2 size={12} aria-hidden /></button>}
+                  <span className="font-normal normal-case tracking-normal text-ink/90">{r.email}</span>
+                  {r.email.toLowerCase() === me.toLowerCase() ? <span className="text-muted" title="That is you">·</span> : <button type="button" onClick={() => remove(r.email)} disabled={busy} aria-label={`Remove ${r.email}`} className="focus-ring text-muted hover:text-loss"><Trash2 size={12} aria-hidden /></button>}
                 </li>
               ))}
             </ul>
@@ -35,15 +35,15 @@ export function MembersAdmin({ members, roster, me }: { members: MemberRow[]; ro
           </li>
         ))}
       </ul>
-      {removed && <p role="status" className={`text-sm ${removed.ok ? "text-mint-soft" : "text-loss-soft"}`}>{removed.message}</p>}
+      {removed && <p role="status" className={`text-sm ${removed.ok ? "text-accent" : "text-loss"}`}>{removed.message}</p>}
       <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
-        <label className="flex flex-col gap-1 text-xs text-ash"><span className="eyebrow">Email</span><input name="email" type="email" required placeholder="name@example.com" className={inputClass} /></label>
+        <label className="flex flex-col gap-1 text-xs text-muted"><span className="eyebrow">Email</span><input name="email" type="email" required placeholder="name@example.com" className={inputClass} /></label>
         <Select label="Signs in as" value={player} onChange={setPlayer} options={roster.map((r) => ({ value: r, label: r }))} />
         <input type="hidden" name="player" value={player} />
-        <label className="flex h-[2.375rem] items-center gap-2 text-xs text-ash"><input type="checkbox" name="admin" className="accent-mint" />Admin</label>
+        <label className="flex h-[2.375rem] items-center gap-2 text-xs text-muted"><input type="checkbox" name="admin" className="accent-accent" />Admin</label>
         <button type="submit" disabled={pending} className={btn("primary")}><UserPlus size={16} aria-hidden />{pending ? "Adding…" : "Add"}</button>
       </form>
-      {state && <p role="status" className={`text-sm ${state.ok ? "text-mint-soft" : "text-loss-soft"}`}>{state.message}</p>}
+      {state && <p role="status" className={`text-sm ${state.ok ? "text-accent" : "text-loss"}`}>{state.message}</p>}
     </div>
   );
 }
