@@ -37,8 +37,8 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
         {m?.played && m.result && <div style={{ display: "flex", justifyContent: "center", marginTop: 20, fontSize: 24, letterSpacing: 6, textTransform: "uppercase", color: tone[m.result] }}>{resultWord(m.result)}</div>}
         <div style={{ display: "flex", flexDirection: "column", marginTop: "auto", borderTop: `1px solid ${OG.line}`, paddingTop: 24, fontSize: 24, color: OG.muted, lineHeight: 1.45 }}>
-          <div>{fmtDate(m?.date ?? null, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}{m?.kickOff ? ` · ${m.kickOff}` : ""}{season ? ` · ${season.venue.split(/[—(]/)[0].trim()}` : ""}</div>
-          <div style={{ color: OG.ink }}>{scorers ? `Goals: ${scorers}` : ""}{m?.motm ? `${scorers ? " · " : ""}Man of the match: ${m.motm}` : ""}</div>
+          <div>{`${fmtDate(m?.date ?? null, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}${m?.kickOff ? ` · ${m.kickOff}` : ""}${season ? ` · ${season.venue.split(/[—(]/)[0].trim()}` : ""}`}</div>
+          <div style={{ color: OG.ink }}>{`${scorers ? `Goals: ${scorers}` : ""}${m?.motm ? `${scorers ? " · " : ""}Man of the match: ${m.motm}` : ""}`}</div>
         </div>
       </div>
     ),
