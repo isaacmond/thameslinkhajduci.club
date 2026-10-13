@@ -39,7 +39,7 @@ export function renderReminder({ data, match: m, players, note, player }: Remind
     <p style="margin:22px 0 0"><a href="${esc(SITE_URL)}/matches/${esc(m.id)}" style="display:inline-block;background:#1f5135;color:#f5f1e8;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px">Fixture page</a></p>
     <p style="margin:18px 0 0;font-size:13px;color:#17221b">Meet 15 minutes before kick-off. No proper shirt? Bring a white one.</p>
     <p style="margin:10px 0 0;font-size:13px;color:#64716a">Can't make it? Say so in the group chat as early as you can, so someone else can be found.</p>
-    <p style="margin:14px 0 0;font-size:12px;color:#64716a">You're getting this because you're on the team sheet at <a href="${esc(SITE_URL)}" style="color:#1f5135">thameslinkhajduci.club</a>. Running approximately twelve minutes behind schedule since 2024.</p>
+    <p style="margin:14px 0 0;font-size:12px;color:#64716a">You're getting this because you're on the team sheet at <a href="${esc(SITE_URL)}" style="color:#1f5135">thameslinkhajduci.club</a>.</p>
   </div></body></html>`;
   const text = [`Hajduci v ${m.opponent}${tomorrow ? " (tomorrow)" : ""}`, `You're in the squad, ${first}.`, "", `When: ${when}`, `Where: ${venue}${season?.venueUrl ? ` (${season.venueUrl})` : ""}`, `Game: ${comp}`, "", `Squad (${players.length}):`, ...squadLines.map((s) => `  ${s.shirt ? `#${s.shirt} ` : ""}${s.name}${s.pos ? ` (${s.pos})` : ""}`), ...(note ? ["", note] : []), "", `${SITE_URL}/matches/${m.id}`, "", "Meet 15 minutes before kick-off. No proper shirt? Bring a white one.", "Can't make it? Say so in the group chat as early as you can."].join("\n");
   return { subject, html, text };

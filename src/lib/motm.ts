@@ -146,7 +146,7 @@ export function ballotBody({ voter, candidates, token, closesAt, money }: Ballot
     <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match? Tap a name.</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(ballotUrl(token))}" style="display:inline-block;background:#1f5135;color:#f5f1e8;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px">Open the ballot</a></p>
-    <p style="margin:18px 0 0;font-size:13px;color:#64716a">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>${card?.html ?? ""}`;
+    <p style="margin:18px 0 0;font-size:13px;color:#64716a">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself.</p>${card?.html ?? ""}`;
   const text = ["Who was the man of the match?", "", ...options.map((c) => `  ${c.player}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
   return { html, text };
 }
@@ -170,7 +170,7 @@ export function renderResult({ match: m, winner, counts, ballots, reason }: Resu
   const subject = `Man of the match: ${winner} · ${scoreTitle(m)}`;
   const how = reason === "everyone voted" ? "Everyone voted, so the poll closed early." : reason === "deadline" ? "Time was up." : `Closed by ${reason}.`;
   const tied = counts.filter((c) => c.votes === (top?.votes ?? 0) && c.player !== winner);
-  const rows = counts.filter((c) => c.votes > 0).map((c) => `<tr><td style="padding:6px 10px;${c.player === winner ? "color:#9c7210;font-weight:700" : ""}">${esc(c.player)}</td><td style="padding:6px 10px;text-align:right;font-family:ui-monospace,Menlo,monospace;color:${c.player === winner ? "#f4c81b" : "#64716a"}">${c.votes}</td></tr>`).join("");
+  const rows = counts.filter((c) => c.votes > 0).map((c) => `<tr><td style="padding:6px 10px;${c.player === winner ? "color:#9c7210;font-weight:700" : ""}">${esc(c.player)}</td><td style="padding:6px 10px;text-align:right;font-family:ui-monospace,Menlo,monospace;color:${c.player === winner ? "#9c7210" : "#64716a"}">${c.votes}</td></tr>`).join("");
   const html = shell("Man of the match", `
     <h1 style="margin:0 0 6px;font-family:'Instrument Serif',Georgia,'Times New Roman',serif;font-weight:400;font-size:34px;line-height:1.05"><span style="color:#9c7210">★</span> ${esc(winner)}</h1>
     <p style="margin:0 0 18px;font-size:14px;color:#64716a">${esc(scoreTitle(m))} · ${esc(fixtureLine(m))}</p>

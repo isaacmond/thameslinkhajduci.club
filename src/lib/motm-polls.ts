@@ -197,7 +197,7 @@ export async function castVote(token: string, candidate: string, db: Db = getDb(
   const { ballot, poll } = row;
   if (poll.status !== "open") return { ok: false, error: "Voting has closed for this game.", closed: true };
   if (now.getTime() >= poll.closesAt.getTime()) { await closeMotmPoll(poll.matchId, "deadline", db, now); return { ok: false, error: `Voting closed ${fmtCloses(poll.closesAt)}.`, closed: true }; }
-  if (candidate === ballot.player) return { ok: false, error: "You cannot vote for yourself. Nice try." };
+  if (candidate === ballot.player) return { ok: false, error: "You cannot vote for yourself." };
   if (!poll.candidates.includes(candidate)) return { ok: false, error: `${candidate} was not on the pitch for this one.` };
   await db.update(schema.motmBallots).set({ vote: candidate, votedAt: now }).where(eq(schema.motmBallots.token, token));
   const all = await ballotsOf(db, poll.matchId);
