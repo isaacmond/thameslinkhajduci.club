@@ -48,7 +48,7 @@ export default async function StatsPage() {
 
       <section aria-labelledby="leaders">
         <SectionTitle id="leaders" sub="All time, top five">Leaderboards</SectionTitle>
-        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="stagger grid grid-cols-1 gap-4 sm:grid-cols-2">
           {boards.map((b) => <div key={b.title} className="card p-6"><h3 className="display text-2xl leading-none text-ink">{b.title}</h3><p className="mt-1 min-h-4 text-xs text-muted">{b.sub}</p><div className="mt-3"><LeaderList items={b.items} color={b.color} format={b.fmt} /></div></div>)}
         </div>
       </section>
@@ -78,7 +78,7 @@ export default async function StatsPage() {
           <SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Played five or more times without a win">Yet to beat</SectionTitle>
           {notBeaten.length ? (
             <ul className="space-y-2 text-sm">
-              {notBeaten.map((o) => <li key={o.key} className="flex items-baseline gap-3"><Link href={`/opponents/${o.slug}`} className="focus-ring min-w-0 truncate rounded font-medium text-ink transition-colors hover:text-accent" title={o.opponent}>{o.opponent}</Link><span className="ml-auto shrink-0 text-xs text-muted">{o.played} played</span><span className="tabular shrink-0 text-xs text-muted">drew {o.drawn}, lost {o.lost}</span><span className="tabular w-10 shrink-0 text-right text-xs font-semibold text-ink">{signed(o.gf - o.ga)}</span></li>)}
+              {notBeaten.map((o) => <li key={o.key} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-3 sm:flex sm:gap-3"><Link href={`/opponents/${o.slug}`} className="focus-ring min-w-0 truncate rounded font-medium text-ink transition-colors hover:text-accent" title={o.opponent}>{o.opponent}</Link><span className="tabular w-10 shrink-0 text-right text-xs font-semibold text-ink sm:order-last">{signed(o.gf - o.ga)}</span><span className="col-span-2 flex gap-3 text-xs text-muted sm:ml-auto sm:shrink-0"><span>{o.played} played</span><span className="tabular">drew {o.drawn}, lost {o.lost}</span></span></li>)}
             </ul>
           ) : <p className="text-sm text-muted">Every team played five or more times has been beaten at least once.</p>}
         </div>

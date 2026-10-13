@@ -24,7 +24,10 @@ export default async function MatchesPage() {
           <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{upcoming.map((m) => <MatchRow key={m.id} m={m} showSeason today={today} />)}</div>
         </section>
       )}
-      <MatchesBrowser matches={data.matches.map(toLite)} seasons={[...(data.friendlies ? [data.friendlies] : []), ...data.seasons].map((s) => ({ id: s.id, number: s.number, title: s.title }))} today={today} />
+      <section>
+        <SectionTitle>All matches</SectionTitle>
+        <MatchesBrowser matches={data.matches.map(toLite)} seasons={[...(data.friendlies ? [data.friendlies] : []), ...data.seasons].map((s) => ({ id: s.id, number: s.number, title: s.title }))} today={today} />
+      </section>
     </div>
     </PageTransition>
   );

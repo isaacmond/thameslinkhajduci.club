@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
 import type { MatchLite, Result } from "@/lib/types";
-import { MatchRow } from "./ui";
+import { Empty, MatchRow } from "./ui";
 import { chipToggle, inputClass, Switch } from "./controls";
 
 export function MatchesBrowser({ matches, seasons, initialSeason, today }: { matches: MatchLite[]; seasons: { id: string; number: number; title: string }[]; initialSeason?: string; today: string }) {
@@ -30,7 +30,7 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
   return (
     <div>
       <div className="mb-8 flex flex-col gap-3">
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Season">
+        <div className="scrollbar-none -mx-4 flex flex-nowrap gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0 [&>*]:shrink-0 [&>*]:whitespace-nowrap" role="group" aria-label="Season">
           <Chip active={season === "all"} onClick={() => setSeason("all")}>All seasons</Chip>
           {[...seasons].reverse().map((s) => <Chip key={s.id} active={season === s.id} onClick={() => setSeason(s.id)}>{s.id === "FR" ? "Friendlies" : `Season ${s.number}`}</Chip>)}
         </div>
@@ -51,17 +51,19 @@ export function MatchesBrowser({ matches, seasons, initialSeason, today }: { mat
         const open = filtering || gi === 0;
         return (
           <details key={sid} open={open} className="group/season card mb-4 overflow-hidden">
-            <summary className="focus-ring flex cursor-pointer list-none flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-4 hover:bg-ink/[0.02]">
-              <h2 className="display text-2xl leading-none text-ink"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h2>
-              <span className="text-xs text-muted">{s?.title.split("·")[1]?.trim()}</span>
-              <span className="ml-auto text-xs text-muted">{ms.length} match{ms.length === 1 ? "" : "es"} · {cw}–{cd}–{cl}</span>
+            <summary className="focus-ring grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 px-5 py-4 hover:bg-ink/[0.02]">
+              <div className="min-w-0">
+                <h3 className="display text-2xl leading-none text-ink"><span className="whitespace-nowrap">{sid === "FR" ? "Friendlies" : s ? `Season ${s.number}` : sid}</span></h3>
+                {s?.title.split("·")[1]?.trim() && <span className="mt-1 block truncate text-xs text-muted">{s.title.split("·")[1].trim()}</span>}
+              </div>
+              <span className="tabular text-right text-xs text-muted">{ms.length} match{ms.length === 1 ? "" : "es"} · {cw}–{cd}–{cl}</span>
               <span className="text-muted transition-transform group-open/season:rotate-180" aria-hidden>▾</span>
             </summary>
             <div className="grid gap-0.5 border-t border-ink/8 p-2 lg:grid-cols-2">{ms.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div>
           </details>
         );
       })}
-      {!list.length && <p className="card px-4 py-8 text-center text-sm text-muted">No matches found.</p>}
+      {!list.length && <Empty>No matches found.</Empty>}
     </div>
   );
 }

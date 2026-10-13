@@ -159,7 +159,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ slug: s
             <tbody>
               {log.map((m) => { const l = mine(m)!; return (
                 <tr key={m.id}>
-                  <td className="max-w-[8.5rem] sm:max-w-none"><Link href={`/matches/${m.id}`} className="link block truncate font-medium text-ink sm:inline">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <MotmStar className="-mt-0.5 ml-1 align-middle" label="Man of the match" />}</span>{m.type && <span className="chip ml-2 hidden !py-0 leading-5 text-muted sm:inline-flex">{m.type}</span>}</td>
+                  <td><Link href={`/matches/${m.id}`} title={m.opponent} className="link block max-w-[8.5rem] truncate align-middle font-medium text-ink sm:inline sm:max-w-none">{m.opponent}</Link><span className="block text-[10px] text-muted sm:hidden">{fmtDate(m.date, { day: "numeric", month: "short", year: "2-digit" })}{m.motm === p.name && <MotmStar className="-mt-0.5 ml-1 align-middle" label="Man of the match" />}</span>{m.type && <span className="chip ml-2 hidden !py-0 leading-5 text-muted sm:inline-flex">{m.type}</span>}</td>
                   <td><ResultPill result={m.result} size="sm" /></td>
                   <td className="num font-medium">{scoreline(m)}</td>
                   <td className={clsx("num", l.goals > 0 && "font-semibold")}>{l.goals || ""}</td>

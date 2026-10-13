@@ -40,7 +40,7 @@ export default async function DataPage() {
             <span className="font-medium text-ink">All clear.</span> Scorers add up, every man of the match played, and every past fixture has a result.
           </Callout>
         ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-start">
             {SEVERITIES.map((s) => {
               const list = health.issues.filter((i) => i.severity === s);
               return (

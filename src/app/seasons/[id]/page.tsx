@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, goalRace, leaderboard, pace, playedMatches, ppg, scoreline, seasonPlayers, signed } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
-import { Breadcrumb, LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
+import { Breadcrumb, Empty, LeaderList, MatchRow, PageHeader, PlayerLink, RecordStrip, SectionTitle, Stat, Tag } from "@/components/ui";
 import { GoalDiffTimeline } from "@/components/charts";
 import { GoalRaceChart } from "@/components/charts-race";
 import { SeasonTimeline } from "@/components/season-timeline";
@@ -58,7 +58,7 @@ function FriendliesPage({ s }: { s: NonNullable<Data["friendlies"]> }) {
       </section>
       <section>
         <SectionTitle>Matches</SectionTitle>
-        {fixtures.length ? <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <p className="card px-4 py-8 text-center text-sm text-muted">No friendlies yet.</p>}
+        {fixtures.length ? <div className="card grid grid-cols-1 gap-0.5 p-2 lg:grid-cols-2">{fixtures.map((m) => <MatchRow key={m.id} m={m} today={today} />)}</div> : <Empty>No friendlies yet.</Empty>}
       </section>
     </div>
     </PageTransition>
@@ -167,7 +167,7 @@ export default async function SeasonPage({ params }: { params: Promise<{ id: str
               ))}
             </tbody>
           </table>
-          {!players.length && <p className="px-4 py-8 text-center text-sm text-muted">No appearances yet. The first match is on {fmtDate(fixtures[0]?.date ?? null)}.</p>}
+          {!players.length && <Empty inset className="pt-4">No appearances yet. The first match is on {fmtDate(fixtures[0]?.date ?? null)}.</Empty>}
         </div>
       </section>
     </div>

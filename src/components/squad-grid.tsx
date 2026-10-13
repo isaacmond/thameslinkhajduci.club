@@ -3,7 +3,7 @@ import { useMemo, useState, ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { fmtDate } from "@/lib/stats";
-import { Shirt, Tag } from "./ui";
+import { Empty, Shirt, Tag } from "./ui";
 import { chipToggle } from "./controls";
 
 export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null; ringer: boolean };
@@ -58,7 +58,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                 </div>
               </ViewTransition>
               <div className="px-4 pb-3 pt-3.5">
-                <h2 className="display truncate text-[1.6rem] leading-tight text-ink group-hover:text-accent">{p.name}</h2>
+                <h2 className="display truncate text-[1.35rem] leading-tight text-ink group-hover:text-accent sm:text-[1.6rem]" title={p.name}>{p.name}</h2>
                 <p className="mt-0.5 flex min-h-[1.25rem] flex-wrap items-center gap-x-2 text-xs text-muted">
                   {p.positions.length > 0 && <span className="font-medium tracking-wide">{p.positions.join(" · ")}</span>}
                   {p.nickname && <span className="italic">“{p.nickname}”</span>}
@@ -75,7 +75,7 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
           </li>
         ))}
       </ul>
-      {!list.length && <p className="card px-4 py-8 text-center text-sm text-muted">No players match that filter.</p>}
+      {!list.length && <Empty>No players match that filter.</Empty>}
     </div>
   );
 }

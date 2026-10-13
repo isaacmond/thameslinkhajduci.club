@@ -82,7 +82,7 @@ export function RecordStrip({ s, className, animate = false }: { s: SeasonSummar
       <dl className="grid grid-cols-4 divide-x divide-ink/10 text-center">
         {cells.map(([k, v]) => <div key={k} className="flex flex-col-reverse py-5"><dt className="eyebrow mt-2">{k}</dt><dd className="display text-4xl leading-none text-ink sm:text-5xl">{animate ? <CountUp value={v} /> : v}</dd></div>)}
       </dl>
-      <p className="border-t border-ink/10 px-4 py-2.5 text-center text-xs text-muted">Scored <span className="font-medium text-ink">{s.goalsFor}</span> · Conceded <span className="font-medium text-ink">{s.goalsAgainst}</span> · Difference <span className="font-medium text-ink">{signed(s.goalsFor - s.goalsAgainst)}</span> · <span className="font-medium text-ink">{ppg(s).toFixed(2)}</span> points a game</p>
+      <p className="border-t border-ink/10 px-4 py-2.5 text-center text-xs text-muted"><span className="nowrap">Scored <span className="font-medium text-ink">{s.goalsFor}</span></span> · <span className="nowrap">Conceded <span className="font-medium text-ink">{s.goalsAgainst}</span></span> · <span className="nowrap">Difference <span className="font-medium text-ink">{signed(s.goalsFor - s.goalsAgainst)}</span></span> · <span className="nowrap"><span className="font-medium text-ink">{ppg(s).toFixed(2)}</span> points a game</span></p>
     </div>
   );
 }
@@ -149,24 +149,29 @@ export function MatchRow({ m, showSeason = false, today }: { m: Match | MatchLit
     <Link href={`/matches/${m.id}`} className="focus-ring group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-ink/[0.035]">
       {m.played ? <ResultPill result={m.result} size="lg" /> : <span className="chip h-9 w-9 justify-center !p-0 text-[10px] text-muted" aria-label={gwLabel(m)}>{m.seasonId === "FR" ? "F" : "GW"}{m.gw}</span>}
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="flex min-w-0 items-center gap-x-2">
           <TeamBadge name={m.opponent} size={20} className="shrink-0" />
-          <span className="truncate font-semibold text-ink">{m.opponent}</span>
-          {m.type && <span className="chip text-muted">{m.type}</span>}
+          <span className="min-w-0 truncate font-semibold text-ink" title={m.opponent}>{m.opponent}</span>
+          {m.type && <span className="chip shrink-0 text-muted">{m.type}</span>}
         </div>
-        <div className="truncate text-xs text-muted">
-          {showSeason && <span className="font-medium text-ink/70">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`} · </span>}{gwLabel(m)} · {fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.kickOff && ` · ${m.kickOff}`}
-          {scorers.length > 0 && <span className="hidden sm:inline"> · {scorers.map((s) => `${s.player.split(" ")[0]}${s.goals > 1 ? ` ×${s.goals}` : ""}`).join(", ")}</span>}
-          {m.motm && <span className="hidden text-gold sm:inline"> · <MotmStar className="-mt-0.5 mr-0.5 align-middle" /> {m.motm}</span>}
+        <div className="mt-0.5 truncate text-xs text-muted">
+          {showSeason && <span className="font-medium text-ink/70">{m.seasonId === "FR" ? "Friendly" : `Season ${m.seasonId.replace(/^S/, "")}`} · </span>}{gwLabel(m)} · {fmtDate(m.date, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}{m.played && m.kickOff && ` · ${m.kickOff}`}
         </div>
+        {(scorers.length > 0 || m.motm) && (
+          <div className="hidden truncate text-xs text-muted sm:block">
+            {scorers.length > 0 && <span>{scorers.map((s) => `${s.player}${s.goals > 1 ? ` (${s.goals})` : ""}`).join(", ")}</span>}
+            {m.motm && <span className="text-gold">{scorers.length > 0 && " · "}<MotmStar className="-mt-0.5 mr-0.5 align-middle" /> {m.motm}</span>}
+          </div>
+        )}
       </div>
       <span className="tabular text-right text-2xl font-semibold leading-none tracking-tight text-ink">{m.played ? `${m.ourGoals}–${m.theirGoals}` : <span className="font-sans text-sm text-muted">{rel ?? m.kickOff ?? "TBC"}{rel && m.kickOff && <span className="block text-[11px] text-muted">{m.kickOff}</span>}</span>}</span>
     </Link>
   );
 }
 
-export function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="card px-4 py-8 text-center text-sm text-muted">{children}</div>;
+/** An empty state. On its own it is a card; `inset` sits inside a card under its title. */
+export function Empty({ children, inset = false, className }: { children: React.ReactNode; inset?: boolean; className?: string }) {
+  return <p className={clsx(inset ? "px-6 pb-6 text-sm text-muted" : "card px-4 py-8 text-center text-sm text-muted", className)}>{children}</p>;
 }
 
 export function Crest({ size = 160, className }: { size?: number; className?: string }) {

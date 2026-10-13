@@ -41,11 +41,12 @@ export default async function SeasonsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-ink">{s.venue}</p>
-                  <p className="mt-1 text-xs text-muted">{s.summary.topScorer ? <span className="nowrap">Top scorer <span className="text-ink">{s.summary.topScorer}</span></span> : "No goals yet"}{s.summary.mostApps && <> · <span className="nowrap">Most appearances <span className="text-ink">{s.summary.mostApps}</span></span></>}</p>
+                  <p className="mt-1 text-xs text-muted">{s.summary.topScorer ? <>Top scorer <span className="text-ink">{s.summary.topScorer}</span></> : "No goals yet"}</p>
+                  {s.summary.mostApps && <p className="mt-0.5 text-xs text-muted">Most appearances <span className="text-ink">{s.summary.mostApps}</span></p>}
                   <div className="relative z-10 mt-2 w-fit"><FormStrip matches={form(s.matches, 8)} size="sm" /></div>
                 </div>
-                <dl className="grid grid-cols-4 gap-x-2 text-center sm:grid-cols-7 lg:w-[23rem]">
-                  {([["P", s.summary.played], ["W", s.summary.won], ["D", s.summary.drawn], ["L", s.summary.lost], ["F", s.summary.goalsFor], ["A", s.summary.goalsAgainst], ["GD", signed(gd)]] as [string, number | string][]).map(([k, v]) => <div key={k}><dd className="display text-2xl text-ink">{v}</dd><dt className="eyebrow eyebrow-sm">{k}</dt></div>)}
+                <dl className="grid grid-cols-7 gap-x-1 text-center lg:w-[23rem]">
+                  {([["P", s.summary.played], ["W", s.summary.won], ["D", s.summary.drawn], ["L", s.summary.lost], ["F", s.summary.goalsFor], ["A", s.summary.goalsAgainst], ["GD", signed(gd)]] as [string, number | string][]).map(([k, v]) => <div key={k}><dd className="display text-xl text-ink sm:text-2xl">{v}</dd><dt className="eyebrow eyebrow-sm">{k}</dt></div>)}
                 </dl>
                 <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end"><span className="text-xs text-muted">{ppg(s.summary).toFixed(2)} points a game</span><ArrowRight className="text-muted transition-transform group-hover:translate-x-1 group-hover:text-ink" aria-hidden /></div>
               </article>

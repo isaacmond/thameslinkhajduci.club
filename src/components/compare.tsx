@@ -4,7 +4,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { ArrowLeftRight, Shuffle } from "lucide-react";
 import { fmtDate } from "@/lib/stats";
-import { Avatar, SectionTitle, Shirt, Tag } from "./ui";
+import { Avatar, Empty, SectionTitle, Shirt, Tag } from "./ui";
 import { Select } from "./controls";
 import { ShareButton } from "./share-button";
 import { btn } from "./button";
@@ -97,7 +97,7 @@ function Head({ p, other, align, tone }: { p: ComparePlayer; other: ComparePlaye
       {p.photo ? <Avatar name={p.name} photo={p.photo} size={88} shirt={p.shirt} priority /> : <Shirt number={p.shirt} name={p.name} className="h-[88px] w-20" />}
       <div className="min-w-0">
         <p className="eyebrow truncate">{p.positions.length ? p.positions.join(" · ") : "Squad player"}{p.shirt !== null ? ` · ${p.shirt}` : ""}</p>
-        <h2 className="display break-words text-3xl leading-none text-ink sm:text-5xl">{p.name}</h2>
+        <h2 className="display break-words text-2xl leading-none text-ink sm:text-5xl">{p.name}</h2>
         {p.nickname && <p className="mt-0.5 truncate text-sm italic text-muted">“{p.nickname}”</p>}
         <div className={clsx("mt-2 flex flex-wrap gap-1.5", right && "justify-end")}>
           <Tag>Debut {fmtDate(p.debut, { month: "short", year: "numeric" })}</Tag>
@@ -186,7 +186,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
   };
   const togetherPct = winPct(both), soloBest = Math.max(winPct(onlyA) ?? -1, winPct(onlyB) ?? -1);
 
-  if (players.length < 2) return <div className="card px-4 py-8 text-center text-sm text-muted">At least two players are needed to compare.</div>;
+  if (players.length < 2) return <Empty>At least two players are needed to compare.</Empty>;
 
   return (
     <div className="space-y-6">
@@ -254,7 +254,7 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
                   </tbody>
                 </table>
               </div>
-            ) : <p className="px-5 pb-5 text-sm text-muted">No seasons yet.</p>}
+            ) : <Empty inset>No seasons yet.</Empty>}
           </div>
         </div>
       </section>

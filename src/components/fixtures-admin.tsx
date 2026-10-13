@@ -18,7 +18,7 @@ function FixtureRow({ f, seasonId, nextGw }: { f?: AdminFixture; seasonId: strin
   const note = gone ?? state;
   return (
     // Fixed column widths, so every row lines up whatever it contains; the bin's slot is reserved even when there is no bin.
-    <form action={action} className="grid grid-cols-2 gap-2 border-b border-ink/10 py-3 sm:grid-cols-[3.5rem_9.25rem_5.5rem_minmax(0,1fr)_9.5rem_6rem_8.25rem] sm:items-end">
+    <form action={action} className="grid grid-cols-2 gap-2 border-b border-ink/10 py-3 lg:grid-cols-[3.5rem_9.25rem_5.5rem_minmax(0,1fr)_9.5rem_6rem_8.25rem] lg:items-end">
       <input type="hidden" name="seasonId" value={seasonId} />
       {f && <input type="hidden" name="id" value={f.id} />}
       <label className={field}><span className="eyebrow">GW</span><input name="gw" defaultValue={f?.gw ?? nextGw} inputMode="numeric" className={`${inputClass} tabular`} /></label>
@@ -27,7 +27,7 @@ function FixtureRow({ f, seasonId, nextGw }: { f?: AdminFixture; seasonId: strin
       <label className={field}><span className="eyebrow">Opponent</span><input name="opponent" defaultValue={f?.opponent ?? ""} placeholder="Who we are playing" className={inputClass} /></label>
       <Select label="Type" name="type" defaultValue={f?.type ?? ""} options={TYPES} />
       <label className={field}><span className="eyebrow">Pitch £</span><input name="matchCost" defaultValue={f ? f.matchCost.toFixed(2) : ""} inputMode="decimal" placeholder="default" className={`${inputClass} tabular`} /></label>
-      <div className="col-span-2 flex h-[2.375rem] items-center gap-2 sm:col-span-1">
+      <div className="col-span-2 flex h-[2.375rem] items-center gap-2 lg:col-span-1">
         <button type="submit" disabled={pending} className={btn("primary", "sm", "min-w-[5.25rem]")}>{f ? <Save size={14} aria-hidden /> : <CalendarPlus size={14} aria-hidden />}{pending ? "…" : f ? "Save" : "Add"}</button>
         {f && !f.played ? (
           <button type="button" disabled={busy} onClick={() => start(async () => setGone(await deleteFixtureAction(f.id)))} aria-label="Remove fixture" className={btn("secondary", "icon", "text-muted hover:text-loss")}><Trash2 size={14} aria-hidden /></button>
@@ -77,7 +77,7 @@ export function FixturesAdmin({ seasons, fixtures, roster }: { seasons: AdminSea
         <div className="overflow-x-auto rounded-xl bg-sunken/60 p-4">
           <p className="eyebrow mb-1">{season.id} fixtures</p>
           <p className="mb-2 text-xs text-muted">Played games keep their result whatever you change here; the bin only shows for fixtures without a score.</p>
-          <div className="min-w-[40rem]">
+          <div className="lg:min-w-[54rem]">
             {rows.map((f) => <FixtureRow key={f.id} f={f} seasonId={season.id} nextGw={nextGw} />)}
             <FixtureRow seasonId={season.id} nextGw={nextGw} />
           </div>

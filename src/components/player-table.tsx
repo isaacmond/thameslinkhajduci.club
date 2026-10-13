@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { chipToggle, Switch } from "./controls";
+import { Empty } from "./ui";
 
 export type PlayerRow = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; wins: number; draws: number; losses: number; goalsPerGame: number; assistsPerGame: number; gpgGames: number; apgGames: number; winRate: number; ppg: number };
 type Key = keyof Omit<PlayerRow, "slug">;
@@ -59,7 +60,7 @@ export function PlayerTable({ datasets, seasons }: { datasets: Record<string, Pl
             ))}
           </tbody>
         </table>
-        {!rows.length && <p className="px-4 py-8 text-center text-sm text-muted">No players in this scope yet.</p>}
+        {!rows.length && <Empty inset className="pt-4">No players in this scope yet.</Empty>}
       </div>
       <p className="mt-2 text-xs text-muted">Goals and assists a game are averaged over the matches where scorers (or assists) were recorded, so they can be higher than goals divided by appearances. Hover a value to see how many matches. Points a game counts three for a win and one for a draw.</p>
     </div>

@@ -36,7 +36,7 @@ export function SeasonTimeline({ season, today }: { season: Season; today: strin
                   {kind === "played" ? (m.result ?? "·") : kind === "next" ? "•" : ""}
                 </span>
                 <span className={clsx("tabular text-xs", kind === "played" ? "font-semibold text-ink" : kind === "next" ? "font-semibold text-accent" : "text-muted")}>{kind === "played" ? scoreline(m) : kind === "next" ? "Next" : m.date ? fmtDate(m.date, { day: "numeric", month: "short" }) : "TBC"}</span>
-                <span className="w-full truncate text-[11px] text-muted transition-colors group-hover:text-ink">{m.opponent}</span>
+                <span className="line-clamp-2 min-h-[2lh] w-full whitespace-normal break-words text-[11px] leading-tight text-muted transition-colors group-hover:text-ink" title={m.opponent}>{m.opponent}</span>
               </Link>
             </li>
           );

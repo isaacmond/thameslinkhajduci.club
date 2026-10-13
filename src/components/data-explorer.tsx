@@ -40,7 +40,7 @@ export function DataExplorer({ tables, seasons, initialPreview }: { tables: { na
         <a href={url("csv")} download className={btn("primary", "xs")}><Download size={15} aria-hidden />Download this table</a>
         <a href="/api/export?format=xlsx" className={btn("secondary", "xs")}><Download size={15} aria-hidden />Every table as a spreadsheet</a>
       </div>
-      <div className="scroll-x max-h-[520px] overflow-auto">
+      <div className="scroll-x overflow-x-auto sm:max-h-[520px] sm:overflow-auto">
         {loading && !preview && <p className="px-4 py-8 text-center text-sm text-muted">Loading…</p>}
         {preview && (
           <table className="stats text-sm">

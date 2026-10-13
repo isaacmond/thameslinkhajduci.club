@@ -44,10 +44,9 @@ export default async function OpponentsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline gap-2">
                     <span className="tabular shrink-0 text-xs font-semibold text-muted">{rank}</span>
-                    <span className="min-w-0 break-words font-semibold leading-tight text-ink">{o.opponent}</span>
-                    {v && <Tag tone={v.tone} className="ml-auto shrink-0 !text-[10px]">{v.word}</Tag>}
+                    <span className="min-w-0 truncate font-semibold leading-tight text-ink" title={o.opponent}>{o.opponent}</span>
                   </div>
-                  <p className="tabular mt-1 text-xs text-muted">Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</p>
+                  <p className="tabular mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted"><span>Played {o.played} · won {o.won}, drew {o.drawn}, lost {o.lost}</span>{v && <Tag tone={v.tone} className="shrink-0 !py-0 !text-[10px] leading-5">{v.word}</Tag>}</p>
                   <p className="mt-0.5 truncate text-[11px] text-muted/80">{o.seasons.join(" ")} · last played {fmtDate(last)}</p>
                 </div>
                 <span className="display shrink-0 text-2xl leading-none text-ink" aria-label={`Goals for ${o.gf}, against ${o.ga}`}>{o.gf}–{o.ga}</span>

@@ -138,17 +138,17 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             {lineup.length > 0 && (
               <div className="scroll-x overflow-x-auto">
                 <table className="stats">
-                  <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="whitespace-nowrap text-right"><span className="sr-only">Man of the match</span></th></tr></thead>
+                  <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="hidden whitespace-nowrap text-right sm:table-cell"><span className="sr-only">Man of the match</span></th></tr></thead>
                   <tbody>
                     {lineup.map((l) => (
                       <tr key={l.player}>
-                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{l.ringer && <Tag className="!py-0 leading-5 text-[10px]">Ringer</Tag>}</span></td>
+                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{m.motm === l.player && <MotmStar className="sm:hidden" label="Man of the match" />}{l.ringer && <Tag className="!py-0 leading-5 text-[10px]">Ringer</Tag>}</span></td>
                         <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/70")}>{l.goals || "·"}</td>
                         <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/70")}>{l.assists || "·"}</td>
-                        <td className="text-right text-xs text-gold">{m.motm === l.player && <span className="inline-flex items-center gap-1"><MotmStar />Man of the match</span>}</td>
+                        <td className="hidden text-right text-xs text-gold sm:table-cell">{m.motm === l.player && <span className="inline-flex items-center gap-1"><MotmStar />Man of the match</span>}</td>
                       </tr>
                     ))}
-                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num font-semibold">{l.goals || "·"}</td><td className="num font-semibold">{l.assists || "·"}</td><td></td></tr>)}
+                    {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num font-semibold">{l.goals || "·"}</td><td className="num font-semibold">{l.assists || "·"}</td><td className="hidden sm:table-cell"></td></tr>)}
                   </tbody>
                 </table>
               </div>

@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { Coins, Receipt } from "lucide-react";
 import { getData } from "@/lib/data";
 import { chronological, fmtDate, fmtMoney, scoreline } from "@/lib/stats";
-import { Callout, PageHeader, PlayerLink, ResultPill, SectionTitle, Stat } from "@/components/ui";
+import { Callout, Empty, PageHeader, PlayerLink, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { PageTransition } from "@/components/page-transition";
 import { btn } from "@/components/button";
 
@@ -60,10 +60,10 @@ export default async function MoneyPage() {
                 </tbody>
               </table>
             </div>
-          ) : <p className="px-5 pb-5 text-sm text-muted">Nobody has been charged for anything yet. Enjoy it while it lasts.</p>}
+          ) : <Empty inset>Nobody has been charged for anything yet.</Empty>}
         </div>
-        <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1 lg:[&>*:first-child]:flex-1 lg:[&>*:last-child]:flex-none">
-          <div className="card p-6">
+        <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6">
+          <div className={clsx("card p-6", data.money.payments.length > 0 && "lg:flex-1")}>
             <SectionTitle>Payments</SectionTitle>
             {data.money.payments.length ? (
               <ul className="space-y-2 text-sm">{[...data.money.payments].reverse().map((p, i) => <li key={i} className="flex items-baseline gap-2"><Receipt size={14} className="self-center text-muted" aria-hidden /><PlayerLink name={p.player} player={byName.get(p.player)} />{p.to && <span className="truncate text-xs text-muted">→ <PlayerLink name={p.to} player={byName.get(p.to)} /></span>}<span className="ml-auto tabular text-ink">{fmtMoney(p.amount)}</span><span className="text-xs text-muted">{fmtDate(p.date)}</span></li>)}</ul>
@@ -78,9 +78,9 @@ export default async function MoneyPage() {
           <div className="p-6 pb-2"><SectionTitle sub="The pitch fee shared by the players in each match">Match by match</SectionTitle></div>
           <div className="scroll-x overflow-x-auto">
             <table className="stats w-full sm:min-w-[560px]">
-              <thead><tr><th>Opponent</th><th>Result</th><th className="num">Players</th><th className="num">Pitch</th><th className="num">Each</th><th className="hidden sm:table-cell">Date</th></tr></thead>
+              <thead><tr><th>Opponent</th><th className="hidden sm:table-cell">Result</th><th className="num">Players</th><th className="num">Pitch</th><th className="num">Each</th><th className="hidden sm:table-cell">Date</th></tr></thead>
               <tbody>
-                {[...played, ...future.slice(0, 1)].map((m) => <tr key={m.id}><td><span className="flex items-center gap-2"><Link href={`/matches/${m.id}`} className="link block max-w-[7rem] truncate font-medium text-ink sm:max-w-none" title={m.opponent}>{m.opponent}</Link>{!m.played && <span className="chip shrink-0 !py-0 leading-5 text-muted">Next</span>}</span></td><td><span className="flex items-center gap-2"><ResultPill result={m.result} size="sm" />{m.played && <span className="text-xs text-muted">{scoreline(m)}</span>}</span></td><td className="num">{m.played ? <>{m.playersInGame}{m.levy && <span className="ml-1 text-[10px] text-muted">· {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</span>}</> : "–"}</td><td className="num">{fmtMoney(m.matchCost)}</td><td className="num">{m.played && m.costPerPlayer ? fmtMoney(m.costPerPlayer) : "–"}</td><td className="hidden text-muted sm:table-cell">{fmtDate(m.date)}</td></tr>)}
+                {[...played, ...future.slice(0, 1)].map((m) => <tr key={m.id}><td><span className="flex items-center gap-2"><Link href={`/matches/${m.id}`} className="link block max-w-[7rem] truncate font-medium text-ink sm:max-w-none" title={m.opponent}>{m.opponent}</Link>{!m.played && <span className="chip hidden shrink-0 !py-0 leading-5 text-muted sm:inline-flex">Next</span>}</span>{!m.played && <span className="chip mt-1 !py-0 leading-5 text-muted sm:hidden">Next</span>}{m.played && <span className="mt-1 flex items-center gap-1.5 sm:hidden"><ResultPill result={m.result} size="sm" className="!h-5 !w-5 !text-[10px]" /><span className="tabular text-xs text-muted">{scoreline(m)}</span></span>}</td><td className="hidden sm:table-cell"><span className="flex items-center gap-2"><ResultPill result={m.result} size="sm" />{m.played && <span className="text-xs text-muted">{scoreline(m)}</span>}</span></td><td className="num">{m.played ? <>{m.playersInGame}{m.levy && <span className="block text-[10px] text-muted sm:ml-1 sm:inline"><span className="hidden sm:inline">· </span>{m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</span>}</> : "–"}</td><td className="num">{fmtMoney(m.matchCost)}</td><td className="num">{m.played && m.costPerPlayer ? fmtMoney(m.costPerPlayer) : "–"}</td><td className="hidden text-muted sm:table-cell">{fmtDate(m.date)}</td></tr>)}
               </tbody>
             </table>
           </div>
