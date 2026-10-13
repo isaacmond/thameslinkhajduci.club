@@ -32,11 +32,12 @@ export function SectionTitle({ children, sub, right, id }: { children: React.Rea
   );
 }
 
-export function Stat({ label, value, sub, tone = "default", size = "md" }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "default" | "win" | "draw" | "loss" | "gold"; size?: "sm" | "md" | "lg" }) {
+/** `money`: amounts use the body typeface with tabular figures, matching the money tables, instead of the serif. */
+export function Stat({ label, value, sub, tone = "default", size = "md", money = false }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "default" | "win" | "draw" | "loss" | "gold"; size?: "sm" | "md" | "lg"; money?: boolean }) {
   return (
     <div className={clsx("card h-full", size === "sm" ? "px-3 py-3" : "px-4 py-4")}>
       <p className={clsx("eyebrow", size === "sm" && "!text-[10px] truncate")}>{label}</p>
-      <p className={clsx("display tabular leading-none", size === "lg" ? "mt-2 text-5xl" : size === "sm" ? "mt-1.5 text-3xl" : "mt-2 text-4xl", tone === "win" && "text-win", tone === "loss" && "text-loss", tone === "draw" && "text-draw", tone === "gold" && "text-gold", tone === "default" && "text-ink")}>{value}</p>
+      <p className={clsx("tabular leading-none", money ? "font-semibold tracking-tight" : "display", money ? (size === "lg" ? "mt-2 text-4xl" : size === "sm" ? "mt-1.5 text-2xl" : "mt-2 text-3xl") : size === "lg" ? "mt-2 text-5xl" : size === "sm" ? "mt-1.5 text-3xl" : "mt-2 text-4xl", tone === "win" && "text-win", tone === "loss" && "text-loss", tone === "draw" && "text-draw", tone === "gold" && "text-gold", tone === "default" && "text-ink")}>{value}</p>
       {sub && <p className={clsx("mt-1.5 text-muted", size === "sm" ? "text-[11px]" : "text-xs")}>{sub}</p>}
     </div>
   );

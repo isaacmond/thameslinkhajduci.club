@@ -116,7 +116,7 @@ export function moneyCard(money: GameMoney): { html: string; text: string } {
   const html = `
     <div style="margin:22px 0 0;background:#fffcf6;border:1px solid rgba(23,34,27,.12);border-radius:10px;padding:14px 16px">
       <p style="margin:0 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#64716a">Your share tonight</p>
-      <p style="margin:0 0 6px;font-family:'Instrument Serif',Georgia,serif;font-size:30px;font-weight:400;line-height:1.1;color:${money.ringer || money.paidPitch ? "#1f5135" : "#17221b"}">${esc(amount)}</p>
+      <p style="margin:0 0 6px;font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:${money.ringer || money.paidPitch ? "#1f5135" : "#17221b"}">${esc(amount)}</p>
       <p style="margin:0;font-size:13px;line-height:1.45;color:#64716a">${esc(why)} ${esc(running)}</p>
       <p style="margin:10px 0 0;font-size:13px"><a href="${esc(moneyUrl())}" style="color:#1f5135;font-weight:600;text-decoration:none">See all balances</a></p>
     </div>`;

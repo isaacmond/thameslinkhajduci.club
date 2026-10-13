@@ -33,11 +33,11 @@ export default async function MoneyPage() {
       <PageHeader eyebrow="Pitch fees" title="Money" sub={<>The cost of each pitch is shared between the players in that match. Balances are kept from Season 8.{payers.length > 0 && <> {payers.map(([s, who]) => `Season ${s.replace(/^S/, "")} was paid up front by ${who}`).join("; ")}.</>}</>} right={<Link href="/submit?type=payment" className={btn("primary")}><Coins size={16} aria-hidden />Record a payment</Link>} />
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Totals">
-        <div className="col-span-2 lg:col-span-1"><Stat label="Outstanding" value={fmtMoney(owed)} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay${creditors.length ? ` · owed to ${creditors.map((c) => c.player.split(" ")[0]).join(" and ")}` : ""}` : "All settled"} size="lg" /></div>
-        <Stat label="Charged so far" value={fmtMoney(charged)} sub={`${fmtMoney(received)} paid`} />
-        <Stat label="Pitch spend" value={fmtMoney(spent)} sub={`${played.length} match${played.length === 1 ? "" : "es"} · ${fmtMoney(committed)} booked`} />
-        <div className="hidden sm:block"><Stat label="Per goal" value={goals ? fmtMoney(spent / goals) : "–"} sub={goals ? `${goals} goal${goals === 1 ? "" : "s"}` : undefined} /></div>
-        <div className="hidden sm:block"><Stat label="Per win" value={wins ? fmtMoney(spent / wins) : "–"} sub={wins ? `${wins} win${wins === 1 ? "" : "s"}` : undefined} /></div>
+        <div className="col-span-2 lg:col-span-1"><Stat money label="Outstanding" value={fmtMoney(owed)} sub={owed > 0.01 ? `${debtors} player${debtors === 1 ? "" : "s"} yet to pay${creditors.length ? ` · owed to ${creditors.map((c) => c.player.split(" ")[0]).join(" and ")}` : ""}` : "All settled"} size="lg" /></div>
+        <Stat money label="Charged so far" value={fmtMoney(charged)} sub={`${fmtMoney(received)} paid`} />
+        <Stat money label="Pitch spend" value={fmtMoney(spent)} sub={`${played.length} match${played.length === 1 ? "" : "es"} · ${fmtMoney(committed)} booked`} />
+        <div className="hidden sm:block"><Stat money label="Per goal" value={goals ? fmtMoney(spent / goals) : "–"} sub={goals ? `${goals} goal${goals === 1 ? "" : "s"}` : undefined} /></div>
+        <div className="hidden sm:block"><Stat money label="Per win" value={wins ? fmtMoney(spent / wins) : "–"} sub={wins ? `${wins} win${wins === 1 ? "" : "s"}` : undefined} /></div>
       </section>
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
