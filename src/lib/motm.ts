@@ -139,16 +139,15 @@ export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Ca
  */
 export function ballotBody({ voter, candidates, token, closesAt, money }: BallotEmailInput): { html: string; text: string } {
   const card = money ? moneyCard(money) : null;
-  const first = voter.split(" ")[0];
   const options = shuffled(candidates.filter((c) => c.player !== voter), token);
   const closes = fmtCloses(closesAt);
   const rows = options.map((c) => `<tr><td style="padding:5px 0"><a href="${esc(ballotUrl(token, c.player))}" style="display:block;background:#0d2b19;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:12px 14px;color:#f6f1e6;text-decoration:none;font-size:15px;font-weight:600">${esc(c.player)}</a></td></tr>`).join("");
   const html = `
-    <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match, ${esc(first)}? Tap a name.</p>
+    <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match? Tap a name.</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(ballotUrl(token))}" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Open the ballot</a></p>
     <p style="margin:18px 0 0;font-size:13px;color:#a7b8ab">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>${card?.html ?? ""}`;
-  const text = [`Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
+  const text = ["Who was the man of the match?", "", ...options.map((c) => `  ${c.player}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
   return { html, text };
 }
 /** The ballot as its own email: one tap on a name opens the vote page with that name picked, one more confirms it. Nobody can vote for themselves. */

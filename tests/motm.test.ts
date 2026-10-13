@@ -46,7 +46,7 @@ describe("the emails", () => {
   it("the ballot lists everyone but the voter, each name a link that pre-picks them", () => {
     const mail = renderBallot({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z") });
     expect(mail.subject).toBe("Man of the match vote: Hajduci 3–1 Old Ivy");
-    expect(mail.text).toContain("Who was the man of the match, Isaac?");
+    expect(mail.text).toContain("Who was the man of the match?");
     expect(mail.text).toContain("/motm/tok123?pick=Phil%20Knott");
     expect(mail.text).not.toContain("Isaac Mond:");
     // the names come bare: no goals or assists to steer the vote
@@ -130,7 +130,7 @@ describe("the vote against the records", () => {
     // the recorder's own ballot is held back, rendered, to ride inside the score email rather than arrive as a second message
     const heldRun = await sendBallots(r, db, ["ISAAC@example.com"]);
     expect(heldRun.held.map((h) => h.player)).toEqual(["Isaac Mond"]);
-    expect(heldRun.held[0].body.text).toContain("Who was the man of the match, Isaac?");
+    expect(heldRun.held[0].body.text).toContain("Who was the man of the match?");
     expect(heldRun.held[0].body.text).toContain(`/motm/${heldRun.held[0].token}?pick=`);
     expect(heldRun.held[0].body.text).toContain(`Your share tonight: £${(game.matchCost / 5).toFixed(2)}`);
     expect(heldRun.failed).not.toContain("Isaac Mond");
