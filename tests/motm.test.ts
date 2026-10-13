@@ -49,7 +49,8 @@ describe("the emails", () => {
     expect(mail.text).toContain("Who was the man of the match, Isaac?");
     expect(mail.text).toContain("/motm/tok123?pick=Phil%20Knott");
     expect(mail.text).not.toContain("Isaac Mond:");
-    expect(mail.html).toContain("2 goals");
+    // the names come bare: no goals or assists to steer the vote
+    expect(mail.html).not.toContain("goal"); expect(mail.text).not.toContain("goal");
     expect(mail.text).toContain("Voting closes Wednesday 20:30");
   });
   it("names come in a random order that is fixed per ballot, so the email and the page agree", () => {

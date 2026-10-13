@@ -71,7 +71,6 @@ export function shuffled<T>(items: T[], seed: string): T[] {
 export const fmtCloses = (d: Date) => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", weekday: "long", hour: "2-digit", minute: "2-digit" }).format(d).replace(",", "").replace(/ (\d)/, " $1");
 export const scoreTitle = (m: MotmMatch) => `Hajduci ${m.ourGoals}–${m.theirGoals} ${m.opponent}`;
 const fixtureLine = (m: MotmMatch) => `${m.seasonId} · ${gwLabel(m)} · ${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })}`;
-const whatTheyDid = (c: Candidate) => [c.goals ? `${c.goals} goal${c.goals === 1 ? "" : "s"}` : "", c.assists ? `${c.assists} assist${c.assists === 1 ? "" : "s"}` : ""].filter(Boolean).join(", ");
 export const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
 export const ballotUrl = (token: string, pick?: string) => `${SITE_URL}/motm/${token}${pick ? `?pick=${encodeURIComponent(pick)}` : ""}`;
 
@@ -115,12 +114,12 @@ export function moneyCard(money: GameMoney): { html: string; text: string } {
   const amount = money.ringer ? "Nothing" : fmtMoney(money.share);
   const why = money.ringer ? "Ringers don't pay: your share is on the regulars who stayed at home." : money.paidPitch ? `You paid the pitch, so the other ${money.heads - 1} owe you theirs.` : split + ".";
   const html = `
-    <table role="presentation" style="width:100%;border-collapse:collapse;margin:22px 0 0"><tr><td style="background:#0d2b19;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px">
+    <div style="margin:22px 0 0;background:#0d2b19;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px">
       <p style="margin:0 0 4px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#a7b8ab">Your share tonight</p>
       <p style="margin:0 0 6px;font-size:24px;font-weight:700;line-height:1.1;color:${money.ringer || money.paidPitch ? "#7fe0a3" : "#f6f1e6"}">${esc(amount)}</p>
       <p style="margin:0;font-size:13px;line-height:1.45;color:#a7b8ab">${esc(why)} ${esc(running)}</p>
       <p style="margin:10px 0 0;font-size:13px"><a href="${esc(moneyUrl())}" style="color:#7fe0a3;font-weight:600;text-decoration:none">See who owes what →</a></p>
-    </td></tr></table>`;
+    </div>`;
   const text = [`Your share tonight: ${amount}${money.ringer || money.paidPitch ? "" : ` (${split})`}. ${money.ringer || money.paidPitch ? `${why} ` : ""}${running}`, `Money: ${moneyUrl()}`].join("\n");
   return { html, text };
 }
@@ -135,6 +134,7 @@ const shell = (eyebrow: string, body: string) => `<!doctype html><html><body sty
 export type BallotEmailInput = { match: MotmMatch; voter: string; candidates: Candidate[]; token: string; closesAt: Date; /** the voter's share of the pitch, when money is tracked for the game */ money?: GameMoney | null };
 /**
  * The voting part of the ballot on its own (question, names, button, small print, the money card), so it can sit inside another email: the
+ * names carry no goals or assists, so the email does not nudge anyone towards the scorer; the
  * admin who records a score and played gets their ballot in the score confirmation rather than as a second message.
  */
 export function ballotBody({ voter, candidates, token, closesAt, money }: BallotEmailInput): { html: string; text: string } {
@@ -142,13 +142,13 @@ export function ballotBody({ voter, candidates, token, closesAt, money }: Ballot
   const first = voter.split(" ")[0];
   const options = shuffled(candidates.filter((c) => c.player !== voter), token);
   const closes = fmtCloses(closesAt);
-  const rows = options.map((c) => `<tr><td style="padding:5px 0"><a href="${esc(ballotUrl(token, c.player))}" style="display:block;background:#0d2b19;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:12px 14px;color:#f6f1e6;text-decoration:none;font-size:15px;font-weight:600">${esc(c.player)}${whatTheyDid(c) ? ` <span style="color:#a7b8ab;font-weight:400;font-size:13px">· ${esc(whatTheyDid(c))}</span>` : ""}</a></td></tr>`).join("");
+  const rows = options.map((c) => `<tr><td style="padding:5px 0"><a href="${esc(ballotUrl(token, c.player))}" style="display:block;background:#0d2b19;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:12px 14px;color:#f6f1e6;text-decoration:none;font-size:15px;font-weight:600">${esc(c.player)}</a></td></tr>`).join("");
   const html = `
     <p style="margin:0 0 14px;font-size:17px;line-height:1.4">Who was the man of the match, ${esc(first)}? Tap a name.</p>
     <table style="width:100%;border-collapse:collapse">${rows}</table>
     <p style="margin:18px 0 0"><a href="${esc(ballotUrl(token))}" style="display:inline-block;background:#32c364;color:#06140c;font-weight:700;text-decoration:none;padding:12px 18px;border-radius:10px">Open the ballot</a></p>
     <p style="margin:18px 0 0;font-size:13px;color:#a7b8ab">Voting closes ${esc(closes)}, or sooner once everyone has voted. You can change your mind until then. Only the ${options.length + 1} who played get a vote, and you cannot vote for yourself. Nice try.</p>${card?.html ?? ""}`;
-  const text = [`Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}${whatTheyDid(c) ? ` (${whatTheyDid(c)})` : ""}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
+  const text = [`Who was the man of the match, ${first}?`, "", ...options.map((c) => `  ${c.player}: ${ballotUrl(token, c.player)}`), "", `Or open the ballot: ${ballotUrl(token)}`, "", `Voting closes ${closes}, or sooner once everyone has voted. You cannot vote for yourself.`, ...(card ? ["", card.text] : [])].join("\n");
   return { html, text };
 }
 /** The ballot as its own email: one tap on a name opens the vote page with that name picked, one more confirms it. Nobody can vote for themselves. */
