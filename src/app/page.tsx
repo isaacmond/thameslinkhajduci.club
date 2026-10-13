@@ -99,7 +99,7 @@ export default async function Home() {
         </section>
       )}
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {current && (
           <article className="card overflow-hidden">
             <header className="flex items-baseline justify-between gap-3 px-6 pb-1 pt-6">
@@ -126,7 +126,7 @@ export default async function Home() {
         </article>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_3fr] lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_3fr]">
         <div className="card p-6">
           <SectionTitle sub="The last eight league matches">Form</SectionTitle>
           <FormStrip matches={[...recent].reverse()} />
@@ -141,7 +141,7 @@ export default async function Home() {
       </section>
 
       {(talking.length > 0 || milestones.length > 0) && (
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr] lg:items-start">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
           {talking.length > 0 && (
             <div className="card p-6">
               <SectionTitle right={<Link href="/stats" className="link text-sm">Statistics</Link>}>In numbers</SectionTitle>

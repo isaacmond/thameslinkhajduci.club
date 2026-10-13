@@ -40,7 +40,7 @@ export default async function MoneyPage() {
         <div className="hidden sm:block"><Stat label="Per win" value={wins ? fmtMoney(spent / wins) : "–"} sub={wins ? `${wins} win${wins === 1 ? "" : "s"}` : undefined} /></div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="card overflow-hidden lg:col-span-3">
           <div className="p-6 pb-2"><SectionTitle sub={creditors.length ? `${creditors.map((c) => c.player).join(" and ")} paid for the pitch and ${creditors.length === 1 ? "is" : "are"} owed ${fmtMoney(owedToPayers)}.` : undefined}>Balances</SectionTitle></div>
           {rows.length ? (
@@ -62,7 +62,7 @@ export default async function MoneyPage() {
             </div>
           ) : <p className="px-5 pb-5 text-sm text-muted">Nobody has been charged for anything yet. Enjoy it while it lasts.</p>}
         </div>
-        <div className="space-y-6 lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1 lg:[&>*:first-child]:flex-1 lg:[&>*:last-child]:flex-none">
           <div className="card p-6">
             <SectionTitle>Payments</SectionTitle>
             {data.money.payments.length ? (

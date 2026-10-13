@@ -62,7 +62,7 @@ export default async function StatsPage() {
         <div className="card p-6"><SectionTitle sub="The top fifteen, by season">Appearances by season</SectionTitle><StackedBySeason data={stack("apps")} seasons={seasonIds} /></div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card overflow-hidden">
           <div className="p-6 pb-2"><SectionTitle sub="Pairs with the most matches together">Partnerships</SectionTitle></div>
           <div className="scroll-x overflow-x-auto">
@@ -72,7 +72,7 @@ export default async function StatsPage() {
             </table>
           </div>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">
         <div className="card p-6">
           <SectionTitle right={<Link href="/opponents" className="link text-sm">All opponents</Link>} sub="Played five or more times without a win">Yet to beat</SectionTitle>
           {notBeaten.length ? (

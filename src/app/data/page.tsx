@@ -41,7 +41,7 @@ export default async function DataPage() {
             <span className="font-medium text-ink">All clear.</span> Scorers add up, every man of the match played, and every past fixture has a result.
           </Callout>
         ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:items-start">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {SEVERITIES.map((s) => {
               const list = health.issues.filter((i) => i.severity === s);
               return (
@@ -75,13 +75,13 @@ export default async function DataPage() {
         <DataExplorer tables={TABLES.map((t) => ({ name: t, info: TABLE_INFO[t] }))} seasons={[...data.seasons].reverse().map((s) => s.id)} siteUrl={SITE_URL} initialPreview={{ table: "players", ...buildTable(data, "players") }} />
       </section>
 
-      <section className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2 lg:items-start">
+      <section className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
         <div className="card min-w-0 p-5">
           <SectionTitle><span className="inline-flex items-center gap-2"><Table2 size={20} className="text-accent" aria-hidden />Tabular export</span></SectionTitle>
           <pre className="whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg bg-sunken p-4 text-xs text-ink/90 lg:overflow-x-auto lg:whitespace-pre"><code>{`GET /api/export?table=<name>&format=csv|json|md[&season=S7]\nGET /api/export?format=xlsx   # every table, one workbook\n\ntables: ${TABLES.join(", ")}\n\n# examples\n${SITE_URL}/api/export?table=players&format=csv\n${SITE_URL}/api/export?table=goals&season=S7&format=json\n${SITE_URL}/api/export?table=opponents&format=md`}</code></pre>
           <ul className="mt-4 space-y-1 text-sm text-muted">{TABLES.map((t) => <li key={t}><a href={`/api/export?table=${t}&format=json`} target="_blank" rel="noopener" className="link font-mono text-xs">{t}</a> <span>· {TABLE_INFO[t]}</span></li>)}</ul>
         </div>
-        <div className="min-w-0 space-y-6">
+        <div className="min-w-0 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:first-child]:flex-1">
           <div className="card min-w-0 p-5">
             <SectionTitle><span className="inline-flex items-center gap-2"><Database size={20} className="text-accent" aria-hidden />Full dataset</span></SectionTitle>
             <pre className="whitespace-pre-wrap [overflow-wrap:anywhere] rounded-lg bg-sunken p-4 text-xs text-ink/90 lg:overflow-x-auto lg:whitespace-pre"><code>{`GET /api/data           # everything, nested JSON\nGET /api/data?pretty=1  # same, indented for humans\nPOST /api/revalidate    # force a fresh read of the records`}</code></pre>

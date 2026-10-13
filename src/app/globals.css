@@ -67,6 +67,7 @@ body {
 .tabular { font-variant-numeric: tabular-nums; }
 .nowrap { white-space: nowrap; }
 
+@layer components {
 /* surfaces */
 .card { background: var(--color-surface); border: 1px solid color-mix(in srgb, var(--color-ink) 9%, transparent); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); }
 .card-solid { background: var(--color-accent); color: var(--color-paper); border-radius: var(--radius-xl); }
@@ -80,6 +81,7 @@ body {
 .result-D { background: color-mix(in srgb, var(--color-draw) 14%, transparent); color: var(--color-draw); border-color: color-mix(in srgb, var(--color-draw) 35%, transparent); }
 .result-L { background: color-mix(in srgb, var(--color-loss) 13%, transparent); color: var(--color-loss); border-color: color-mix(in srgb, var(--color-loss) 33%, transparent); }
 .result-X { background: color-mix(in srgb, var(--color-ink) 5%, transparent); color: var(--color-muted); }
+}
 
 /* links and focus */
 .link { color: var(--color-accent); text-decoration: none; }

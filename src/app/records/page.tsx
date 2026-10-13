@@ -85,7 +85,7 @@ export default async function RecordsPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="card overflow-hidden"><div className="p-6 pb-2"><SectionTitle sub="Three or more in a match">Hat-tricks</SectionTitle></div>
           {r.hatTricks.length ? (
             <div className="scroll-x overflow-x-auto">

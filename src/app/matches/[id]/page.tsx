@@ -206,17 +206,17 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             </div>
           ), h2hCard].filter(Boolean);
           return (
-            <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-              <div className={side.length ? "lg:col-span-3" : "lg:col-span-5"}>{lineupCard}</div>
-              {side.length > 0 && <div className="space-y-6 lg:col-span-2">{side}</div>}
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+              <div className={clsx(side.length ? "lg:col-span-3" : "lg:col-span-5", "lg:[&>*]:h-full")}>{lineupCard}</div>
+              {side.length > 0 && <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">{side}</div>}
             </section>
           );
         }
         // Still to play: the team sheet (or the shrug) and the history on the left, the forecast with room to breathe on the right.
         return (
-          <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-            <div className="space-y-6 lg:col-span-2">{squadCard ?? lineupCard}{h2hCard}</div>
-            <div className="lg:col-span-3"><MatchPreview data={data} match={m} /></div>
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">{squadCard ?? lineupCard}{h2hCard}</div>
+            <div className="lg:col-span-3 lg:[&>*]:h-full"><MatchPreview data={data} match={m} /></div>
           </section>
         );
       })()}

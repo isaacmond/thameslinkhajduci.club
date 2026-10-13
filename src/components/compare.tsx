@@ -213,14 +213,14 @@ export function Compare({ players, matches, seasons, initialA, initialB }: { pla
         <p className="display relative mt-6 border-t border-ink/10 pt-5 text-center text-xl italic text-ink/85 sm:text-2xl">{line}</p>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="card p-5 sm:p-6 lg:col-span-3">
           <SectionTitle sub="The stronger figure in each row is highlighted">Head to head</SectionTitle>
           <div className="flex justify-between text-xs font-semibold text-ink"><span className="truncate">{sA}</span><span className="truncate text-right">{sB}</span></div>
           <ol className="divide-y divide-ink/[0.06]">{METRICS.map((m) => <Bars key={m.key} a={A} b={B} m={m} />)}</ol>
         </div>
 
-        <div className="space-y-6 lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6 lg:flex lg:flex-col lg:space-y-0 lg:gap-6 lg:[&>*:last-child]:flex-1">
           <div className="card p-5 sm:p-6">
             <SectionTitle sub="The team's win rate with both, and with each alone">Together</SectionTitle>
             <dl className="grid grid-cols-3 gap-2">
