@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getData } from "@/lib/data";
 import { dbConfigured } from "@/lib/db";
-import { fmtDate } from "@/lib/stats";
+import { fmtDate, fmtMoney } from "@/lib/stats";
 import { londonToday } from "@/lib/time";
 import { emailSubmission } from "@/lib/notify";
 import { log } from "@/lib/log";
@@ -11,7 +11,7 @@ import { applyChange } from "@/lib/apply";
 import { afterScoreRecorded, markBallotsSent, sendHeldBallots, type HeldBallot, type OpenResult } from "@/lib/motm-polls";
 import { buildPaymentMessage, buildPlayerMessage, buildScoreMessage, clean, originAllowed, validatePayment, validatePlayer, validateScore, type Built, type Kind, type Rejected } from "@/lib/submissions";
 import { SITE_URL } from "@/lib/config";
-import { levyLine, regularsFor, ringerLevy } from "@/lib/ringers";
+import { levyShare, regularsFor, ringerLevy } from "@/lib/ringers";
 import type { ClubData } from "@/lib/types";
 
 /**
@@ -54,7 +54,7 @@ function buildScore(body: Body, data: ClubData): Built | Rejected {
     const after = { ...m, played: true, playersInGame: heads, costPerPlayer: m.matchCost / heads, lineup: v.value.played.map((player) => ({ player, played: true, goals: 0, assists: 0, cost: 0, ringer: v.value.ringers.includes(player) })) };
     const counted = data.matches.filter((x) => x.countsForRecords && x.played && x.id !== m.id);
     const l = ringerLevy(after, regularsFor(after, counted));
-    if (l) levy = levyLine(l);
+    if (l) levy = levyShare(l, fmtMoney);
   }
   return buildScoreMessage(v.value, m, fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" }), levy);
 }
@@ -119,7 +119,7 @@ export async function POST(req: Request) {
       log("submit.write.failed", { kind, member: member?.member.player ?? null });
     }
   }
-  const submittedBy = member ? `${built.submittedBy} (${member.member.player}, signed in)` : built.submittedBy;
+  const submittedBy = !member ? built.submittedBy : built.submittedBy === member.member.player ? `${built.submittedBy}, signed in` : `${built.submittedBy} (${member.member.player}, signed in)`;
   const status = applied ? `Recorded in the records by ${member!.member.player}, signed in as ${member!.email}.` : queued ? `Waiting for the admin to approve it: ${SITE_URL}/admin` : applyError ? `${applyError} Please apply it by hand.` : "Awaiting the admin.";
   const text = `${built.text}\n\n${status}${motm ? `\n${motm}` : ""}`;
   const subject = (applied ? built.subject.replace(/^([^:]+):/, "$1 recorded:") : queued ? built.subject.replace(/^([^:]+):/, "$1 to approve:") : built.subject) + (held.length ? " · your man of the match ballot inside" : "");

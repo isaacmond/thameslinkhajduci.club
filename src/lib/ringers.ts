@@ -64,6 +64,10 @@ export function applyRingerLevies(seasons: Season[], friendlies: Season | null):
   for (const m of all) m.levy = m.played && m.lineup.some((l) => l.played && l.ringer) ? ringerLevy(m, regularsFor(m, counted)) : null;
 }
 
+/** The share alone, for a message that already names the ringers: "£26.65 split between the 7 regulars who did not play, £3.81 each (…)". */
+export function levyShare(levy: RingerLevy, fmt: (n: number) => string = (n) => `£${n.toFixed(2)}`): string {
+  return `${fmt(levy.total)} split between the ${levy.payers.length} regular${levy.payers.length === 1 ? "" : "s"} who did not play, ${fmt(levy.each)} each (${levy.payers.join(", ")})`;
+}
 /** One line for the group chat and the fixture page: who the ringers were and who is paying for them. */
 export function levyLine(levy: RingerLevy, fmt: (n: number) => string = (n) => `£${n.toFixed(2)}`): string {
   const who = levy.ringers.join(", ");
