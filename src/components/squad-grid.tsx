@@ -3,10 +3,10 @@ import { useMemo, useState, ViewTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { fmtDate } from "@/lib/stats";
-import { Empty, Shirt, StatStrip, Tag } from "./ui";
+import { Empty, Shirt, StatStrip } from "./ui";
 import { chipToggle } from "./controls";
 
-export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null; ringer: boolean };
+export type SquadCard = { name: string; slug: string; apps: number; goals: number; assists: number; motm: number; goalsPerGame: number; winRate: number; debut: string | null; seasonsPlayed: number; activeThisSeason: boolean; photo: string | null; shirt: number | null; positions: string[]; nickname: string | null };
 type SortKey = "apps" | "goals" | "assists" | "goalsPerGame" | "winRate" | "motm" | "debut" | "name";
 const SORTS: { key: SortKey; label: string }[] = [
   { key: "apps", label: "Appearances" }, { key: "goals", label: "Goals" }, { key: "assists", label: "Assists" }, { key: "goalsPerGame", label: "Goals a game" },
@@ -54,7 +54,6 @@ export function SquadGrid({ players, currentSeason }: { players: SquadCard[]; cu
                     </div>
                   )}
                   {p.shirt !== null && p.photo && <span className="display absolute right-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full bg-surface/90 text-xl leading-none text-ink shadow-sm backdrop-blur">{p.shirt}</span>}
-                  {p.ringer && <Tag size="sm" className="absolute left-2.5 top-2.5 bg-surface/90 backdrop-blur">Ringer</Tag>}
                 </div>
               </ViewTransition>
               <div className="px-4 pb-3 pt-3.5">

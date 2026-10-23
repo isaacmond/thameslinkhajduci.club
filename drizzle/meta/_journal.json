@@ -36,6 +36,13 @@
       "when": 1791540000000,
       "tag": "0004_ringers",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792762609956,
+      "tag": "0005_ringer_counts",
+      "breakpoints": true
     }
   ]
 }

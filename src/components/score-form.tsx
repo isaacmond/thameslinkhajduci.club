@@ -1,8 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
 import clsx from "clsx";
-import { ClipboardList, Minus, Plus, Send, UserPlus, X } from "lucide-react";
-import { pickRegulars } from "@/lib/ringers";
+import { ClipboardList, Minus, Plus, Send } from "lucide-react";
+import { MAX_RINGERS, pickRegulars } from "@/lib/ringers";
 import { fmtDate, fmtMoney } from "@/lib/stats";
 import { FormStatus, inputClass, Select, Switch, fieldClass } from "./controls";
 import { btn } from "./button";
@@ -10,14 +10,14 @@ import { SummaryCard } from "./summary-card";
 import { SubmissionResult, type SubmitResult } from "./submission-result";
 import { SignedInNote, type SignedIn } from "./signed-in-note";
 import { PollButton } from "./poll-button";
-import { SectionTitle, Tag, Tick } from "./ui";
+import { SectionTitle, Tick } from "./ui";
 
 /**
- * `lineup` is who the records say played (roster players only); `ringers` the outsiders recorded alongside them; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
+ * `lineup` is who the records say played (roster players only); `ringers` how many outsiders played alongside them (a count, never names), with `ringerGoals`/`ringerAssists`; `expected` is the admin's team sheet, used to pre-tick names when there is no recorded line-up yet.
  * For a fixture typed Forfeit the line-up is the players charged for the pitch, and `matchCost` is what they split.
  * `priorApps` counts each roster player's appearances in the league games before this one that make up the ringer-levy window (nine when this game joins the window itself, `counted`; ten for a friendly), so the form can show which absent regulars pick up a ringer's share.
  */
-export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; ringers: string[]; expected: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null; type: string | null; matchCost: number; kickOff: string | null; priorApps: Record<string, number>; counted: boolean };
+export type SubmitFixture = { id: string; label: string; seasonId: string; gw: number; opponent: string; date: string | null; played: boolean; ourGoals: number | null; theirGoals: number | null; lineup: string[]; ringers: number; ringerGoals: number; ringerAssists: number; expected: string[]; scorers: Record<string, number>; assists: Record<string, number>; motm: string | null; type: string | null; matchCost: number; kickOff: string | null; priorApps: Record<string, number>; counted: boolean };
 
 /** The recorded line-up when there is one, otherwise the team sheet: the best guess at who played. */
 const startingLineup = (f: SubmitFixture | undefined) => (f ? (f.lineup.length ? f.lineup : f.expected) : []);
@@ -48,8 +48,11 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
   const [theirs, setTheirs] = useState(first?.theirGoals ?? 0);
   // For a forfeit the ticks mean "charged for the pitch", so a recorded forfeit keeps its payers and a new one starts with nobody on the hook.
   const [played, setPlayed] = useState<Set<string>>(new Set(isForfeit(first) ? first?.lineup : startingLineup(first)));
-  const [ringers, setRingers] = useState<string[]>(isForfeit(first) ? [] : first?.ringers ?? []);
-  const [ringerName, setRingerName] = useState("");
+  const [ringers, setRingers] = useState(isForfeit(first) ? 0 : first?.ringers ?? 0);
+  const [ringerGoals, setRingerGoals] = useState(isForfeit(first) ? 0 : first?.ringerGoals ?? 0);
+  const [ringerAssists, setRingerAssists] = useState(isForfeit(first) ? 0 : first?.ringerAssists ?? 0);
+  /** The night's ringers from a fixture, or none (a forfeit, or nothing recorded). */
+  const resetRingers = (f: SubmitFixture | undefined) => { const keep = f && !isForfeit(f); setRingers(keep ? f.ringers : 0); setRingerGoals(keep ? f.ringerGoals : 0); setRingerAssists(keep ? f.ringerAssists : 0); };
   const [scorers, setScorers] = useState<Record<string, number>>(first?.scorers ?? {});
   const [assists, setAssists] = useState<Record<string, number>>(first?.assists ?? {});
   const [motm, setMotm] = useState(first?.motm ?? "");
@@ -59,29 +62,19 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
 
-  const pick = (id: string) => { const f = fixtures.find((x) => x.id === id); setMatchId(id); setResult(null); if (f) { const ff = isForfeit(f); setForfeit(ff); setOurs(f.ourGoals ?? 0); setTheirs(f.theirGoals ?? 0); setPlayed(new Set(ff ? f.lineup : startingLineup(f))); setRingers(ff ? [] : f.ringers); setRingerName(""); setScorers(f.scorers); setAssists(f.assists); setMotm(f.motm ?? ""); } };
+  const pick = (id: string) => { const f = fixtures.find((x) => x.id === id); setMatchId(id); setResult(null); if (f) { const ff = isForfeit(f); setForfeit(ff); setOurs(f.ourGoals ?? 0); setTheirs(f.theirGoals ?? 0); setPlayed(new Set(ff ? f.lineup : startingLineup(f))); resetRingers(f); setScorers(f.scorers); setAssists(f.assists); setMotm(f.motm ?? ""); } };
   /** Flipping to a forfeit clears the football (scorers, assists, MOTM) and starts the bill from the recorded payers or nobody; flipping back restores the fixture's line-up. */
   const toggleForfeit = (on: boolean) => {
-    setForfeit(on); setScorers({}); setAssists({}); setMotm(""); setRingers(on ? [] : fx?.ringers ?? []); setRingerName("");
+    setForfeit(on); setScorers({}); setAssists({}); setMotm(""); resetRingers(on ? undefined : fx);
     if (on) { const recorded = isForfeit(fx) && fx!.played; setOurs(recorded ? fx!.ourGoals ?? AWARDED.ours : AWARDED.ours); setTheirs(recorded ? fx!.theirGoals ?? AWARDED.theirs : AWARDED.theirs); setPlayed(new Set(isForfeit(fx) ? fx!.lineup : [])); }
     else { setOurs(fx?.ourGoals ?? 0); setTheirs(fx?.theirGoals ?? 0); setPlayed(new Set(startingLineup(fx))); if (fx && !isForfeit(fx)) { setScorers(fx.scorers); setAssists(fx.assists); setMotm(fx.motm ?? ""); } }
   };
-  const goalsLogged = useMemo(() => Object.values(scorers).reduce((a, b) => a + b, 0), [scorers]);
-  const assistsLogged = useMemo(() => Object.values(assists).reduce((a, b) => a + b, 0), [assists]);
+  const goalsLogged = useMemo(() => Object.values(scorers).reduce((a, b) => a + b, ringerGoals), [scorers, ringerGoals]);
+  const assistsLogged = useMemo(() => Object.values(assists).reduce((a, b) => a + b, ringerAssists), [assists, ringerAssists]);
   const togglePlayed = (n: string) => setPlayed((s) => { const next = new Set(s); if (next.has(n)) { next.delete(n); setScorers((sc) => { const c = { ...sc }; delete c[n]; return c; }); setAssists((as) => { const c = { ...as }; delete c[n]; return c; }); } else next.add(n); return next; });
-  const setCount = (map: Record<string, number>, set: (m: Record<string, number>) => void, n: string, v: number) => { const c = { ...map }; if (v <= 0) delete c[n]; else c[n] = v; set(c); if (v > 0 && !ringers.includes(n)) setPlayed((s) => new Set(s).add(n)); };
-  const dropCounts = (n: string) => { setScorers((sc) => { const c = { ...sc }; delete c[n]; return c; }); setAssists((as) => { const c = { ...as }; delete c[n]; return c; }); };
-  /** A ringer typed in: trimmed, one space between words; a roster name moves that player over to the ringers rather than listing them twice. */
-  const addRinger = () => {
-    const typed = ringerName.replace(/\s+/g, " ").trim();
-    if (typed.length < 2) return;
-    const onRoster = roster.find((r) => r.toLowerCase() === typed.toLowerCase());
-    const name = onRoster ?? typed;
-    if (ringers.some((r) => r.toLowerCase() === name.toLowerCase())) { setRingerName(""); return; }
-    if (onRoster) setPlayed((s) => { const next = new Set(s); next.delete(onRoster); return next; });
-    setRingers((r) => [...r, name]); setRingerName("");
-  };
-  const removeRinger = (n: string) => { setRingers((r) => r.filter((x) => x !== n)); dropCounts(n); if (motm === n) setMotm(""); };
+  const setCount = (map: Record<string, number>, set: (m: Record<string, number>) => void, n: string, v: number) => { const c = { ...map }; if (v <= 0) delete c[n]; else c[n] = v; set(c); if (v > 0) setPlayed((s) => new Set(s).add(n)); };
+  /** No ringers, no ringer goals or assists. */
+  const setRingerCount = (n: number) => { setRingers(n); if (!n) { setRingerGoals(0); setRingerAssists(0); } };
   const problems: string[] = [];
   if (!forfeit && goalsLogged > ours) problems.push(`Scorers add up to ${goalsLogged}, but we scored ${ours}.`);
   if (!forfeit && assistsLogged > ours) problems.push("More assists than goals.");
@@ -93,19 +86,19 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
     if (!canSubmit || !fx) return;
     setBusy(true); setResult(null);
     try {
-      const r = await fetch("/api/submit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ match: fx.id, ours, theirs, scorers: forfeit ? {} : scorers, assists: forfeit ? {} : assists, played: [...played], ringers: forfeit ? [] : ringers, motm: forfeit ? null : motm || null, forfeit, submittedBy: who, note, website }) });
+      const r = await fetch("/api/submit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ match: fx.id, ours, theirs, scorers: forfeit ? {} : scorers, assists: forfeit ? {} : assists, played: [...played], ringers: forfeit ? 0 : ringers, ringerGoals: forfeit ? 0 : ringerGoals, ringerAssists: forfeit ? 0 : ringerAssists, motm: forfeit ? null : motm || null, forfeit, submittedBy: who, note, website }) });
       setResult((await r.json()) as SubmitResult);
     } catch { setResult({ ok: false, error: "Couldn't reach the server. Try again." }); }
     setBusy(false);
   };
-  const playedList = [...roster.filter((n) => played.has(n)), ...ringers];
+  const playedList = roster.filter((n) => played.has(n));
   // Who picks up the ringers' share: the regulars over the last ten league games who are not on the pitch tonight.
-  const heads = played.size + ringers.length;
+  const heads = played.size + ringers;
   const levyCounts: Record<string, number> = { ...(fx?.priorApps ?? {}) };
   for (const n of played) delete levyCounts[n];
-  const regulars = ringers.length ? pickRegulars(levyCounts) : [];
+  const regulars = ringers ? pickRegulars(levyCounts) : [];
   const perHead = heads > 0 ? (fx?.matchCost ?? 0) / heads : 0;
-  const levyTotal = perHead * ringers.length, levyEach = regulars.length ? levyTotal / regulars.length : 0;
+  const levyTotal = perHead * ringers, levyEach = regulars.length ? levyTotal / regulars.length : 0;
   // The team sheet is a proposal: say where the ticks came from, and offer the way back once the reporter has changed them.
   const fromSheet = Boolean(fx && !forfeit && !fx.lineup.length && fx.expected.length);
   const matchesSheet = fromSheet && sameSet(played, fx!.expected);
@@ -172,25 +165,14 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
             </li>); })}
         </ul>
         <div className="mt-5 border-t border-ink/10 pt-4">
-          <SectionTitle as="h3" size="sm" sub={<>Players from outside the squad. They don&apos;t pay; their share goes to the regulars who weren&apos;t playing.</>}>Ringers</SectionTitle>
-          {ringers.length > 0 && (
-            <ul className="mb-3 grid grid-cols-1 gap-1.5 lg:grid-cols-2">
-              {ringers.map((n) => (
-                <li key={n} className="chip-on grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 rounded-xl border px-3 py-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-                  <span className="flex min-w-0 items-center gap-2 text-sm text-ink"><Tag size="sm" className="shrink-0">Ringer</Tag><span className="truncate">{n}</span></span>
-                  <span className="eyebrow eyebrow-sm col-span-2 row-start-2 flex items-center gap-1 sm:col-span-1 sm:col-start-2 sm:row-start-1"><span>G</span><MiniCounter label={`goals for ${n}`} value={scorers[n] ?? 0} onChange={(v) => setCount(scorers, setScorers, n, v)} /><span className="ml-1">A</span><MiniCounter label={`assists for ${n}`} value={assists[n] ?? 0} onChange={(v) => setCount(assists, setAssists, n, v)} /></span>
-                  <button type="button" onClick={() => removeRinger(n)} aria-label={`Remove ${n}`} className="focus-ring col-start-2 row-start-1 shrink-0 justify-self-end rounded-md p-1 text-muted hover:text-ink sm:col-start-3"><X size={14} aria-hidden /></button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="flex flex-wrap items-end gap-2">
-            <label className={`${fieldClass} flex-1`}><span className="eyebrow">Ringer&apos;s name</span><input value={ringerName} onChange={(e) => setRingerName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addRinger(); } }} maxLength={40} placeholder="Full name" className={inputClass} /></label>
-            <button type="button" onClick={addRinger} disabled={ringerName.trim().length < 2 || ringers.length >= 4} className={btn("secondary", "sm")}><UserPlus size={14} aria-hidden />Add ringer</button>
+          <SectionTitle as="h3" size="sm" sub={<>How many players came from outside the squad, and what they scored. They don&apos;t pay; their share goes to the regulars who weren&apos;t playing.</>}>Ringers</SectionTitle>
+          <div className={clsx("flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border px-3 py-2", ringers ? "chip-on" : "chip-off border-ink/10")}>
+            <span className="eyebrow eyebrow-sm flex items-center gap-1.5"><span>Ringers</span><MiniCounter label="ringers" value={ringers} max={MAX_RINGERS} onChange={setRingerCount} /></span>
+            {ringers > 0 && <span className="eyebrow eyebrow-sm flex items-center gap-1"><span>G</span><MiniCounter label="goals by ringers" value={ringerGoals} onChange={setRingerGoals} /><span className="ml-1">A</span><MiniCounter label="assists by ringers" value={ringerAssists} onChange={setRingerAssists} /></span>}
           </div>
-          {ringers.length > 0 && (
+          {ringers > 0 && (
             <p className="well mt-3 px-3 py-2 text-xs text-ink/90" role="status">
-              {heads} players{pitch > 0 && <>, {fmtMoney(perHead)} each</>}. {ringers.join(", ")}{ringers.length === 1 ? "'s" : "'"} {pitch > 0 ? fmtMoney(levyTotal) : "share"} {regulars.length ? <>is split between {regulars.length} regular{regulars.length === 1 ? "" : "s"} who {regulars.length === 1 ? "wasn't" : "weren't"} playing{pitch > 0 && <>, <span className="text-ink">{fmtMoney(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>stays with whoever paid for the pitch.</>}
+              {heads} players{pitch > 0 && <>, {fmtMoney(perHead)} each</>}. The {ringers === 1 ? "ringer's" : `${ringers} ringers'`} {pitch > 0 ? fmtMoney(levyTotal) : "share"} {regulars.length ? <>is split between {regulars.length} regular{regulars.length === 1 ? "" : "s"} who {regulars.length === 1 ? "wasn't" : "weren't"} playing{pitch > 0 && <>, <span className="text-ink">{fmtMoney(levyEach)} each</span></>}: {regulars.join(", ")}.</> : <>stays with whoever paid for the pitch.</>}
             </p>
           )}
         </div>
@@ -215,13 +197,13 @@ export function ScoreForm({ fixtures, roster, initialMatch, webhook, signedIn = 
 }
 
 
-function MiniCounter({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+function MiniCounter({ label, value, onChange, max = 30 }: { label: string; value: number; onChange: (v: number) => void; max?: number }) {
   const btn = "focus-ring inline-flex items-center justify-center px-1.5 py-1 text-muted hover:text-ink [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9 [@media(pointer:coarse)]:p-0";
   return (
     <span className="inline-flex items-center rounded-md border border-ink/15 bg-ink/5">
       <button type="button" aria-label={`Fewer ${label}`} onClick={() => onChange(Math.max(0, value - 1))} className={`${btn} rounded-l-md`}><Minus size={12} aria-hidden /></button>
       <span className="tabular w-5 text-center text-sm font-semibold tracking-normal text-ink">{value}</span>
-      <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(30, value + 1))} className={`${btn} rounded-r-md`}><Plus size={12} aria-hidden /></button>
+      <button type="button" aria-label={`More ${label}`} onClick={() => onChange(Math.min(max, value + 1))} className={`${btn} rounded-r-md`}><Plus size={12} aria-hidden /></button>
     </span>
   );
 }

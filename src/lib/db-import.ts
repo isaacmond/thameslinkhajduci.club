@@ -32,10 +32,10 @@ export async function importClubData(db: Db, data: ClubData, extras: ImportExtra
     await db.insert(schema.seasons).values({ id: s.id, number: s.number, title: s.title, venue: s.venue, period: s.period, pitchCost: money(mostCommon(s.matches.map((m) => m.matchCost).filter((c) => c > 0))), paidBy: data.money.paidBy[s.id] ?? s.summary.paidBy ?? null, seasonCost: s.summary.seasonCost.toFixed(2) });
     if (s.players.length) await db.insert(schema.seasonRosters).values(s.players.map((p, i) => ({ seasonId: s.id, player: p, position: i })));
     if (s.matches.length) await db.insert(schema.matches).values(s.matches.map((m) => {
-      const played = m.lineup.filter((l) => l.played).length;
-      return { id: m.id, seasonId: s.id, gw: m.gw, date: m.date, kickOff: m.kickOff, opponent: m.opponent, ourGoals: m.ourGoals, theirGoals: m.theirGoals, motm: m.motm, comment: m.comment, type: s.id === "FR" && m.type === "Friendly" ? null : m.type, matchCost: m.matchCost.toFixed(2), playersInGame: m.playersInGame !== played ? m.playersInGame : null, updatedBy: "import" };
+      const played = m.lineup.filter((l) => l.played).length + (m.ringers ?? 0);
+      return { id: m.id, seasonId: s.id, gw: m.gw, date: m.date, kickOff: m.kickOff, opponent: m.opponent, ourGoals: m.ourGoals, theirGoals: m.theirGoals, motm: m.motm, comment: m.comment, type: s.id === "FR" && m.type === "Friendly" ? null : m.type, matchCost: m.matchCost.toFixed(2), playersInGame: m.playersInGame !== played ? m.playersInGame : null, ringers: m.ringers ?? 0, ringerGoals: m.ringerGoals ?? 0, ringerAssists: m.ringerAssists ?? 0, updatedBy: "import" };
     }));
-    const lines = s.matches.flatMap((m) => m.lineup.map((l) => ({ matchId: m.id, player: l.player, played: l.played, goals: l.goals, assists: l.assists, ringer: l.ringer ?? false })));
+    const lines = s.matches.flatMap((m) => m.lineup.map((l) => ({ matchId: m.id, player: l.player, played: l.played, goals: l.goals, assists: l.assists })));
     if (lines.length) await db.insert(schema.appearances).values(lines);
   }
   if (data.money.payments.length) await db.insert(schema.payments).values(data.money.payments.map((p) => ({ date: p.date, player: p.player, paidTo: p.to, amount: p.amount.toFixed(2), note: p.note, createdBy: "import" })));

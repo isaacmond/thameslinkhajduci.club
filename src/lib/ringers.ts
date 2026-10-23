@@ -1,8 +1,8 @@
 import type { Match, RingerLevy, Season } from "./types";
 
 /**
- * Ringers: outside players borrowed for a night when the team sheet runs short. A ringer counts as an appearance like
- * anyone else (the pitch is split by heads on the pitch, ringers included) but pays nothing. Their share is levied on the
+ * Ringers: outside players borrowed for a night when the team sheet runs short. They are a count on the match, never
+ * names: heads on the pitch for the split, but they pay nothing. Their share is levied on the
  * regulars instead, equally, so the few who did turn up are not left carrying the cost of a half-empty team sheet.
  *
  * Regulars, as agreed with the admin (9 Oct 2026): of the players who were NOT on the pitch that night, the ten with the
@@ -14,11 +14,13 @@ import type { Match, RingerLevy, Season } from "./types";
 export const LEVY_WINDOW = 10;
 export const LEVY_PAYERS = 10;
 export const LEVY_MIN_APPS = 3;
+/** The most ringers one night can have. */
+export const MAX_RINGERS = 4;
 
-/** Appearances per player across a set of games, ringer nights excluded (a ringer is not on their way to being a regular). */
+/** Appearances per player across a set of games. */
 export function appearanceCounts(games: Pick<Match, "lineup">[]): Record<string, number> {
   const counts: Record<string, number> = {};
-  for (const m of games) for (const l of m.lineup) if (l.played && !l.ringer) counts[l.player] = (counts[l.player] ?? 0) + 1;
+  for (const m of games) for (const l of m.lineup) if (l.played) counts[l.player] = (counts[l.player] ?? 0) + 1;
   return counts;
 }
 
@@ -50,10 +52,10 @@ export function regularsFor(match: Match, counted: Match[]): string[] {
 }
 
 /** The levy for a played game with ringers on a pitch that cost money; null when there is nothing to spread. */
-export function ringerLevy(match: Pick<Match, "lineup" | "costPerPlayer">, regulars: string[]): RingerLevy | null {
-  const ringers = match.lineup.filter((l) => l.played && l.ringer).map((l) => l.player);
-  if (!ringers.length || match.costPerPlayer <= 0 || !regulars.length) return null;
-  const total = ringers.length * match.costPerPlayer;
+export function ringerLevy(match: Pick<Match, "ringers" | "costPerPlayer">, regulars: string[]): RingerLevy | null {
+  const ringers = match.ringers;
+  if (ringers <= 0 || match.costPerPlayer <= 0 || !regulars.length) return null;
+  const total = ringers * match.costPerPlayer;
   return { ringers, total, each: total / regulars.length, payers: [...regulars] };
 }
 
@@ -61,15 +63,17 @@ export function ringerLevy(match: Pick<Match, "lineup" | "costPerPlayer">, regul
 export function applyRingerLevies(seasons: Season[], friendlies: Season | null): void {
   const all = [...seasons, ...(friendlies ? [friendlies] : [])].flatMap((s) => s.matches);
   const counted = all.filter((m) => m.countsForRecords && m.played);
-  for (const m of all) m.levy = m.played && m.lineup.some((l) => l.played && l.ringer) ? ringerLevy(m, regularsFor(m, counted)) : null;
+  for (const m of all) m.levy = m.played && m.ringers > 0 ? ringerLevy(m, regularsFor(m, counted)) : null;
 }
 
-/** The share alone, for a message that already names the ringers: "£26.65 split between the 7 regulars who did not play, £3.81 each (…)". */
+/** "2 ringers" */
+export const ringerCount = (n: number) => `${n} ringer${n === 1 ? "" : "s"}`;
+
+/** The share alone, for a message that already counts the ringers: "£26.65 split between the 7 regulars who did not play, £3.81 each (…)". */
 export function levyShare(levy: RingerLevy, fmt: (n: number) => string = (n) => `£${n.toFixed(2)}`): string {
   return `${fmt(levy.total)} split between the ${levy.payers.length} regular${levy.payers.length === 1 ? "" : "s"} who did not play, ${fmt(levy.each)} each (${levy.payers.join(", ")})`;
 }
-/** One line for the group chat and the fixture page: who the ringers were and who is paying for them. */
+/** One line for the group chat and the fixture page: how many ringers there were and who is paying for them. */
 export function levyLine(levy: RingerLevy, fmt: (n: number) => string = (n) => `£${n.toFixed(2)}`): string {
-  const who = levy.ringers.join(", ");
-  return `${who} ${levy.ringers.length === 1 ? "is a ringer: their" : "are ringers: their"} ${fmt(levy.total)} is split between the ${levy.payers.length} regular${levy.payers.length === 1 ? "" : "s"} who did not play, at ${fmt(levy.each)} each (${levy.payers.join(", ")}).`;
+  return `${levy.ringers === 1 ? "1 ringer played: their" : `${levy.ringers} ringers played: their`} ${fmt(levy.total)} is split between the ${levy.payers.length} regular${levy.payers.length === 1 ? "" : "s"} who did not play, at ${fmt(levy.each)} each (${levy.payers.join(", ")}).`;
 }

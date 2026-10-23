@@ -55,7 +55,7 @@ export default async function OpponentPage({ params }: { params: Promise<{ slug:
   const next = chronological(data.matches).find((m) => isThem(m) && !m.played && m.date !== null && m.date >= today) ?? null;
 
   const byName = new Map(data.players.map((p) => [p.name, p]));
-  const ghost = (name: string): Player => ({ name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: {}, ringer: false });
+  const ghost = (name: string): Player => ({ name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: {} });
   const tally = (pick: (l: PlayerMatchLine) => number) => {
     const t = new Map<string, number>();
     for (const m of counted) for (const l of m.lineup) { const v = pick(l); if (v > 0) t.set(l.player, (t.get(l.player) ?? 0) + v); }

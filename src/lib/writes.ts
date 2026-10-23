@@ -8,9 +8,9 @@ import { slugify } from "./slug";
  */
 /**
  * `forfeit`: we did not play (turned up late, too few of us). The score is whatever the league awarded, `played` is who pays for the pitch, and the fixture is typed Forfeit so nothing counts.
- * `ringers`: outside players borrowed for the night. They count as appearances (and may be in `scorers`/`assists`) but pay nothing and never join the team sheet; their share is levied on the regulars.
+ * `ringers`: how many outside players were borrowed for the night, with `ringerGoals`/`ringerAssists` what they scored and set up. A count, never names: they are heads for the pitch split, pay nothing, and their share is levied on the regulars.
  */
-export type ScoreChange = { matchId: string; ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; comment: string | null; forfeit?: boolean; ringers?: string[] };
+export type ScoreChange = { matchId: string; ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; motm: string | null; comment: string | null; forfeit?: boolean; ringers?: number; ringerGoals?: number; ringerAssists?: number };
 export type PaymentChange = { player: string; to: string | null; amount: number; date: string; note: string };
 export type PlayerChange = { name: string; nickname: string; positions: string[]; shirt: number | null; photo: string; seasonId: string | null };
 export type ProfileChange = { nickname?: string; positions?: string[]; shirt?: number | null; photo?: string | null; bio?: string };
@@ -19,7 +19,7 @@ export type SeasonChange = { id: string; number: number; title: string; venue: s
 
 const money = (n: number | null | undefined) => (n === null || n === undefined ? null : n.toFixed(2));
 
-/** Make sure every named player has a row on the players table (ringers included: appearances point at it). */
+/** Make sure every named player has a row on the players table. */
 async function ensurePlayers(db: Db, names: string[], by: string) {
   const unique = [...new Set(names)].filter(Boolean);
   if (!unique.length) return;
@@ -50,15 +50,15 @@ export async function recordScore(c: ScoreChange, by: string, db: Db = getDb()) 
   if (!m) throw new Error(`No fixture ${c.matchId}`);
   const forfeit = c.forfeit === true;
   const scorers = forfeit ? {} : c.scorers, assists = forfeit ? {} : c.assists, motm = forfeit ? null : c.motm;
-  // A forfeit has no ringers: nobody played. Otherwise a ringer is on the pitch (played) but kept off the team sheet.
-  const ringers = new Set(forfeit ? [] : c.ringers ?? []);
-  const names = [...new Set([...c.played, ...ringers, ...Object.keys(scorers), ...Object.keys(assists), ...(motm ? [motm] : [])])];
-  await ensurePlayers(db, [...ringers], by);
-  await ensureOnRoster(db, m.seasonId, names.filter((n) => !ringers.has(n)), by);
-  const lines = names.map((player) => ({ matchId: c.matchId, player, played: c.played.includes(player) || ringers.has(player) || (scorers[player] ?? 0) > 0, goals: scorers[player] ?? 0, assists: assists[player] ?? 0, ringer: ringers.has(player) })).filter((l) => l.played || l.goals || l.assists);
+  // A forfeit has no ringers: nobody played.
+  const ringers = forfeit ? 0 : c.ringers ?? 0;
+  const ringerGoals = ringers ? c.ringerGoals ?? 0 : 0, ringerAssists = ringers ? c.ringerAssists ?? 0 : 0;
+  const names = [...new Set([...c.played, ...Object.keys(scorers), ...Object.keys(assists), ...(motm ? [motm] : [])])];
+  await ensureOnRoster(db, m.seasonId, names, by);
+  const lines = names.map((player) => ({ matchId: c.matchId, player, played: c.played.includes(player) || (scorers[player] ?? 0) > 0, goals: scorers[player] ?? 0, assists: assists[player] ?? 0 })).filter((l) => l.played || l.goals || l.assists);
   const type = forfeit ? "Forfeit" : /^forfeit$/i.test(m.type ?? "") ? null : m.type;
   await atomic(db, [
-    db.update(schema.matches).set({ ourGoals: c.ours, theirGoals: c.theirs, motm, comment: c.comment, type, updatedAt: new Date(), updatedBy: by }).where(eq(schema.matches.id, c.matchId)),
+    db.update(schema.matches).set({ ourGoals: c.ours, theirGoals: c.theirs, motm, comment: c.comment, type, ringers, ringerGoals, ringerAssists, updatedAt: new Date(), updatedBy: by }).where(eq(schema.matches.id, c.matchId)),
     db.delete(schema.appearances).where(eq(schema.appearances.matchId, c.matchId)),
     ...(lines.length ? [db.insert(schema.appearances).values(lines)] : []),
   ]);

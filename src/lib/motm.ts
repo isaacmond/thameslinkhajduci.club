@@ -77,12 +77,11 @@ export const ballotUrl = (token: string, pick?: string) => `${SITE_URL}/motm/${t
 
 /** What a player's night cost them, for the card inside the ballot: their share of the pitch and where that leaves their running total. */
 export type GameMoney = {
-  /** their share of the pitch for this game; 0 for a ringer */
+  /** their share of the pitch for this game */
   share: number;
   /** what the pitch cost and how many ways it was split */
   pitch: number;
   heads: number;
-  ringer: boolean;
   /** they paid for the pitch this season, so the others' shares are owed to them */
   paidPitch: boolean;
   /** running balance with this game in: positive owes, negative is owed */
@@ -102,7 +101,7 @@ export function gameMoney(data: ClubData, matchId: string): Record<string, GameM
   const out: Record<string, GameMoney> = {};
   for (const l of m.lineup) if (l.played) {
     const row = data.money.rows.find((r) => r.player === l.player);
-    out[l.player] = { share: l.cost, pitch: m.matchCost, heads: m.playersInGame, ringer: l.ringer, paidPitch: payer === l.player, balance: row?.balance ?? 0, payer: payer && payer !== l.player ? payer : null };
+    out[l.player] = { share: l.cost, pitch: m.matchCost, heads: m.playersInGame, paidPitch: payer === l.player, balance: row?.balance ?? 0, payer: payer && payer !== l.player ? payer : null };
   }
   return out;
 }
@@ -112,16 +111,16 @@ export function moneyCard(money: GameMoney): { html: string; text: string } {
   const split = `${fmtMoney(money.pitch)} pitch fee split ${money.heads} ways`;
   const first = money.payer?.split(" ")[0] ?? null;
   const running = Math.abs(money.balance) <= 0.01 ? "Your balance is clear." : money.balance < 0 ? `All in, you're owed ${fmtMoney(-money.balance)}.` : `All in, you owe ${first ?? "the club"} ${fmtMoney(money.balance)}.`;
-  const amount = money.ringer ? "Nothing" : fmtMoney(money.share);
-  const why = money.ringer ? "Ringers don't pay: your share is split between the regulars who weren't playing." : money.paidPitch ? `You paid the pitch, so the other ${money.heads - 1} owe you theirs.` : split + ".";
+  const amount = fmtMoney(money.share);
+  const why = money.paidPitch ? `You paid the pitch, so the other ${money.heads - 1} owe you theirs.` : split + ".";
   const html = `
     <div style="margin:22px 0 0;${CARD};padding:14px 16px">
       <p style="margin:0 0 4px;${EYEBROW}">Your share tonight</p>
-      <p style="margin:0 0 6px;font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:${money.ringer || money.paidPitch ? EMAIL.accent : EMAIL.ink}">${esc(amount)}</p>
+      <p style="margin:0 0 6px;font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:${money.paidPitch ? EMAIL.accent : EMAIL.ink}">${esc(amount)}</p>
       <p style="margin:0;font-size:13px;line-height:1.45;color:${EMAIL.muted}">${esc(why)} ${esc(running)}</p>
       <p style="margin:10px 0 0;font-size:13px"><a href="${esc(moneyUrl())}" style="${LINK};font-weight:600;text-decoration:none">See all balances</a></p>
     </div>`;
-  const text = [`Your share tonight: ${amount}${money.ringer || money.paidPitch ? "" : ` (${split})`}. ${money.ringer || money.paidPitch ? `${why} ` : ""}${running}`, `Money: ${moneyUrl()}`].join("\n");
+  const text = [`Your share tonight: ${amount}${money.paidPitch ? "" : ` (${split})`}. ${money.paidPitch ? `${why} ` : ""}${running}`, `Money: ${moneyUrl()}`].join("\n");
   return { html, text };
 }
 

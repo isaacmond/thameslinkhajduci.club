@@ -72,7 +72,7 @@ describe("the emails", () => {
     expect(mail.text).not.toContain("Phil Knott: 0");
   });
   it("the ballot carries a card with the night's share, the running total and a link to the money page", () => {
-    const money = { share: 7.5, pitch: 45, heads: 6, ringer: false, paidPitch: false, balance: 22.5, payer: "Seb Burgess" };
+    const money = { share: 7.5, pitch: 45, heads: 6, paidPitch: false, balance: 22.5, payer: "Seb Burgess" };
     const body = ballotBody({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z"), money });
     expect(body.text).toContain("Your share tonight: £7.50 (£45.00 pitch fee split 6 ways). All in, you owe Seb £22.50.");
     expect(body.text).toContain("/money");
@@ -81,9 +81,8 @@ describe("the emails", () => {
     expect(renderBallot({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z"), money }).html).toContain("Your share tonight");
     // no money, no card
     expect(ballotBody({ match: m, voter: "Isaac Mond", candidates: cands, token: "tok123", closesAt: at("2026-09-23T19:30:00Z") }).text).not.toContain("Your share");
-    // the pitch payer is owed, a ringer pays nothing, and a settled player is told so
+    // the pitch payer is owed, and a settled player is told so
     expect(moneyCard({ ...money, paidPitch: true, payer: null, balance: -37.5 }).text).toContain("Your share tonight: £7.50. You paid the pitch, so the other 5 owe you theirs. All in, you're owed £37.50.");
-    expect(moneyCard({ ...money, share: 0, ringer: true, balance: 0 }).text).toContain("Your share tonight: Nothing. Ringers don't pay: your share is split between the regulars who weren't playing. Your balance is clear.");
     expect(moneyCard({ ...money, payer: null, balance: 0.004 }).text).toContain("Your balance is clear.");
   });
 });
@@ -124,7 +123,7 @@ describe("the vote against the records", () => {
     const game = after.matches.find((x) => x.id === id)!;
     expect(game.matchCost).toBeGreaterThan(0);
     expect(r.money).toEqual(gameMoney(after, id));
-    expect(r.money!["Isaac Mond"]).toMatchObject({ share: game.matchCost / 5, pitch: game.matchCost, heads: 5, ringer: false, balance: after.money.rows.find((x) => x.player === "Isaac Mond")!.balance });
+    expect(r.money!["Isaac Mond"]).toMatchObject({ share: game.matchCost / 5, pitch: game.matchCost, heads: 5, balance: after.money.rows.find((x) => x.player === "Isaac Mond")!.balance });
     // no Resend key in tests: nothing goes out, and that is reported rather than thrown
     expect((await sendBallots(r, db)).skipped).toMatch(/RESEND_API_KEY/);
     // the recorder's own ballot is held back, rendered, to ride inside the score email rather than arrive as a second message

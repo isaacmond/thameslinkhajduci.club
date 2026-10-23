@@ -166,7 +166,7 @@ function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } =
       const pl = (apps.get(p)?.[gi] ?? 0) > 0;
       const g = goals.get(p)?.[gi] ?? 0;
       const a = assists.get(p)?.[gi] ?? 0;
-      if (pl || g || a) lineup.push({ player: p, played: pl || g > 0, goals: g, assists: a, cost: pl ? (num(cpp[col]) ?? 0) : 0, ringer: false });
+      if (pl || g || a) lineup.push({ player: p, played: pl || g > 0, goals: g, assists: a, cost: pl ? (num(cpp[col]) ?? 0) : 0 });
     }
     const goalsLogged = lineup.reduce((t, l) => t + l.goals, 0);
     const assistsLogged = lineup.reduce((t, l) => t + l.assists, 0);
@@ -186,6 +186,7 @@ function parseSeasonTab(id: string, grid: Grid, opts: { friendlies?: boolean } =
       playersInGame: num(pig[col]) ?? lineup.filter((l) => l.played).length,
       costPerPlayer: num(cpp[col]) ?? 0,
       lineup,
+      ringers: 0, ringerGoals: 0, ringerAssists: 0,
       levy: null,
     });
   });

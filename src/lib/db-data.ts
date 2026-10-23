@@ -40,20 +40,20 @@ export async function loadClubData(db: Db = getDb()): Promise<ClubData> {
     const isFriendlies = s.id === "FR";
     const matches: Match[] = (matchesBySeason.get(s.id) ?? []).map((m) => {
       const apps = (appsByMatch.get(m.id) ?? []).filter((a) => a.played || a.goals > 0 || a.assists > 0).sort((a, b) => (order.get(a.player) ?? 1e9) - (order.get(b.player) ?? 1e9) || a.player.localeCompare(b.player));
-      const playersInGame = m.playersInGame ?? apps.filter((a) => a.played || a.goals > 0).length;
+      const playersInGame = m.playersInGame ?? apps.filter((a) => a.played || a.goals > 0).length + m.ringers;
       const matchCost = num(m.matchCost);
       const costPerPlayer = playersInGame > 0 ? matchCost / playersInGame : 0;
-      // A ringer is a head on the pitch for the split but pays nothing: their share is the levy on the regulars (set below, once every season is in).
-      const lineup: PlayerMatchLine[] = apps.map((a) => ({ player: a.player, played: a.played || a.goals > 0, goals: a.goals, assists: a.assists, cost: a.played && !a.ringer ? costPerPlayer : 0, ringer: a.ringer }));
+      // Ringers are a head count, not names: heads on the pitch for the split who pay nothing; their share is the levy on the regulars (set below, once every season is in).
+      const lineup: PlayerMatchLine[] = apps.map((a) => ({ player: a.player, played: a.played || a.goals > 0, goals: a.goals, assists: a.assists, cost: a.played ? costPerPlayer : 0 }));
       const og = m.ourGoals, tg = m.theirGoals;
       const played = og !== null && tg !== null;
-      const goalsLogged = lineup.reduce((t, l) => t + l.goals, 0), assistsLogged = lineup.reduce((t, l) => t + l.assists, 0);
+      const goalsLogged = lineup.reduce((t, l) => t + l.goals, m.ringerGoals), assistsLogged = lineup.reduce((t, l) => t + l.assists, m.ringerAssists);
       return {
         id: m.id, seasonId: s.id, seasonNumber: s.number, gw: m.gw, date: m.date, kickOff: m.kickOff, opponent: m.opponent,
         ourGoals: og, theirGoals: tg, result: resultOf(og, tg), played, motm: m.motm, comment: m.comment,
         type: m.type ?? (isFriendlies ? "Friendly" : null), countsForRecords: !m.type && !isFriendlies,
         scorersRecorded: og === 0 || goalsLogged > 0, assistsRecorded: og === 0 || assistsLogged > 0,
-        matchCost, playersInGame, costPerPlayer, lineup, levy: null,
+        matchCost, playersInGame, costPerPlayer, lineup, ringers: m.ringers, ringerGoals: m.ringerGoals, ringerAssists: m.ringerAssists, levy: null,
       };
     });
     const perPlayer = new Map<string, { apps: number; goals: number }>();

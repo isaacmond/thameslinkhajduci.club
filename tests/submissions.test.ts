@@ -6,31 +6,36 @@ const today = "2026-09-04";
 
 describe("ringers on the score form", () => {
   const fixture = { id: "s8-gw6", seasonId: "S8", gw: 6, opponent: "Corsicans FC", date: "2026-10-06", played: false, matchCost: 79.95 };
-  it("accepts a ringer who is not on the roster, lets them score, and keeps them out of the Played line", () => {
-    const r = validateScore({ ours: 2, theirs: 1, scorers: { Alex: 1, "Phil Knott": 1 }, played: ["Phil Knott", "Seb Burgess"], ringers: [" Alex "], submittedBy: "Phil" }, (n) => roster.includes(n));
+  it("takes a count of ringers with their goals and assists, and no names", () => {
+    const r = validateScore({ ours: 3, theirs: 1, scorers: { "Phil Knott": 1 }, assists: { "Seb Burgess": 1 }, played: ["Phil Knott", "Seb Burgess"], ringers: 2, ringerGoals: 2, ringerAssists: 1, submittedBy: "Phil" }, (n) => roster.includes(n));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.value.ringers).toEqual(["Alex"]); expect(r.value.played.sort()).toEqual(["Alex", "Phil Knott", "Seb Burgess"]);
+    expect(r.value.ringers).toBe(2); expect(r.value.played.sort()).toEqual(["Phil Knott", "Seb Burgess"]);
     const m = buildScoreMessage(r.value, fixture, "Tue 6 Oct", "£13.33 split between the 10 regulars who did not play, £1.33 each (…)");
     expect(m.text).toContain("Played: Phil Knott, Seb Burgess");
-    expect(m.text).toContain("Ringers: Alex\nRingers' share: £13.33 split");
-    expect(m.change.ringers).toEqual(["Alex"]);
+    expect(m.text).toContain("Ringers: 2 ringers (2 goals, 1 assist)\nRingers' share: £13.33 split");
+    expect(m.change).toMatchObject({ ringers: 2, ringerGoals: 2, ringerAssists: 1 });
   });
-  it("still refuses an unknown name that was not declared a ringer", () => {
+  it("counts ringers' goals and assists towards the score", () => {
+    const r = validateScore({ ours: 1, theirs: 1, scorers: { "Phil Knott": 1 }, played: ["Phil Knott"], ringers: 1, ringerGoals: 1, submittedBy: "Phil" }, (n) => roster.includes(n));
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(/Scorers add up to 2/);
+  });
+  it("refuses an unknown name: a ringer is a count, not a name", () => {
     const r = validateScore({ ours: 1, theirs: 1, scorers: { Alex: 1 }, played: [], submittedBy: "Phil" }, (n) => roster.includes(n));
-    expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(/as a ringer/);
+    expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(/Not on the roster: Alex/);
   });
   it.each([
-    [{ ringers: ["A"] }, /letters/],
-    [{ ringers: ["Al3x"] }, /letters/],
-    [{ ringers: ["A", "B", "C", "D", "E"].map((x) => x + "lex") }, /No more than \d+ ringers/],
+    [{ ringers: 5 }, /No more than \d+ ringers/],
+    [{ ringers: 1.5 }, /whole numbers/],
+    [{ ringers: ["Alex"] }, /whole numbers/],
+    [{ ringers: 0, ringerGoals: 1 }, /no ringers played/],
   ])("rejects %j", (extra, msg) => {
     const r = validateScore({ ours: 1, theirs: 1, played: ["Phil Knott"], submittedBy: "Phil", ...extra }, (n) => roster.includes(n));
     expect(r.ok).toBe(false); if (!r.ok) expect(r.error).toMatch(msg);
   });
   it("a forfeit has no ringers", () => {
-    const r = validateScore({ ours: 0, theirs: 8, forfeit: true, played: ["Phil Knott"], ringers: ["Alex"], submittedBy: "Phil" }, (n) => roster.includes(n));
-    expect(r.ok && r.value.ringers).toEqual([]); expect(r.ok && r.value.played).toEqual(["Phil Knott"]);
+    const r = validateScore({ ours: 0, theirs: 8, forfeit: true, played: ["Phil Knott"], ringers: 2, ringerGoals: 1, submittedBy: "Phil" }, (n) => roster.includes(n));
+    expect(r.ok && r.value.ringers).toBe(0); expect(r.ok && r.value.played).toEqual(["Phil Knott"]);
     expect(r.ok && "ringers" in buildScoreMessage(r.value, fixture, "Tue").change).toBe(false);
   });
 });

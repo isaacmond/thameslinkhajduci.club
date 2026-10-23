@@ -62,6 +62,11 @@ export const matches = pgTable("matches", {
   matchCost: numeric({ precision: 8, scale: 2 }).notNull().default("0"),
   /** override for the cost split; null means "count the appearances" */
   playersInGame: integer(),
+  /** outside players borrowed for the night: a count, never names. They are heads on the pitch for the split but pay nothing; their share is levied on the regulars */
+  ringers: integer().notNull().default(0),
+  /** goals and assists by those ringers, so the scorers add up to the score */
+  ringerGoals: integer().notNull().default(0),
+  ringerAssists: integer().notNull().default(0),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedBy: text(),
 }, (t) => [unique("matches_season_gw").on(t.seasonId, t.gw), index("matches_season_idx").on(t.seasonId, t.gw)]);
@@ -72,8 +77,6 @@ export const appearances = pgTable("appearances", {
   played: boolean().notNull().default(true),
   goals: integer().notNull().default(0),
   assists: integer().notNull().default(0),
-  /** an outside player borrowed for the night: counts as an appearance, pays nothing; their share of the pitch is levied on the regulars */
-  ringer: boolean().notNull().default(false),
 }, (t) => [primaryKey({ columns: [t.matchId, t.player] }), index("appearances_player_idx").on(t.player)]);
 
 export const payments = pgTable("payments", {

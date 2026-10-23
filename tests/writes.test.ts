@@ -42,36 +42,33 @@ describe("recording results", () => {
     const after = (await loadClubData(db)).matches.find((x) => x.id === m.id)!;
     expect(after.result).toBe("L"); expect(after.lineup.length).toBe(2); expect(after.motm).toBeNull();
   });
-  it("a ringer counts as an appearance, pays nothing, stays off the team sheet, and their share lands on the regulars", async () => {
+  it("ringers are a count on the match: heads for the split who pay nothing, never players, and their share lands on the regulars", async () => {
     const before = await loadClubData(db);
     const fixture = before.seasons.find((s) => s.id === "S8")!.matches.find((m) => !m.played && m.matchCost > 0)!;
     const owed = (d: typeof before, n: string) => d.money.rows.find((r) => r.player === n)?.charges.S8 ?? 0;
-    await recordScore({ matchId: fixture.id, ours: 3, theirs: 1, scorers: { "Alex": 1, "Phil Knott": 2 }, assists: {}, played: ["Phil Knott", "Isaac Mond", "Seb Burgess", "Max Cobain", "Ben Merrett"], ringers: ["Alex"], motm: null, comment: null }, "test", db);
+    await recordScore({ matchId: fixture.id, ours: 3, theirs: 1, scorers: { "Phil Knott": 2 }, assists: { "Seb Burgess": 1 }, played: ["Phil Knott", "Isaac Mond", "Seb Burgess", "Max Cobain", "Ben Merrett"], ringers: 1, ringerGoals: 1, ringerAssists: 1, motm: null, comment: null }, "test", db);
     const after = await loadClubData(db);
     const m = after.matches.find((x) => x.id === fixture.id)!;
-    const alex = m.lineup.find((l) => l.player === "Alex")!;
-    expect(alex.played).toBe(true); expect(alex.ringer).toBe(true); expect(alex.goals).toBe(1); expect(alex.cost).toBe(0);
+    expect(m.ringers).toBe(1); expect(m.ringerGoals).toBe(1); expect(m.ringerAssists).toBe(1);
+    expect(m.lineup.length).toBe(5); expect(m.scorersRecorded).toBe(true);
     expect(m.playersInGame).toBe(6); expect(m.costPerPlayer).toBeCloseTo(fixture.matchCost / 6, 6);
-    expect(m.lineup.filter((l) => !l.ringer).every((l) => Math.abs(l.cost - m.costPerPlayer) < 1e-6)).toBe(true);
-    expect(after.seasons.find((s) => s.id === "S8")!.players).not.toContain("Alex");
-    const p = after.players.find((x) => x.name === "Alex")!;
-    expect(p.apps).toBe(1); expect(p.goals).toBe(1); expect(p.ringer).toBe(true);
-    expect(after.players.find((x) => x.name === "Phil Knott")!.ringer).toBe(false);
+    expect(m.lineup.every((l) => Math.abs(l.cost - m.costPerPlayer) < 1e-6)).toBe(true);
+    expect(after.players.length).toBe(before.players.length);
     // the levy: one head's worth, split equally between the regulars, all of whom are charged for it in S8
     expect(m.levy).not.toBeNull();
+    expect(m.levy!.ringers).toBe(1);
     expect(m.levy!.total).toBeCloseTo(m.costPerPlayer, 6); expect(m.levy!.each).toBeCloseTo(m.costPerPlayer / m.levy!.payers.length, 6);
     expect(m.levy!.payers.length).toBeGreaterThanOrEqual(1); expect(m.levy!.payers.length).toBeLessThanOrEqual(12);
     expect(m.levy!.payers.some((name) => m.lineup.some((l) => l.player === name && l.played))).toBe(false);
     for (const name of m.levy!.payers) expect(owed(after, name) - owed(before, name)).toBeCloseTo(m.levy!.each, 6);
-    for (const l of m.lineup) if (!l.ringer) expect(owed(after, l.player) - owed(before, l.player)).toBeCloseTo(m.costPerPlayer, 6);
-    expect(owed(after, "Alex")).toBe(0);
+    for (const l of m.lineup) expect(owed(after, l.player) - owed(before, l.player)).toBeCloseTo(m.costPerPlayer, 6);
     // the whole pitch is still accounted for: heads' shares plus the levy add up to the match cost
     const charged = after.money.rows.reduce((t, r) => t + (r.charges.S8 ?? 0), 0) - before.money.rows.reduce((t, r) => t + (r.charges.S8 ?? 0), 0);
     expect(charged).toBeCloseTo(fixture.matchCost, 6);
-    // a correction without the ringer takes them back out, levy and all
+    // a correction without ringers takes them back out, levy and all
     await recordScore({ matchId: fixture.id, ours: 3, theirs: 1, scorers: { "Phil Knott": 3 }, assists: {}, played: ["Phil Knott", "Isaac Mond", "Seb Burgess", "Max Cobain", "Ben Merrett"], motm: null, comment: null }, "test", db);
     const fixed = (await loadClubData(db)).matches.find((x) => x.id === fixture.id)!;
-    expect(fixed.levy).toBeNull(); expect(fixed.lineup.some((l) => l.player === "Alex")).toBe(false); expect(fixed.playersInGame).toBe(5);
+    expect(fixed.levy).toBeNull(); expect(fixed.ringers).toBe(0); expect(fixed.ringerGoals).toBe(0); expect(fixed.playersInGame).toBe(5);
   });
   it("a forfeit types the fixture, bills only the players named, counts for nobody, and a real score later lifts it", async () => {
     const before = await loadClubData(db);

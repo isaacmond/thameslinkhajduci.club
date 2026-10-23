@@ -1,5 +1,6 @@
 import type { Match } from "./types";
 import { fixtureLabel, fmtMoney } from "./stats";
+import { MAX_RINGERS } from "./ringers";
 import type { PaymentChange, PlayerChange, ScoreChange } from "./writes";
 
 /**
@@ -44,36 +45,38 @@ export function originAllowed(h: { get(name: string): string | null }): boolean 
 }
 
 /* -------------------------------------------------------------------- scores */
-/** A ringer's name: letters, spaces, apostrophes, hyphens and dots, two letters at least. One name is fine ("Alex"), it is who the league sent. */
-const RINGER_NAME = /^\p{L}[\p{L}\p{M}' .-]*$/u;
-export const MAX_RINGERS = 4;
+/** "2 ringers (1 goal, 1 assist)": what the message and the fixture page say about the night's ringers. */
+export function ringersLine(n: number, goals: number, assists: number): string {
+  const extra = [goals ? `${goals} goal${goals === 1 ? "" : "s"}` : null, assists ? `${assists} assist${assists === 1 ? "" : "s"}` : null].filter(Boolean);
+  return `${n} ringer${n === 1 ? "" : "s"}${extra.length ? ` (${extra.join(", ")})` : ""}`;
+}
 /**
  * `forfeit`: we did not play. `played` is then the players charged for the pitch, and scorers, assists and MOTM are ignored.
- * `ringers`: outside players borrowed for the night, named as typed; they are in `played` too, may score and assist, and are never added to the roster.
+ * `ringers`: how many outside players were borrowed for the night (a count, never names), with what they scored and set up.
  */
-export type ScoreValue = { ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; ringers: string[]; motm: string | null; note: string; submittedBy: string; forfeit: boolean };
+export type ScoreValue = { ours: number; theirs: number; scorers: Record<string, number>; assists: Record<string, number>; played: string[]; ringers: number; ringerGoals: number; ringerAssists: number; motm: string | null; note: string; submittedBy: string; forfeit: boolean };
 export function validateScore(body: Record<string, unknown>, known: (name: string) => boolean): { ok: true; value: ScoreValue } | { ok: false; error: string } {
   const ours = body.ours, theirs = body.theirs;
   if (!isCount(ours) || !isCount(theirs)) return { ok: false, error: "Scores must be whole numbers between 0 and 30." };
   const forfeit = body.forfeit === true;
   const asCounts = (v: unknown) => Object.fromEntries(Object.entries((v ?? {}) as Record<string, unknown>).filter((e): e is [string, number] => isCount(e[1]) && e[1] > 0).map(([n, v]) => [clean(n, 40), v]));
   const scorers = forfeit ? {} : asCounts(body.scorers), assists = forfeit ? {} : asCounts(body.assists);
-  const ringers = forfeit ? [] : [...new Set((Array.isArray(body.ringers) ? body.ringers : []).map((s) => clean(s, 40).replace(/\s*-\s*/g, "-")).filter(Boolean))];
-  if (ringers.length > MAX_RINGERS) return { ok: false, error: `No more than ${MAX_RINGERS} ringers.` };
-  const badRinger = ringers.find((n) => n.length < 2 || !RINGER_NAME.test(n) || !/\p{L}.*\p{L}/u.test(n));
-  if (badRinger) return { ok: false, error: `Ringer names are letters, spaces, apostrophes and hyphens: "${badRinger}" is not.` };
-  const isRinger = (n: string) => ringers.includes(n);
-  const played = [...new Set([...(Array.isArray(body.played) ? body.played : []).map((s) => clean(s, 40)), ...ringers, ...Object.keys(scorers), ...Object.keys(assists)])].filter(Boolean);
+  const count = (v: unknown) => (v === undefined || v === null ? 0 : v);
+  const ringers = forfeit ? 0 : count(body.ringers), ringerGoals = forfeit ? 0 : count(body.ringerGoals), ringerAssists = forfeit ? 0 : count(body.ringerAssists);
+  if (!isCount(ringers) || !isCount(ringerGoals) || !isCount(ringerAssists)) return { ok: false, error: "Ringers, their goals and their assists are whole numbers." };
+  if (ringers > MAX_RINGERS) return { ok: false, error: `No more than ${MAX_RINGERS} ringers.` };
+  if (!ringers && (ringerGoals || ringerAssists)) return { ok: false, error: "Goals or assists for ringers, but no ringers played." };
+  const played = [...new Set([...(Array.isArray(body.played) ? body.played : []).map((s) => clean(s, 40)), ...Object.keys(scorers), ...Object.keys(assists)])].filter(Boolean);
   const motm = body.motm && !forfeit ? clean(body.motm, 40) : null;
-  const unknown = [...Object.keys(scorers), ...Object.keys(assists), ...played, ...(motm ? [motm] : [])].filter((n) => !known(n) && !isRinger(n));
-  if (unknown.length) return { ok: false, error: `Not on the roster: ${[...new Set(unknown)].join(", ")}. Add them under "New player" first, or as a ringer.` };
-  const goalsLogged = Object.values(scorers).reduce((t, v) => t + v, 0), assistsLogged = Object.values(assists).reduce((t, v) => t + v, 0);
+  const unknown = [...Object.keys(scorers), ...Object.keys(assists), ...played, ...(motm ? [motm] : [])].filter((n) => !known(n));
+  if (unknown.length) return { ok: false, error: `Not on the roster: ${[...new Set(unknown)].join(", ")}. Add them under "New player" first, or count them as a ringer.` };
+  const goalsLogged = Object.values(scorers).reduce((t, v) => t + v, ringerGoals), assistsLogged = Object.values(assists).reduce((t, v) => t + v, ringerAssists);
   if (goalsLogged > ours) return { ok: false, error: `Scorers add up to ${goalsLogged} but we scored ${ours}.` };
   if (assistsLogged > ours) return { ok: false, error: "More assists than goals." };
-  if (played.length > 12) return { ok: false, error: "Too many players for one match." };
+  if (played.length + ringers > 12) return { ok: false, error: "Too many players for one match." };
   const submittedBy = clean(body.submittedBy, 40);
   if (submittedBy.length < 2) return { ok: false, error: "Tell us who you are." };
-  return { ok: true, value: { ours, theirs, scorers, assists, played, ringers, motm, note: clean(body.note, 200), submittedBy, forfeit } };
+  return { ok: true, value: { ours, theirs, scorers, assists, played, ringers, ringerGoals, ringerAssists, motm, note: clean(body.note, 200), submittedBy, forfeit } };
 }
 /** Who pays for a forfeited pitch, and how much each: the line the message, the queue and the fixture page all use. */
 export function forfeitBill(payers: string[], matchCost: number | undefined): string {
@@ -101,16 +104,16 @@ export function buildScoreMessage(v: ScoreValue, m: Pick<Match, "id" | "seasonId
   const lines = [
     `SCORE${m.played ? " (correction)" : ""}`,
     summary,
-    Object.keys(v.scorers).length ? `Scorers: ${list(v.scorers)}` : "Scorers: none logged",
+    Object.keys(v.scorers).length ? `Scorers: ${list(v.scorers)}` : v.ringerGoals ? null : "Scorers: none logged",
     Object.keys(v.assists).length ? `Assists: ${list(v.assists)}` : null,
     v.motm ? `Man of the match: ${v.motm}` : null,
-    v.played.length ? `Played: ${v.played.filter((p) => !v.ringers.includes(p)).join(", ")}` : null,
-    v.ringers.length ? `Ringers: ${v.ringers.join(", ")}` : null,
-    v.ringers.length ? `Ringers' share: ${levy ?? "nobody picks it up, as no absent regular has played three of the last ten matches"}` : null,
+    v.played.length ? `Played: ${v.played.join(", ")}` : null,
+    v.ringers ? `Ringers: ${ringersLine(v.ringers, v.ringerGoals, v.ringerAssists)}` : null,
+    v.ringers ? `Ringers' share: ${levy ?? "nobody picks it up, as no absent regular has played three of the last ten matches"}` : null,
     v.note ? `Note: ${v.note}` : null,
     `Submitted by ${v.submittedBy}`,
   ].filter((l): l is string => l !== null);
-  return { kind: "score", subject: `Score: ${summary}`, summary, text: lines.join("\n"), submittedBy: v.submittedBy, change: { matchId: m.id, ours: v.ours, theirs: v.theirs, scorers: v.scorers, assists: v.assists, played: v.played, motm: v.motm, comment: v.note || null, ...(v.ringers.length ? { ringers: v.ringers } : {}) } };
+  return { kind: "score", subject: `Score: ${summary}`, summary, text: lines.join("\n"), submittedBy: v.submittedBy, change: { matchId: m.id, ours: v.ours, theirs: v.theirs, scorers: v.scorers, assists: v.assists, played: v.played, motm: v.motm, comment: v.note || null, ...(v.ringers ? { ringers: v.ringers, ringerGoals: v.ringerGoals, ringerAssists: v.ringerAssists } : {}) } };
 }
 
 /* ------------------------------------------------------------------ payments */

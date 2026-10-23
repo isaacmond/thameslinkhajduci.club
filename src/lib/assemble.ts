@@ -28,7 +28,7 @@ export function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>)
   const get = (name: string) => {
     let p = map.get(name);
     if (!p) {
-      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {}, ringer: true };
+      p = { name, slug: slugify(name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: extras.get(name) ?? {} };
       map.set(name, p);
     }
     return p;
@@ -46,7 +46,6 @@ export function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>)
       for (const l of m.lineup) {
         const p = get(l.player); const x = ps(l.player);
         x.cost += l.cost;
-        if (l.played && !l.ringer) p.ringer = false;
         if (!m.countsForRecords) continue;
         if (l.played) {
           x.apps++; p.apps++;
@@ -65,7 +64,6 @@ export function buildPlayers(seasons: Season[], extras: Map<string, SquadExtra>)
     for (const [name, x] of perSeason) { if (x.apps || x.goals || x.assists || x.motm || x.cost) get(name).seasons.push(x); }
   }
   for (const p of map.values()) {
-    if (p.apps === 0) p.ringer = false;
     p.goalsPerGame = p.gpgGames ? +(p.goals / p.gpgGames).toFixed(2) : 0;
     p.assistsPerGame = p.apgGames ? +(p.assists / p.apgGames).toFixed(2) : 0;
     const decided = p.wins + p.draws + p.losses;

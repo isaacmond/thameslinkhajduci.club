@@ -8,6 +8,7 @@ import { dbConfigured } from "@/lib/db";
 import { getSquad } from "@/lib/writes";
 import { pollSummary } from "@/lib/motm-polls";
 import { fmtCloses } from "@/lib/motm";
+import { ringerCount } from "@/lib/ringers";
 import { assistersFor, chronological, fmtDate, fmtMoney, gwLabel, headToHead, leaderboard, opponentKey, playedMatches, scorersFor, scoreline, seasonHref, seasonPlayers } from "@/lib/stats";
 import { londonEpoch, londonToday } from "@/lib/time";
 import { matchVerdict, resultWord } from "@/lib/captions";
@@ -53,6 +54,10 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
   const lineup = [...m.lineup].filter((l) => l.played).sort((a, b) => b.goals - a.goals || b.assists - a.assists || a.player.localeCompare(b.player));
   const ghosts = m.lineup.filter((l) => !l.played && (l.goals || l.assists));
   const scorers = scorersFor(m), assisters = assistersFor(m);
+  // Ringers are a count, never names: one line wherever the named players are listed.
+  const ringersLabel = m.ringers ? (m.ringers === 1 ? "Ringer" : `Ringers ×${m.ringers}`) : null;
+  const scorerNames = [...scorers.map((s) => `${s.player}${s.goals > 1 ? ` (${s.goals})` : ""}`), ...(m.ringerGoals ? [`${m.ringers === 1 ? "Ringer" : "Ringers"}${m.ringerGoals > 1 ? ` (${m.ringerGoals})` : ""}`] : [])];
+  const assistNames = [...assisters.map((s) => `${s.player}${s.assists > 1 ? ` (${s.assists})` : ""}`), ...(m.ringerAssists ? [`${m.ringers === 1 ? "Ringer" : "Ringers"}${m.ringerAssists > 1 ? ` (${m.ringerAssists})` : ""}`] : [])];
   const isForfeit = /forfeit/i.test(m.type ?? "") || /^forfeit$/i.test(m.opponent);
   const opponentLabel = /^forfeit$/i.test(m.opponent) ? "Nobody (forfeit)" : m.opponent;
   const kickoff = m.date && m.kickOff ? londonEpoch(m.date, m.kickOff) : null;
@@ -105,7 +110,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         <div className="flex flex-wrap items-center justify-center gap-2">
           {m.motm && <Tag tone="gold"><MotmStar />Man of the match<Link href={`/squad/${byName.get(m.motm)?.slug ?? slugify(m.motm)}`} className="focus-ring rounded underline-offset-2 hover:underline">{m.motm}</Link></Tag>}
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
-          {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.levy && <> · {m.levy.ringers.length} ringer{m.levy.ringers.length === 1 ? "" : "s"}</>}</Tag>}
+          {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.ringers > 0 && <> · {ringerCount(m.ringers)}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
           <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip chip-tap text-muted hover:text-ink" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
         </div>
@@ -128,7 +133,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <p className="mt-4 text-xs text-muted"><Link href={`/submit?match=${m.id}`} className="link">Edit the forfeit</Link></p>
           </Panel>
         ) : (
-          <Panel flush title="Line-up" sub={m.played ? (lineup.length ? `${lineup.length} players` : "No line-up recorded") : "To be confirmed"}>
+          <Panel flush title="Line-up" sub={m.played ? (lineup.length || m.ringers ? `${lineup.length} players${m.ringers ? ` and ${ringerCount(m.ringers)}` : ""}` : "No line-up recorded") : "To be confirmed"}>
             {!m.played && usual.length > 0 && (
               <div className="card-x pb-(--card-px)">
                 <p className="eyebrow mb-3">Most appearances this season</p>
@@ -136,19 +141,27 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                 <p className="mt-4 text-xs text-muted"><Link href={`/submit?match=${m.id}`} className="link">Add the result</Link> once it&apos;s played.</p>
               </div>
             )}
-            {lineup.length > 0 && (
+            {(lineup.length > 0 || m.ringers > 0) && (
               <div className="scroll-x overflow-x-auto">
                 <table className="stats">
                   <thead><tr><th>Player</th><th className="num">Goals</th><th className="num">Assists</th><th className="hidden whitespace-nowrap text-right sm:table-cell"><span className="sr-only">Man of the match</span></th></tr></thead>
                   <tbody>
                     {lineup.map((l) => (
                       <tr key={l.player}>
-                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{m.motm === l.player && <MotmStar className="sm:hidden" label="Man of the match" />}{l.ringer && <Tag size="sm">Ringer</Tag>}</span></td>
+                        <td><span className="inline-flex max-w-full items-center gap-2 align-middle"><PlayerLink name={l.player} player={byName.get(l.player)} avatar />{m.motm === l.player && <MotmStar className="sm:hidden" label="Man of the match" />}</span></td>
                         <td className={clsx("num font-semibold", l.goals > 0 ? "text-ink" : "text-muted/70")}>{l.goals || "·"}</td>
                         <td className={clsx("num font-semibold", l.assists > 0 ? "text-ink" : "text-muted/70")}>{l.assists || "·"}</td>
                         <td className="hidden text-right text-xs text-gold sm:table-cell">{m.motm === l.player && <span className="inline-flex items-center gap-1"><MotmStar />Man of the match</span>}</td>
                       </tr>
                     ))}
+                    {ringersLabel && (
+                      <tr>
+                        <td><span className="inline-flex items-center gap-2 align-middle text-muted"><span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ink/5 text-xs font-semibold" aria-hidden>{m.ringers}</span>{ringersLabel}</span></td>
+                        <td className={clsx("num font-semibold", m.ringerGoals > 0 ? "text-ink" : "text-muted/70")}>{m.ringerGoals || "·"}</td>
+                        <td className={clsx("num font-semibold", m.ringerAssists > 0 ? "text-ink" : "text-muted/70")}>{m.ringerAssists || "·"}</td>
+                        <td className="hidden sm:table-cell"></td>
+                      </tr>
+                    )}
                     {ghosts.map((l) => <tr key={l.player} className="opacity-70"><td><PlayerLink name={l.player} player={byName.get(l.player)} avatar /> <span className="text-xs text-muted">(no appearance recorded)</span></td><td className="num font-semibold">{l.goals || "·"}</td><td className="num font-semibold">{l.assists || "·"}</td><td className="hidden sm:table-cell"></td></tr>)}
                   </tbody>
                 </table>
@@ -180,13 +193,13 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <Panel key="summary" title="Summary">
               <dl className="space-y-3 text-sm">
                 {isForfeit ? <div><dt className="eyebrow">Forfeit</dt><dd className="mt-1 text-ink">Awarded {m.ourGoals}–{m.theirGoals}. The pitch was still paid for.</dd></div> : (
-                <div><dt className="eyebrow">Scorers</dt><dd className="mt-1 text-ink">{scorers.length ? scorers.map((s) => `${s.player}${s.goals > 1 ? ` (${s.goals})` : ""}`).join(", ") : (m.ourGoals ?? 0) > 0 ? "Not recorded" : "None"}</dd></div>
+                <div><dt className="eyebrow">Scorers</dt><dd className="mt-1 text-ink">{scorerNames.length ? scorerNames.join(", ") : (m.ourGoals ?? 0) > 0 ? "Not recorded" : "None"}</dd></div>
                 )}
-                {!isForfeit && <div><dt className="eyebrow">Assists</dt><dd className="mt-1 text-ink">{assisters.length ? assisters.map((s) => `${s.player}${s.assists > 1 ? ` (${s.assists})` : ""}`).join(", ") : "None recorded"}</dd></div>}
+                {!isForfeit && <div><dt className="eyebrow">Assists</dt><dd className="mt-1 text-ink">{assistNames.length ? assistNames.join(", ") : "None recorded"}</dd></div>}
                 {m.levy && (
                   <div>
                     <dt className="eyebrow">Ringer levy</dt>
-                    <dd className="mt-1 text-ink">{m.levy.ringers.join(", ")} {m.levy.ringers.length === 1 ? "was a ringer" : "were ringers"} for the night. Their {fmtMoney(m.levy.total)} share of the pitch is split between {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} who {m.levy.payers.length === 1 ? "wasn't" : "weren't"} playing, {fmtMoney(m.levy.each)} each.</dd>
+                    <dd className="mt-1 text-ink">{m.levy.ringers === 1 ? "One ringer" : `${m.levy.ringers} ringers`} played. {m.levy.ringers === 1 ? "Their" : "Their combined"} {fmtMoney(m.levy.total)} share of the pitch is split between {m.levy.payers.length} regular{m.levy.payers.length === 1 ? "" : "s"} who {m.levy.payers.length === 1 ? "wasn't" : "weren't"} playing, {fmtMoney(m.levy.each)} each.</dd>
                     <dd className="mt-1 text-xs text-muted">{m.levy.payers.join(", ")}</dd>
                   </div>
                 )}

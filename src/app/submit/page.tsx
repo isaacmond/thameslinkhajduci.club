@@ -69,8 +69,8 @@ export default async function SubmitPage({ searchParams }: { searchParams: Param
     const toFixture = (m: (typeof pool)[number]): SubmitFixture => ({
       id: m.id, seasonId: m.seasonId, gw: m.gw, opponent: m.opponent, date: m.date, played: m.played, ourGoals: m.ourGoals, theirGoals: m.theirGoals,
       label: `${fmtDate(m.date, { weekday: "short", day: "numeric", month: "short" })} · ${m.seasonId === "FR" ? "Friendly" : gwLabel(m)} v ${m.opponent}${m.played ? ` (${m.ourGoals}–${m.theirGoals} recorded)` : ""}`,
-      lineup: m.lineup.filter((l) => l.played && !l.ringer).map((l) => l.player),
-      ringers: m.lineup.filter((l) => l.played && l.ringer).map((l) => l.player),
+      lineup: m.lineup.filter((l) => l.played).map((l) => l.player),
+      ringers: m.ringers, ringerGoals: m.ringerGoals, ringerAssists: m.ringerAssists,
       expected: expected.get(m.id) ?? [],
       priorApps: priorApps(m), counted: m.countsForRecords,
       type: m.type, matchCost: m.matchCost, kickOff: m.kickOff,

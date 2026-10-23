@@ -33,7 +33,7 @@ export function buildTable(data: ClubData, table: TableName, opts: { season?: st
       return { columns: Object.keys(rows[0] ?? { player: "" }), rows };
     }
     case "matches": {
-      const rows: Row[] = matches.map((m) => ({ season: m.seasonId, gw: m.gw, date: m.date, kick_off: m.kickOff, opponent: m.opponent, our_goals: m.ourGoals, their_goals: m.theirGoals, result: m.result, type: m.type, counts_for_records: m.countsForRecords, scorers_recorded: m.scorersRecorded, assists_recorded: m.assistsRecorded, motm: m.motm, comment: m.comment, players: m.lineup.filter((l) => l.played).length, scorers: m.lineup.filter((l) => l.goals > 0).map((l) => `${l.player} (${l.goals})`).join("; "), match_cost: m.matchCost || null }));
+      const rows: Row[] = matches.map((m) => ({ season: m.seasonId, gw: m.gw, date: m.date, kick_off: m.kickOff, opponent: m.opponent, our_goals: m.ourGoals, their_goals: m.theirGoals, result: m.result, type: m.type, counts_for_records: m.countsForRecords, scorers_recorded: m.scorersRecorded, assists_recorded: m.assistsRecorded, motm: m.motm, comment: m.comment, players: m.lineup.filter((l) => l.played).length, ringers: m.ringers, ringer_goals: m.ringerGoals, ringer_assists: m.ringerAssists, scorers: m.lineup.filter((l) => l.goals > 0).map((l) => `${l.player} (${l.goals})`).join("; "), match_cost: m.matchCost || null }));
       return { columns: Object.keys(rows[0] ?? {}), rows };
     }
     case "seasons": {
@@ -46,9 +46,9 @@ export function buildTable(data: ClubData, table: TableName, opts: { season?: st
         if (table === "appearances" && !l.played) continue;
         if (table === "goals" && !l.goals) continue;
         if (table === "assists" && !l.assists) continue;
-        rows.push({ season: m.seasonId, gw: m.gw, date: m.date, opponent: m.opponent, result: m.result, player: l.player, goals: l.goals, assists: l.assists, motm: m.motm === l.player, ringer: l.ringer, counts_for_records: m.countsForRecords });
+        rows.push({ season: m.seasonId, gw: m.gw, date: m.date, opponent: m.opponent, result: m.result, player: l.player, goals: l.goals, assists: l.assists, motm: m.motm === l.player, counts_for_records: m.countsForRecords });
       }
-      return { columns: ["season", "gw", "date", "opponent", "result", "player", "goals", "assists", "motm", "ringer", "counts_for_records"], rows };
+      return { columns: ["season", "gw", "date", "opponent", "result", "player", "goals", "assists", "motm", "counts_for_records"], rows };
     }
     case "opponents": {
       const rows: Row[] = headToHead(matches).map((o) => ({ opponent: o.opponent, played: o.played, won: o.won, drawn: o.drawn, lost: o.lost, goals_for: o.gf, goals_against: o.ga, seasons: o.seasons.join(" ") }));

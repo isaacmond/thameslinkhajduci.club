@@ -49,9 +49,9 @@ function buildScore(body: Body, data: ClubData): Built | Rejected {
   if (!v.ok) return { error: v.error };
   // Ringers: say up front whose pitch money this lands on, worked out the way the records will once the score is in.
   let levy: string | null = null;
-  if (v.value.ringers.length && m.matchCost > 0) {
-    const heads = v.value.played.length;
-    const after = { ...m, played: true, playersInGame: heads, costPerPlayer: m.matchCost / heads, lineup: v.value.played.map((player) => ({ player, played: true, goals: 0, assists: 0, cost: 0, ringer: v.value.ringers.includes(player) })) };
+  if (v.value.ringers && m.matchCost > 0) {
+    const heads = v.value.played.length + v.value.ringers;
+    const after = { ...m, played: true, playersInGame: heads, costPerPlayer: m.matchCost / heads, ringers: v.value.ringers, lineup: v.value.played.map((player) => ({ player, played: true, goals: 0, assists: 0, cost: 0 })) };
     const counted = data.matches.filter((x) => x.countsForRecords && x.played && x.id !== m.id);
     const l = ringerLevy(after, regularsFor(after, counted));
     if (l) levy = levyShare(l, fmtMoney);

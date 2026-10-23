@@ -9,7 +9,7 @@ export function fixtureWorkbook(): ArrayBuffer {
   return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
 }
 
-export const line = (player: string, goals = 0, assists = 0, played = true): PlayerMatchLine => ({ player, played, goals, assists, cost: 0, ringer: false });
+export const line = (player: string, goals = 0, assists = 0, played = true): PlayerMatchLine => ({ player, played, goals, assists, cost: 0 });
 
 let gwCounter = 0;
 /** A Match with the same derived flags the parser would set, so tests only state what matters. */
@@ -21,8 +21,9 @@ export function match(o: Partial<Match> & { date: string }): Match {
   const result = o.result !== undefined ? o.result : played ? (ourGoals! > theirGoals! ? "W" : ourGoals! < theirGoals! ? "L" : "D") : null;
   const type = o.type ?? null;
   const lineup = o.lineup ?? [];
-  const goalsLogged = lineup.reduce((t, l) => t + l.goals, 0);
-  const assistsLogged = lineup.reduce((t, l) => t + l.assists, 0);
+  const ringers = o.ringers ?? 0, ringerGoals = o.ringerGoals ?? 0, ringerAssists = o.ringerAssists ?? 0;
+  const goalsLogged = lineup.reduce((t, l) => t + l.goals, ringerGoals);
+  const assistsLogged = lineup.reduce((t, l) => t + l.assists, ringerAssists);
   return {
     id: o.id ?? `${seasonId.toLowerCase()}-gw${gw}`,
     seasonId,
@@ -39,16 +40,16 @@ export function match(o: Partial<Match> & { date: string }): Match {
     scorersRecorded: o.scorersRecorded ?? (ourGoals === 0 || goalsLogged > 0),
     assistsRecorded: o.assistsRecorded ?? (ourGoals === 0 || assistsLogged > 0),
     matchCost: o.matchCost ?? 0,
-    playersInGame: o.playersInGame ?? lineup.filter((l) => l.played).length,
+    playersInGame: o.playersInGame ?? lineup.filter((l) => l.played).length + ringers,
     costPerPlayer: o.costPerPlayer ?? 0,
-    lineup,
+    lineup, ringers, ringerGoals, ringerAssists,
     levy: o.levy ?? null,
   };
 }
 
 export function player(o: Partial<Player> & { name: string }): Player {
   return {
-    slug: slugify(o.name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: {}, ringer: false,
+    slug: slugify(o.name), apps: 0, goals: 0, assists: 0, motm: 0, wins: 0, draws: 0, losses: 0, goalsPerGame: 0, assistsPerGame: 0, gpgGames: 0, apgGames: 0, winRate: 0, debut: null, lastPlayed: null, seasons: [], extra: {},
     ...o,
   };
 }

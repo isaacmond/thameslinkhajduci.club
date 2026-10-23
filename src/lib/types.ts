@@ -6,13 +6,12 @@ export interface PlayerMatchLine {
   goals: number;
   assists: number;
   cost: number;
-  /** borrowed for the night: an appearance like any other, but their share of the pitch is levied on the regulars (see Match.levy) */
-  ringer: boolean;
 }
 
 /** What the ringers' share of a pitch comes to and who picks it up: the regulars, equally. */
 export interface RingerLevy {
-  ringers: string[];
+  /** how many ringers played */
+  ringers: number;
   /** the ringers' combined share of the pitch */
   total: number;
   /** what each regular is charged */
@@ -45,7 +44,12 @@ export interface Match {
   matchCost: number;
   playersInGame: number;
   costPerPlayer: number;
-  lineup: PlayerMatchLine[]; // only players who played or scored
+  lineup: PlayerMatchLine[]; // only players who played or scored; ringers are never in it
+  /** outside players borrowed for the night: a count, never names. Heads on the pitch for the split, but they pay nothing (see levy) */
+  ringers: number;
+  /** goals and assists by the ringers, so the scorers add up to the score */
+  ringerGoals: number;
+  ringerAssists: number;
   /** set when ringers played and the pitch cost money: how their share is spread (null otherwise) */
   levy: RingerLevy | null;
 }
@@ -117,8 +121,6 @@ export interface Player {
   lastPlayed: string | null;
   seasons: PlayerSeasonStats[];
   extra: SquadExtra;
-  /** every appearance was as a ringer: never on a team sheet, listed for the record */
-  ringer: boolean;
 }
 
 export interface MoneyRow {

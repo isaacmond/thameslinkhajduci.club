@@ -56,8 +56,8 @@ export function sheetHealth(data: ClubData, today: string = londonToday()): Heal
     const played = m.lineup.filter((l) => l.played).length;
     if (played === 0) push("high", `no-apps:${m.id}`, `${at}: has a score but no appearances recorded.`, href);
 
-    const scored = m.lineup.reduce((t, l) => t + l.goals, 0);
-    const assisted = m.lineup.reduce((t, l) => t + l.assists, 0);
+    const scored = m.lineup.reduce((t, l) => t + l.goals, m.ringerGoals);
+    const assisted = m.lineup.reduce((t, l) => t + l.assists, m.ringerAssists);
     if (scored > og) push("high", `too-many-scorers:${m.id}`, `${at}: scorers add up to ${scored} but the score says ${og}.`, href);
     else if (og > 0 && scored === 0) push("low", `no-scorers:${m.id}`, `${at}: ${og} goals with no scorer recorded.`, href);
     else if (og > 0 && scored < og) push("medium", `partial-scorers:${m.id}`, `${at}: ${scored} of ${og} goals have a scorer; ${og - scored} unclaimed.`, href);
