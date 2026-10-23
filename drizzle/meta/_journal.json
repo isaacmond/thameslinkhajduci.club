@@ -43,6 +43,13 @@
       "when": 1792762609956,
       "tag": "0005_ringer_counts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792762901063,
+      "tag": "0006_drop_appearance_ringer",
+      "breakpoints": true
     }
   ]
 }
