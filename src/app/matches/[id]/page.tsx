@@ -110,7 +110,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         <div className="flex flex-wrap items-center justify-center gap-2">
           {m.motm && <Tag tone="gold"><MotmStar />Man of the match<Link href={`/squad/${byName.get(m.motm)?.slug ?? slugify(m.motm)}`} className="focus-ring rounded underline-offset-2 hover:underline">{m.motm}</Link></Tag>}
           {poll?.status === "open" && <Tag tone="gold"><Vote size={12} aria-hidden />Man of the match vote open · {poll.voted} of {poll.ballots} in · closes {fmtCloses(poll.closesAt)}</Tag>}
-          {m.playersInGame > 0 && <Tag>{m.playersInGame} players{m.ringers > 0 && <> · {ringerCount(m.ringers)}</>}</Tag>}
+          {m.playersInGame > 0 && <Tag>{m.playersInGame} player{m.playersInGame === 1 ? "" : "s"}{m.ringers > 0 && <> · {ringerCount(m.ringers)}</>}</Tag>}
           {m.matchCost > 0 && <Tag>Pitch {fmtMoney(m.matchCost)}{m.costPerPlayer > 0 && <> · {fmtMoney(m.costPerPlayer)} each</>}</Tag>}
           <a href={sponsor.url} target="_blank" rel="noopener noreferrer" className="chip chip-tap text-muted hover:text-ink" title={sponsor.tagline}>Match sponsor: {sponsor.name}</a>
         </div>
@@ -128,7 +128,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         const usual = !m.played && season.id !== "FR" ? leaderboard(seasonPlayers(data, season.id), "apps").slice(0, 8) : [];
         // A forfeit's line-up is the bill: who was responsible, and what the pitch cost each of them.
         const lineupCard = isForfeit && m.played ? (
-          <Panel title="Pitch fees" sub={lineup.length ? `${lineup.length} players share the ${fmtMoney(m.matchCost)} pitch, ${fmtMoney(m.costPerPlayer)} each.` : "No one was charged for the pitch."}>
+          <Panel title="Pitch fees" sub={lineup.length === 1 ? `${lineup[0].player} pays the ${fmtMoney(m.matchCost)} pitch.` : lineup.length ? `${lineup.length} players share the ${fmtMoney(m.matchCost)} pitch, ${fmtMoney(m.costPerPlayer)} each.` : "No one was charged for the pitch."}>
             {lineup.length > 0 && <ul className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">{lineup.map((l) => <li key={l.player} className={wellRow}><PlayerLink name={l.player} player={byName.get(l.player)} avatar className="min-w-0 truncate text-sm" /><span className="tabular shrink-0 text-xs text-muted">{fmtMoney(l.cost)}</span></li>)}</ul>}
             <p className="mt-4 text-xs text-muted"><Link href={`/submit?match=${m.id}`} className="link">Edit the forfeit</Link></p>
           </Panel>
